@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>📚 人教版词汇闯关</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#0f0f23;color:#e0e0e0;min-height:100vh;padding:16px}
+.C{max-width:800px;margin:0 auto}
+h1{text-align:center;font-size:1.5em;margin:16px 0 4px;color:#7dd3fc}
+.sub{text-align:center;color:#64748b;font-size:.85em;margin-bottom:16px}
+
+/* 年级/单元卡片 */
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.gcard{background:#1a1a2e;border:2px solid #3a3a5a;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s}
+.gcard:hover{border-color:#7dd3fc;transform:translateY(-2px)}
+.gcard .icon{font-size:2em;margin-bottom:8px}
+.gcard .name{font-size:1em;font-weight:600;color:#e2e8f0}
+.gcard .cnt{font-size:.8em;color:#64748b;margin-top:4px}
+
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:20px}
+.ucard{background:#1a1a2e;border:2px solid #3a3a5a;border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s}
+.ucard:hover{border-color:#7dd3fc}
+.ucard .un{font-size:.9em;font-weight:600;color:#e2e8f0}
+.ucard .uc{font-size:.75em;color:#64748b;margin-top:4px}
+.ucard .us{margin-top:6px;font-size:.9em}
+.ucard.done{border-color:#4ade80}
+
+/* 模式选择 */
+.mtabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
+.mtab{padding:8px 14px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#94a3b8;cursor:pointer;font-size:.85em;transition:all .2s}
+.mtab.on{border-color:#7dd3fc;color:#7dd3fc;background:#1a2a3a}
+
+/* 通用 */
+.card{background:#1a1a2e;border:1px solid #3a3a5a;border-radius:12px;padding:20px;margin-bottom:16px}
+.btn{padding:10px 20px;border-radius:8px;border:none;background:#3b82f6;color:#fff;cursor:pointer;font-size:.95em;transition:all .2s}
+.btn:hover{background:#2563eb}
+.bg{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.bg:hover{border-color:#7dd3fc;color:#7dd3fc}
+.bs{padding:6px 14px;font-size:.82em}
+.brow{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+
+/* 题目 */
+.qw{font-size:1.6em;font-weight:700;color:#7dd3fc;text-align:center;margin:16px 0;word-break:break-word;min-height:60px;display:flex;align-items:center;justify-content:center}
+.qt{text-align:center;color:#64748b;font-size:.85em;margin-bottom:16px}
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{padding:12px;border-radius:8px;border:2px solid #3a3a5a;background:#252545;color:#e2e8f0;cursor:pointer;font-size:.95em;transition:all .2s;text-align:center;word-break:break-word}
+.opt:hover{border-color:#7dd3fc}
+.opt.ok{border-color:#4ade80!important;background:#052016!important;color:#4ade80!important}
+.opt.no{border-color:#f87171!important;background:#2a0a0a!important;color:#f87171!important}
+.opt.sel{border-color:#7dd3fc!important;background:#1a2a3a!important;color:#7dd3fc!important}
+.opt.off{pointer-events:none;opacity:.5}
+
+.pbtn{display:block;margin:12px auto;padding:10px 24px;border-radius:8px;border:2px solid #3a3a5a;background:#252545;color:#7dd3fc;cursor:pointer;font-size:1em}
+.pbtn:hover{border-color:#7dd3fc}
+
+.pbar{height:6px;background:#252545;border-radius:3px;margin:12px 0;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,#3b82f6,#7dd3fc);border-radius:3px;transition:width .3s}
+.sts{display:flex;gap:16px;font-size:.85em;color:#64748b;justify-content:center;flex-wrap:wrap}
+.sts strong{color:#e2e8f0}
+
+/* 连线配对 */
+.marea{display:flex;gap:16px;margin:16px 0;justify-content:center;flex-wrap:wrap}
+.mcol{display:flex;flex-direction:column;gap:8px;flex:1;min-width:120px;max-width:280px}
+.mcol .opt{width:100%}
+
+/* 结果弹窗 */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.ov.show{display:flex}
+.mdl{background:#1a1a2e;border:1px solid #3a3a5a;border-radius:16px;padding:32px;max-width:420px;width:92%;text-align:center}
+.mdl h2{font-size:1.3em;color:#e2e8f0;margin-bottom:8px}
+.wsec{margin-top:16px;text-align:left}
+.wttl{color:#f87171;font-size:.9em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.wlst{max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:10px}
+.wi{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em}
+.wi span:first-child{color:#e2e8f0}
+.wi span:last-child{color:#94a3b8}
+
+.nbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+
+@media(max-width:540px){
+  .ogrid{grid-template-columns:1fr}
+  .ggrid{grid-template-columns:repeat(2,1fr)}
+  .ugrid{grid-template-columns:repeat(2,1fr)}
+  .marea{flex-direction:column;align-items:center}
+  .mcol{max-width:100%}
+}
+</style>
+</head>
+<body>
+<div class="C" id="app">
+
+  <!-- 年级选择 -->
+  <div id="pg1">
+    <h1>📚 人教版词汇闯关</h1>
+    <p class="sub">初中英语词汇 · 按年级单元学习</p>
+    <div class="ggrid" id="gGrid"></div>
+  </div>
+
+  <!-- 单元选择 -->
+  <div id="pg2" style="display:none">
+    <div class="nbar"><button class="btn bg" onclick="goGrade()">← 返回年级</button><span id="gTitle" style="color:#e2e8f0;font-weight:600"></span></div>
+    <div class="ugrid" id="uGrid"></div>
+  </div>
+
+  <!-- 模式选择 -->
+  <div id="pg3" style="display:none">
+    <div class="nbar"><button class="btn bg" onclick="goUnit()">← 返回单元</button><span id="uTitle" style="color:#e2e8f0;font-weight:600"></span></div>
+    <div class="card">
+      <p style="text-align:center;color:#94a3b8;margin-bottom:16px">选择游戏模式</p>
+      <div class="mtabs">
+        <button class="mtab on" id="m0" onclick="setM(0)">看中文选英文</button>
+        <button class="mtab" id="m1" onclick="setM(1)">看英文选中文</button>
+        <button class="mtab" id="m2" onclick="setM(2)">听音选中文</button>
+        <button class="mtab" id="m3" onclick="setM(3)">🔗 连线配对</button>
+      </div>
+      <div class="brow" style="margin-top:20px">
+        <button class="btn" onclick="go()" style="padding:12px 40px;font-size:1.05em">开始闯关 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏区 -->
+  <div id="pg4" style="display:none">
+    <div class="nbar">
+      <button class="btn bg" onclick="quit()">退出</button>
+      <span id="gInfo" style="color:#64748b;font-size:.85em"></span>
+    </div>
+    <div class="card" id="gc"></div>
+  </div>
+
+  <!-- 结果弹窗 -->
+  <div class="ov" id="ov">
+    <div class="mdl">
+      <h2 id="rT"></h2>
+      <div id="rS" style="font-size:2em;margin:12px 0"></div>
+      <p id="rSc"></p>
+      <p id="rAc" style="color:#94a3b8;font-size:.95em"></p>
+      <div class="wsec" id="wSec" style="display:none">
+        <div class="wttl"><span>📝 错题列表</span><button class="btn bg bs" onclick="cpW()">📋 复制</button></div>
+        <div class="wlst" id="wLst"></div>
+      </div>
+      <div class="brow">
+        <button class="btn" onclick="retry()">再玩一次</button>
+        <button class="btn bg" onclick="goUnit()">返回单元</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const WORDS = {
+  "七年级上册": {
+    "Starter Unit 1": [{"en": "good", "cn": "好的"}, {"en": "morning", "cn": "早晨;上午"}, {"en": "Good morning !", "cn": "早上好！"}, {"en": "hi", "cn": "int.(用于打招呼)嗨;喂"}, {"en": "hello", "cn": "int.你好;喂"}, {"en": "afternoon", "cn": "下午"}, {"en": "Good afternoon !", "cn": "下午好！"}, {"en": "evening", "cn": "晚上;黄昏"}, {"en": "Good evening !", "cn": "晚上好！"}, {"en": "how", "cn": "怎样;如何"}, {"en": "are", "cn": "是"}, {"en": "you", "cn": "你;你们"}, {"en": "I", "cn": "我"}, {"en": "am", "cn": "是"}, {"en": "fine", "cn": "健康的;美好的"}, {"en": "thanks", "cn": "int.＆n.感谢;谢谢"}, {"en": "OK", "cn": "int.＆adv.好;可以"}, {"en": "HB", "cn": "(铅笔芯)硬黑"}, {"en": "CD", "cn": "光盘;激光唱片"}, {"en": "BBC", "cn": "英国广播公司"}],
+    "Starter Unit 2": [{"en": "what", "cn": "adj.什么"}, {"en": "is", "cn": "是"}, {"en": "this", "cn": "这;这个"}, {"en": "in", "cn": "(表示使用语言、材料等)用;以"}, {"en": "English", "cn": "＆adj.英语;英格兰的;英语的"}, {"en": "in English", "cn": "用英语"}, {"en": "map", "cn": "地图"}, {"en": "cup", "cn": "杯子"}, {"en": "ruler", "cn": "尺;直尺"}, {"en": "pen", "cn": "笔;钢笔"}, {"en": "orange", "cn": "橘子"}, {"en": "jacket", "cn": "夹克衫;短上衣"}, {"en": "key", "cn": "钥匙"}, {"en": "quilt", "cn": "被子;床罩"}, {"en": "it", "cn": "它"}, {"en": "a", "cn": "(用于单数可数名词前，表示未曾提到的)一(人、事、物)"}, {"en": "that", "cn": "那;那个"}, {"en": "spell", "cn": "用字母拼;拼写"}, {"en": "please.", "cn": "int.(用于客气地请求或吩咐)请"}, {"en": "NBA", "cn": "(美国)全国篮球协会"}, {"en": "P＝parking", "cn": "停车场;停车位"}, {"en": "kg=kilogram", "cn": "千克;公斤"}],
+    "Starter Unit 3": [{"en": "color (=colour)", "cn": "颜色"}, {"en": "red", "cn": "＆n.红色(的)"}, {"en": "yellow", "cn": "＆n.黄色(的)"}, {"en": "green", "cn": "＆n.绿色(的)"}, {"en": "blue", "cn": "＆n.蓝色(的)"}, {"en": "black", "cn": "＆n.黑色(的)"}, {"en": "white", "cn": "＆n.白色(的)"}, {"en": "purple", "cn": "＆n.紫色(的)"}, {"en": "brown", "cn": "＆n.棕色(的);褐色(的)"}, {"en": "the", "cn": "指已提到或易领会到的人或事物"}, {"en": "now", "cn": "现在;目前"}, {"en": "see", "cn": "理解;明白"}, {"en": "can", "cn": "v.能;会"}, {"en": "say", "cn": "说;讲"}, {"en": "my", "cn": "我的"}, {"en": "S", "cn": "(尤指服装的尺码)小号的"}, {"en": "M", "cn": "(尤指服装的尺码)中号的"}, {"en": "L", "cn": "(尤指服装的尺码)大号的"}, {"en": "UFO", "cn": "不明飞行物"}, {"en": "CCTV", "cn": "中国中央电视台"}],
+    "Unit1": [{"en": "name", "cn": "名字;名称"}, {"en": "nice", "cn": "令人愉快的;宜人的"}, {"en": "to", "cn": "常用于原形动词之前，表示该动词为不定式"}, {"en": "meet", "cn": "遇见;相逢"}, {"en": "too", "cn": "也;又;太"}, {"en": "your", "cn": "你的;你们的"}, {"en": "Ms.", "cn": "(用于女子的姓氏或姓名前，不指明婚否)女士"}, {"en": "his", "cn": "他的"}, {"en": "and", "cn": "和;又;而"}, {"en": "her", "cn": "她的"}, {"en": "yes", "cn": "int.是的;可以"}, {"en": "she", "cn": "她"}, {"en": "he", "cn": "他"}, {"en": "no", "cn": "int.不;没有;不是"}, {"en": "not", "cn": "不;没有"}, {"en": "zero", "cn": "um.零"}, {"en": "one", "cn": "um.一"}, {"en": "two", "cn": "um.二"}, {"en": "three", "cn": "um.三"}, {"en": "four", "cn": "um.四"}, {"en": "five", "cn": "um.五"}, {"en": "six", "cn": "um.六"}, {"en": "seven", "cn": "um. 七"}, {"en": "eight", "cn": "um.八"}, {"en": "nine", "cn": "um九"}, {"en": "telephone", "cn": "电话;电话机"}, {"en": "number", "cn": "号码;数字"}, {"en": "phone", "cn": "电话;电话机"}, {"en": "telephone number", "cn": "电话号码"}, {"en": "phone number", "cn": "电话号码"}, {"en": "first", "cn": "第一"}, {"en": "first name", "cn": "名字"}, {"en": "last", "cn": "最后的;末尾的"}, {"en": "last name", "cn": "姓"}, {"en": "friend", "cn": "朋友"}, {"en": "China", "cn": "中国"}, {"en": "middle", "cn": "＆n.中间的;中间"}, {"en": "school", "cn": "学校"}, {"en": "middle school", "cn": "中学;初中"}],
+    "Unit2": [{"en": "sister", "cn": "姐;妹"}, {"en": "mother", "cn": "母亲;妈妈"}, {"en": "father", "cn": "父亲;爸爸"}, {"en": "parent", "cn": "父(母)亲"}, {"en": "brother", "cn": "兄;弟"}, {"en": "grandmother", "cn": "(外)祖母;奶奶;外婆;姥姥"}, {"en": "grandfather", "cn": "(外)祖父;爷爷;外公;姥爷"}, {"en": "grandparent", "cn": "祖父(母);外祖父(母)"}, {"en": "family", "cn": "家;家庭"}, {"en": "those", "cn": "那些"}, {"en": "who", "cn": "谁;什么人"}, {"en": "oh", "cn": "int.哦;啊"}, {"en": "these", "cn": "这些"}, {"en": "they", "cn": ",他(她、它)们"}, {"en": "well", "cn": "int.嗯;好吧"}, {"en": "have", "cn": "经受;经历"}, {"en": "day", "cn": "一天;一日;白天"}, {"en": "bye (=goodbye)", "cn": "int.再见"}, {"en": "son", "cn": "儿子"}, {"en": "cousin", "cn": "堂(表)兄(弟、姐、妹)"}, {"en": "grandpa", "cn": "(外)祖父;爷爷;外公;姥爷"}, {"en": "mom (=mum)", "cn": "妈妈"}, {"en": "aunt", "cn": "姑母;姨母;伯母;婶母;舅母"}, {"en": "grandma", "cn": "(外)祖母;奶奶;外婆;姥姥"}, {"en": "dad", "cn": "爸爸"}, {"en": "uncle", "cn": "舅父;叔父;伯父;姑父;姨父"}, {"en": "daughter", "cn": "女儿"}, {"en": "here", "cn": "这就是;在这里"}, {"en": "photo", "cn": "照片"}, {"en": "of", "cn": "属于(某人或某物);关于(某人或某物)"}, {"en": "next", "cn": "＆n.下一个(的);接下来(的)"}, {"en": "picture", "cn": "照片; 图画"}, {"en": "girl", "cn": "女孩"}, {"en": "dog", "cn": "狗"}],
+    "Unit3": [{"en": "pencil", "cn": "铅笔"}, {"en": "book", "cn": "书"}, {"en": "eraser", "cn": "橡皮"}, {"en": "box", "cn": "箱;盒"}, {"en": "pencil box", "cn": "铅笔盒;文具盒"}, {"en": "schoolbag", "cn": "书包"}, {"en": "dictionary", "cn": "词典;字典"}, {"en": "his", "cn": "他的"}, {"en": "mine", "cn": "我的"}, {"en": "hers", "cn": "她的"}, {"en": "excuse", "cn": "原谅;宽恕"}, {"en": "me", "cn": "(I的宾格)我"}, {"en": "excuse me.", "cn": "劳驾;请原谅"}, {"en": "thank", "cn": "感谢;谢谢"}, {"en": "teacher", "cn": "老师;教师"}, {"en": "about", "cn": "关于"}, {"en": "What about…?", "cn": "(询问消息或提出建议)……怎么样？……好吗？"}, {"en": "yours", "cn": "你的;你们的"}, {"en": "for", "cn": "为了;给;对"}, {"en": "thank you for…", "cn": "为……而感谢"}, {"en": "help", "cn": "＆n.帮助;援助"}, {"en": "welcome", "cn": "受欢迎的"}, {"en": "You're welcome.", "cn": "别客气。"}, {"en": "baseball", "cn": "棒球"}, {"en": "watch", "cn": "表;手表"}, {"en": "computer", "cn": "计算机;电脑"}, {"en": "game", "cn": "游戏;运动;比赛"}, {"en": "card", "cn": "卡片"}, {"en": "ID card", "cn": "学生证;身份证"}, {"en": "notebook", "cn": "笔记本"}, {"en": "ring", "cn": "戒指"}, {"en": "bag", "cn": "袋;包"}, {"en": "in", "cn": "在……里"}, {"en": "library", "cn": "图书馆"}, {"en": "ask", "cn": "请求;要求;询问"}, {"en": "ask…for…", "cn": "请求;恳求(给予)"}, {"en": "find", "cn": "(过去式、过去分词found)找到;发现"}, {"en": "some", "cn": "pron.一些;某些;有些;有的"}, {"en": "classroom", "cn": "教室"}, {"en": "e-mail (=email)", "cn": "电子邮件"}, {"en": "at", "cn": "(提供电话号码等时使用)按照;根据;在(某处、某时间或时刻)"}, {"en": "call", "cn": "(给……)打电话"}, {"en": "lost", "cn": "(动词lose的过去式)遗失;丢失"}, {"en": "must", "cn": "v.必须"}, {"en": "set", "cn": "一套;一副;一组"}, {"en": "a set of", "cn": "一套;一副;一组"}],
+    "Unit4": [{"en": "where", "cn": "在哪里;到哪里"}, {"en": "table", "cn": "桌子"}, {"en": "bed", "cn": "床"}, {"en": "bookcase", "cn": "书架;书柜"}, {"en": "sofa", "cn": "沙发"}, {"en": "chair", "cn": "椅子"}, {"en": "on", "cn": "在…上"}, {"en": "under", "cn": "在…下"}, {"en": "come", "cn": "来;来到"}, {"en": "come on", "cn": "快点儿"}, {"en": "desk", "cn": "书桌"}, {"en": "think", "cn": "认为;想;思考"}, {"en": "room", "cn": "房间"}, {"en": "their", "cn": "他(她、它)们的"}, {"en": "hat", "cn": "帽子"}, {"en": "head", "cn": "头"}, {"en": "yeah", "cn": "int.是的;对"}, {"en": "know", "cn": "知道;了解"}, {"en": "radio", "cn": "收音机;无线电广播"}, {"en": "clock", "cn": "时钟"}, {"en": "tape", "cn": "磁带;录音带;录像带"}, {"en": "player", "cn": "播放机"}, {"en": "tape player", "cn": "录音机"}, {"en": "model", "cn": "模型"}, {"en": "plane", "cn": "飞机"}, {"en": "model plane", "cn": "飞机模型"}, {"en": "tidy", "cn": "整洁的;井井有条的"}, {"en": "but", "cn": "但是"}, {"en": "our", "cn": "我们的"}, {"en": "everywhere", "cn": "处处;到处;各个地方"}, {"en": "always", "cn": "总是"}],
+    "Unit5": [{"en": "do", "cn": "aux v.＆v.(第三人称单数形式does)用于构成否定句和疑问句;做;干"}, {"en": "have", "cn": "有"}, {"en": "tennis", "cn": "网球"}, {"en": "ball", "cn": "球"}, {"en": "ping-pong", "cn": "乒乓球"}, {"en": "bat", "cn": "球棒;球拍"}, {"en": "soccer", "cn": "(英式)足球"}, {"en": "soccer ball", "cn": "(英式)足球"}, {"en": "volleyball", "cn": "排球"}, {"en": "basketball", "cn": "篮球"}, {"en": "hey", "cn": "int.嘿;喂"}, {"en": "let", "cn": "允许;让"}, {"en": "us", "cn": "(we的宾格)我们"}, {"en": "let's=let us", "cn": "让我们(一起)"}, {"en": "go", "cn": "去;走"}, {"en": "we", "cn": "我们"}, {"en": "late", "cn": "迟到"}, {"en": "has", "cn": "(have的第三人称单数形式)有"}, {"en": "get", "cn": "去取(或带来);得到"}, {"en": "great", "cn": "美妙的;伟大的"}, {"en": "play", "cn": "参加(比赛或活动);玩耍"}, {"en": "sound", "cn": "听起来好像"}, {"en": "interesting", "cn": "有趣的"}, {"en": "boring", "cn": "没聊的;令人厌倦的"}, {"en": "fun", "cn": "＆n.有趣的;使人快乐的;乐趣;快乐"}, {"en": "difficult", "cn": "困难的"}, {"en": "relaxing", "cn": "轻松的;令人放松的"}, {"en": "watch", "cn": "注视;观看"}, {"en": "TV (=television)", "cn": "电视;电视机"}, {"en": "watch TV", "cn": "看电视"}, {"en": "same", "cn": "相同的"}, {"en": "love", "cn": "＆n.爱;喜爱"}, {"en": "with", "cn": "和……在一起;带有;使用"}, {"en": "sport", "cn": "体育运动"}, {"en": "them", "cn": "(they的宾格)他(她，它)们"}, {"en": "only", "cn": "只;仅"}, {"en": "like", "cn": "喜欢;喜爱"}, {"en": "easy", "cn": "容易的;不费力的"}, {"en": "after", "cn": "conj.在……以后"}, {"en": "class", "cn": "班级;课"}, {"en": "classmate", "cn": "同班同学"}],
+    "Unit6": [{"en": "banana", "cn": "香蕉"}, {"en": "hamburger", "cn": "汉堡包"}, {"en": "tomato", "cn": "西红柿"}, {"en": "ice-cream", "cn": "冰淇淋"}, {"en": "salad", "cn": "沙拉"}, {"en": "strawberry", "cn": "草莓"}, {"en": "pear", "cn": "梨"}, {"en": "milk", "cn": "牛奶"}, {"en": "bread", "cn": "面包"}, {"en": "birthday", "cn": "生日"}, {"en": "dinner", "cn": "(中午或晚上吃的)正餐"}, {"en": "week", "cn": "周;星期"}, {"en": "think about", "cn": "考虑;思索"}, {"en": "food", "cn": "食物"}, {"en": "sure", "cn": "当然;肯定;一定"}, {"en": "How about…?", "cn": "(提出建议)……怎么样？"}, {"en": "burger (=hamburger)", "cn": "汉堡包"}, {"en": "vegetable", "cn": "．蔬菜"}, {"en": "fruit", "cn": "水果"}, {"en": "right", "cn": "正确的;适当的"}, {"en": "apple", "cn": "苹果"}, {"en": "then", "cn": "那么"}, {"en": "egg", "cn": "鸡蛋"}, {"en": "carrot", "cn": "胡萝卜"}, {"en": "rice", "cn": "大米;米饭"}, {"en": "chicken", "cn": "鸡肉"}, {"en": "so", "cn": "(引出评论或问题)那么"}, {"en": "breakfast", "cn": "早餐;早饭"}, {"en": "lunch", "cn": "午餐"}, {"en": "star", "cn": "明星;星星"}, {"en": "eat", "cn": "吃"}, {"en": "well", "cn": "好;令人满意地"}, {"en": "habit", "cn": "习惯"}, {"en": "healthy", "cn": "健康的"}, {"en": "really", "cn": "真正地"}, {"en": "question", "cn": "问题"}, {"en": "want", "cn": "需要;想要"}, {"en": "be", "cn": "变成"}, {"en": "fat", "cn": "肥的;肥胖的"}],
+    "Unit7": [{"en": "much", "cn": "adj.许多;大量;多少"}, {"en": "How much…?", "cn": "(购物时)……多少钱？"}, {"en": "sock", "cn": "短袜"}, {"en": "T-shirt", "cn": "T恤衫"}, {"en": "shorts", "cn": "(pl.)短裤"}, {"en": "sweater", "cn": "毛衣"}, {"en": "trousers", "cn": "(pl.)裤子"}, {"en": "shoe", "cn": "鞋"}, {"en": "skirt", "cn": "裙子"}, {"en": "dollar", "cn": "元(美国、加拿大货币)"}, {"en": "big", "cn": "大的;大号的"}, {"en": "small", "cn": "小的;小号的"}, {"en": "short", "cn": "短的;矮的"}, {"en": "long", "cn": "长的"}, {"en": "woman (pl.women)", "cn": "女子"}, {"en": "need", "cn": "需要"}, {"en": "look", "cn": "看;看上去"}, {"en": "pair", "cn": "一双;一对"}, {"en": "take", "cn": "买下;拿;取"}, {"en": "Here you are.", "cn": "给你。"}, {"en": "ten", "cn": "um.十"}, {"en": "eleven", "cn": "um.十一"}, {"en": "twelve", "cn": "um.十二"}, {"en": "thirteen", "cn": "um.十三"}, {"en": "fifteen", "cn": "um.十五"}, {"en": "eighteen", "cn": "um.十八"}, {"en": "twenty", "cn": "um.二十"}, {"en": "thirty", "cn": "um.三十"}, {"en": "Mr.", "cn": "(用于男子的姓氏或姓名前)先生"}, {"en": "clothes", "cn": "(pl.)衣服;服装"}, {"en": "store", "cn": "商店"}, {"en": "buy", "cn": "购买;买"}, {"en": "sale", "cn": "特价销售;出售"}, {"en": "sell", "cn": "出售;销售;卖"}, {"en": "all", "cn": "所有的;全部的"}, {"en": "very", "cn": "很;非常"}, {"en": "price", "cn": "价格"}, {"en": "boy", "cn": "男孩"}, {"en": "a pair of", "cn": "一双"}],
+    "Unit8": [{"en": "when", "cn": "(疑问副词)什么时候"}, {"en": "month", "cn": "月;月份"}, {"en": "January", "cn": "一月"}, {"en": "February", "cn": "二月"}, {"en": "March", "cn": "三月"}, {"en": "April", "cn": "四月"}, {"en": "May", "cn": "五月"}, {"en": "June", "cn": "六月"}, {"en": "July", "cn": "七月"}, {"en": "August", "cn": "八月"}, {"en": "September", "cn": "九月"}, {"en": "October", "cn": "十月"}, {"en": "November", "cn": "十一月"}, {"en": "December", "cn": "十二月"}, {"en": "happy", "cn": "愉快的;高兴的"}, {"en": "Happy birthday !", "cn": "生日快乐！"}, {"en": "old", "cn": "年老的;旧的"}, {"en": "How old…?", "cn": "...多大年纪？...几岁了？"}, {"en": "party", "cn": "聚会;晚会"}, {"en": "See you !", "cn": "再见！"}, {"en": "first", "cn": "um.第一"}, {"en": "second", "cn": "um.第二"}, {"en": "third", "cn": "um.第三"}, {"en": "fifth", "cn": "um.第五"}, {"en": "eighth", "cn": "um.第八"}, {"en": "ninth", "cn": "um.第九"}, {"en": "twelfth", "cn": "um.第十二"}, {"en": "twentieth", "cn": "um.第二十"}, {"en": "test", "cn": "测验;检查"}, {"en": "trip", "cn": "旅游;旅行"}, {"en": "art", "cn": "艺术;美术"}, {"en": "festival", "cn": "(音乐、戏剧等的)会演节;节日"}, {"en": "dear", "cn": "亲爱的"}, {"en": "student", "cn": "学生"}, {"en": "thing", "cn": "东西;事情"}, {"en": "term", "cn": "学期"}, {"en": "busy", "cn": "忙碌的;无暇的"}, {"en": "time", "cn": "时间"}, {"en": "there", "cn": "(在)那里"}],
+    "Unit9": [{"en": "favorite (=favourite)", "cn": "＆ n.特别喜爱的(人或事物)"}, {"en": "subject", "cn": "学科;科目"}, {"en": "science", "cn": "科学"}, {"en": "P.E. =physical education", "cn": "体育"}, {"en": "music", "cn": "音乐;乐曲"}, {"en": "math", "cn": "数学"}, {"en": "Chinese", "cn": "＆adj.语文;汉语;汉语的;中国的"}, {"en": "geography", "cn": "地理(学)"}, {"en": "history", "cn": "历史"}, {"en": "why", "cn": "为什么"}, {"en": "because", "cn": "因为"}, {"en": "Monday", "cn": "星期一"}, {"en": "Friday", "cn": "星期五"}, {"en": "Saturday", "cn": "星期六"}, {"en": "for sure", "cn": "无疑;肯定"}, {"en": "free", "cn": "空闲的"}, {"en": "cool", "cn": "妙极的;酷的"}, {"en": "Tuesday", "cn": "星期二"}, {"en": "Wednesday", "cn": "星期三"}, {"en": "Thursday", "cn": "星期四"}, {"en": "A.M.(=a.m.)", "cn": "上午"}, {"en": "P.M.(=p.m.)", "cn": "下午;午后"}, {"en": "useful", "cn": "有用的;有益的"}, {"en": "from", "cn": "(表示开始的时间)从……开始"}, {"en": "from…to…", "cn": "从……到……"}, {"en": "Mrs.", "cn": "(用于女子的姓氏或姓名前)太太;夫人"}, {"en": "finish", "cn": "完成;做好"}, {"en": "lesson", "cn": "课;一节课"}, {"en": "hour", "cn": "小时"}]
+  },
+  "七年级下册": {
+    "Unit1": [{"en": "guitar", "cn": "吉他"}, {"en": "sing", "cn": "唱;唱歌"}, {"en": "swim", "cn": "＆n.游泳"}, {"en": "dance", "cn": "＆n.跳舞;舞蹈"}, {"en": "draw", "cn": "画"}, {"en": "chess", "cn": "国际象棋"}, {"en": "play chess", "cn": "下国际象棋"}, {"en": "speak", "cn": "说(某种语言);说话"}, {"en": "speak English", "cn": "说英语"}, {"en": "join", "cn": "参加;加入"}, {"en": "club", "cn": "俱乐部;社团"}, {"en": "be good at…", "cn": "擅长于…"}, {"en": "tell", "cn": "讲述;告诉"}, {"en": "story", "cn": "故事;小说"}, {"en": "write", "cn": "写作;写字"}, {"en": "show", "cn": "＆v.演出;节目;给…看;展示"}, {"en": "or", "cn": "或者;也不(用于否定句)"}, {"en": "talk", "cn": "＆n.说话;交谈"}, {"en": "talk to…", "cn": "跟……说"}, {"en": "kung fu", "cn": "(中国)功夫"}, {"en": "drum", "cn": "鼓"}, {"en": "play the drums", "cn": "敲鼓"}, {"en": "piano", "cn": "钢琴"}, {"en": "play the piano", "cn": "弹钢琴"}, {"en": "violin", "cn": "小提琴"}, {"en": "play the violin", "cn": "拉小提琴"}, {"en": "also", "cn": "也;而且"}, {"en": "people", "cn": "人;人们"}, {"en": "home", "cn": "＆adv.家;活动本部;到家;在家"}, {"en": "be good with…", "cn": "善于应付……的;对……有办法"}, {"en": "make", "cn": "使成为;制造"}, {"en": "make friends", "cn": "结交朋友"}, {"en": "today", "cn": "在今天"}, {"en": "center (=centre)", "cn": "中心;中央"}, {"en": "weekend", "cn": "周末"}, {"en": "on the weekend", "cn": "(在)周末"}, {"en": "teach", "cn": "教;讲授"}, {"en": "musician", "cn": "音乐家"}],
+    "Unit2": [{"en": "up", "cn": "向上"}, {"en": "get up", "cn": "起床;站起"}, {"en": "dress", "cn": "&n.穿衣服;连衣裙"}, {"en": "get dressed", "cn": "穿上衣服"}, {"en": "brush", "cn": "&n.刷;刷净;刷子"}, {"en": "tooth (pl. teeth)", "cn": "牙齿"}, {"en": "shower", "cn": "&v.淋浴;淋浴器(间)"}, {"en": "take a shower", "cn": "洗淋浴"}, {"en": "usually", "cn": "通常地;一般地"}, {"en": "forty", "cn": "um.四十"}, {"en": "wow", "cn": "int.(表示惊奇或敬佩)哇;呀"}, {"en": "never", "cn": "从不;绝不"}, {"en": "early", "cn": "&adj.早(的)"}, {"en": "fifty", "cn": "um.五十"}, {"en": "job", "cn": "工作;职业"}, {"en": "work", "cn": "&n.工作"}, {"en": "station", "cn": "电(视)台;车站"}, {"en": "radio station", "cn": "广播电台"}, {"en": "o'clock", "cn": "(表示整点)……点钟"}, {"en": "night", "cn": "晚上;夜晚"}, {"en": "funny", "cn": "奇怪的;滑稽好笑的"}, {"en": "exercise", "cn": "&n.锻炼;练习"}, {"en": "on weekends", "cn": "(在)周末"}, {"en": "best", "cn": "&adv.最好的;最好地;最"}, {"en": "group", "cn": "组;群"}, {"en": "half", "cn": "&pron.一半;半数"}, {"en": "past", "cn": "&adj.晚于;过(时间);过去的"}, {"en": "quarter", "cn": "一刻钟;四分之一"}, {"en": "homework", "cn": "家庭作业"}, {"en": "do (one's) homework", "cn": "做作业"}, {"en": "run", "cn": "跑;奔"}, {"en": "clean", "cn": "&adj.打扫;弄干净;干净的"}, {"en": "walk", "cn": "&v.行走;步行"}, {"en": "take a walk", "cn": "散步;走一走"}, {"en": "quickly", "cn": "很快地"}, {"en": "either", "cn": "或者;也(用在否定词组后)"}, {"en": "either…or…", "cn": "要么…要么…;或者…或者…"}, {"en": "lot", "cn": "大量;许多"}, {"en": "lots of", "cn": "大量;许多"}, {"en": "sometimes", "cn": "有时"}, {"en": "taste", "cn": "&n.有…的味道;品尝;味道;滋味"}, {"en": "life (pl. lives)", "cn": "生活;生命"}],
+    "Unit3": [{"en": "train", "cn": "火车"}, {"en": "bus", "cn": "公共汽车"}, {"en": "subway", "cn": "地铁"}, {"en": "take the subway", "cn": "乘地铁"}, {"en": "ride", "cn": "&n.骑;旅程"}, {"en": "bike", "cn": "自行车"}, {"en": "ride a bike", "cn": "骑自行车"}, {"en": "sixty", "cn": "um.六十"}, {"en": "seventy", "cn": "um.七十"}, {"en": "eighty", "cn": "um.八十"}, {"en": "ninety", "cn": "um.九十"}, {"en": "hundred", "cn": "um.一百"}, {"en": "minute", "cn": "分钟"}, {"en": "far", "cn": "&adj.远;远的"}, {"en": "kilometer (=kilometre)", "cn": "千米;公里"}, {"en": "new", "cn": "新的;刚出现的"}, {"en": "every", "cn": "每一;每个"}, {"en": "every day", "cn": "每天"}, {"en": "by", "cn": "(表示方式)乘(交通工具)"}, {"en": "by bike", "cn": "骑自行车"}, {"en": "drive", "cn": "开车"}, {"en": "car", "cn": "小汽车;轿车"}, {"en": "live", "cn": "居住;生活"}, {"en": "stop", "cn": "车站;停止"}, {"en": "think of", "cn": "认为"}, {"en": "cross", "cn": "横过;越过"}, {"en": "river", "cn": "河;江"}, {"en": "many", "cn": "&pron.许多"}, {"en": "village", "cn": "村庄;村镇"}, {"en": "between", "cn": "介于……之间"}, {"en": "between…and…", "cn": "在……和……之间"}, {"en": "bridge", "cn": "桥"}, {"en": "boat", "cn": "小船"}, {"en": "ropeway", "cn": "索道"}, {"en": "year", "cn": "年;岁"}, {"en": "afraid", "cn": "害怕;畏惧"}, {"en": "like", "cn": "像;怎么样"}, {"en": "villager", "cn": "村民"}, {"en": "leave", "cn": "离开"}, {"en": "dream", "cn": ",&v.梦想;睡梦;做梦"}, {"en": "true", "cn": "真的;符合事实的"}, {"en": "come ture", "cn": "实现;成为现实"}],
+    "Unit4": [{"en": "rule", "cn": "规则;规章"}, {"en": "arrive", "cn": "到达"}, {"en": "(be) on time", "cn": "准时"}, {"en": "hallway", "cn": "走廊;过道"}, {"en": "hall", "cn": "大厅;礼堂"}, {"en": "dining hall", "cn": "餐厅"}, {"en": "listen", "cn": "听;倾听"}, {"en": "listen to…", "cn": "听……"}, {"en": "fight", "cn": "&n.打架;战斗"}, {"en": "sorry", "cn": "抱歉的;难过的;惋惜的"}, {"en": "outside", "cn": "&adj.在外面;外面的"}, {"en": "wear", "cn": "穿;戴"}, {"en": "important", "cn": "重要的"}, {"en": "bring", "cn": "带来;取来"}, {"en": "uniform", "cn": "校服;制服"}, {"en": "quiet", "cn": "安静的"}, {"en": "out", "cn": "外出"}, {"en": "go out", "cn": "外出(娱乐)"}, {"en": "practice", "cn": "&n.练习"}, {"en": "dish", "cn": "碟;盘"}, {"en": "do the dishes", "cn": "清洗餐具"}, {"en": "before", "cn": "&adv.在……以前;以前"}, {"en": "make (one's) bed", "cn": "铺床"}, {"en": "dirty", "cn": "脏的"}, {"en": "kitchen", "cn": "厨房"}, {"en": "more", "cn": "&pron.更多(的)"}, {"en": "noisy", "cn": "吵闹的"}, {"en": "relax", "cn": "放松;休息"}, {"en": "read", "cn": "读;阅读"}, {"en": "terrible", "cn": "非常讨厌的;可怕的"}, {"en": "feel", "cn": "感受;觉得"}, {"en": "strict", "cn": "严格的;严厉的"}, {"en": "remember", "cn": "记住;记起"}, {"en": "follow", "cn": "遵循;跟随"}, {"en": "follow the rules", "cn": "遵守规则"}, {"en": "luck", "cn": "幸运;运气"}, {"en": "keep", "cn": "保持;保留"}, {"en": "hair", "cn": "头发;毛发"}, {"en": "learn", "cn": "学习;学会"}],
+    "Unit5": [{"en": "panda", "cn": "熊猫"}, {"en": "zoo", "cn": "动物园"}, {"en": "tiger", "cn": "老虎"}, {"en": "elephant", "cn": "大象"}, {"en": "koala", "cn": "树袋熊;考拉"}, {"en": "lion", "cn": "狮子"}, {"en": "giraffe", "cn": "长颈鹿"}, {"en": "animal", "cn": "动物"}, {"en": "cute", "cn": "可爱的;机灵的"}, {"en": "lazy", "cn": "懒散的;懒惰的"}, {"en": "smart", "cn": "聪明的"}, {"en": "beautiful", "cn": "美丽的;美好的"}, {"en": "scary", "cn": "吓人的;恐怖的"}, {"en": "kind", "cn": "种类"}, {"en": "kind of", "cn": "稍微;有点儿"}, {"en": "Australia", "cn": "澳大利亚"}, {"en": "south", "cn": "&n.南方的;南;南方"}, {"en": "Africa", "cn": "非洲"}, {"en": "South Africa", "cn": "南非"}, {"en": "pet", "cn": "宠物"}, {"en": "leg", "cn": "腿"}, {"en": "cat", "cn": "猫"}, {"en": "sleep", "cn": "&n.睡觉"}, {"en": "friendly", "cn": "友好的"}, {"en": "shy", "cn": "羞怯的;腼腆的"}, {"en": "save", "cn": "救;救助"}, {"en": "symbol", "cn": "象征"}, {"en": "flag", "cn": "旗;旗帜"}, {"en": "forget", "cn": "忘记;遗忘"}, {"en": "get lost", "cn": "迷路"}, {"en": "place", "cn": "地点;位置"}, {"en": "water", "cn": "水"}, {"en": "danger", "cn": "危险"}, {"en": "cut", "cn": "砍;切"}, {"en": "down", "cn": "&prep.(坐、躺、倒)下;向下;沿着"}, {"en": "cut down", "cn": "砍倒"}, {"en": "tree", "cn": "树"}, {"en": "kill", "cn": "杀死;弄死"}, {"en": "ivory", "cn": "象牙"}, {"en": "over", "cn": "超过，多于;在……上方"}, {"en": "(be) made of", "cn": "由……制成的"}],
+    "Unit6": [{"en": "newspaper", "cn": "报纸"}, {"en": "read a newspaper", "cn": "看报纸"}, {"en": "use", "cn": "使用;运用"}, {"en": "soup", "cn": "汤"}, {"en": "make soup", "cn": "做汤"}, {"en": "wash", "cn": "洗"}, {"en": "movie", "cn": "电影"}, {"en": "just", "cn": "只是;恰好"}, {"en": "eat out", "cn": "出去吃饭"}, {"en": "house", "cn": "房子"}, {"en": "drink", "cn": "&n.喝;饮料"}, {"en": "tea", "cn": "茶;茶叶"}, {"en": "drink tea", "cn": "喝茶"}, {"en": "tomorrow", "cn": "&n.在明天;明天;未来"}, {"en": "pool", "cn": "游泳池;水池"}, {"en": "shop", "cn": "&n.购物;商店"}, {"en": "supermarket", "cn": "超市"}, {"en": "man", "cn": "男人;人"}, {"en": "race", "cn": "竞赛"}, {"en": "host", "cn": "主人;东道主"}, {"en": "study", "cn": "&n.学习;研究"}, {"en": "state", "cn": "州"}, {"en": "the United States", "cn": "美国"}, {"en": "American", "cn": "&n.美国的;美洲的;美国人;美洲人"}, {"en": "dragon", "cn": "龙"}, {"en": "Dragon Boat Festival", "cn": "端午节"}, {"en": "any", "cn": "&pron.任何的;任一的;任何;任一"}, {"en": "other", "cn": "&pron.另外的;其他的;另外的人(或物)"}, {"en": "young", "cn": "幼小的;年轻的"}, {"en": "child (pl. children)", "cn": "儿童"}, {"en": "miss", "cn": "怀念;怀念"}, {"en": "wish", "cn": "希望"}, {"en": "delicious", "cn": "可口的;美味的"}, {"en": "still", "cn": "还;仍然"}, {"en": "living room", "cn": "客厅"}],
+    "Unit7": [{"en": "rain", "cn": "&n.下雨;雨水"}, {"en": "windy", "cn": "多风的"}, {"en": "cloudy", "cn": "多云的"}, {"en": "sunny", "cn": "晴朗的"}, {"en": "snow", "cn": "&n.下雪;雪"}, {"en": "weather", "cn": "天气"}, {"en": "cook", "cn": "做饭"}, {"en": "bad", "cn": "坏的;糟的"}, {"en": "park", "cn": "公园"}, {"en": "message", "cn": "信息;消息"}, {"en": "take a message", "cn": "捎个口信;传话"}, {"en": "him", "cn": "他(he的宾格)"}, {"en": "could", "cn": "v.能;可以"}, {"en": "back", "cn": "回来;回原处"}, {"en": "call (sb) back", "cn": "(给某人)回电话"}, {"en": "problem", "cn": "困难;难题"}, {"en": "again", "cn": "再一次;又一次"}, {"en": "dry", "cn": "干燥的"}, {"en": "cold", "cn": "寒冷的;冷的"}, {"en": "hot", "cn": "热的"}, {"en": "warm", "cn": "温暖的"}, {"en": "visit", "cn": "拜访;参观"}, {"en": "Canada", "cn": "加拿大"}, {"en": "summer", "cn": "夏天;夏季"}, {"en": "sit", "cn": "坐"}, {"en": "juice", "cn": "果汁;饮料"}, {"en": "soon", "cn": "不久;很快"}, {"en": "vacation", "cn": "假期"}, {"en": "on (a) vacation", "cn": "度假"}, {"en": "hard", "cn": "&adj.努力地;困难的"}, {"en": "Europe", "cn": "欧洲"}, {"en": "mountain", "cn": "高山"}, {"en": "country", "cn": "国;国家"}, {"en": "skate", "cn": "滑冰"}, {"en": "snowy", "cn": "下雪的"}, {"en": "winter", "cn": "冬天;冬季"}, {"en": "Russian", "cn": "&n.俄罗斯的;俄罗斯人;俄语"}, {"en": "snowman", "cn": "雪人"}, {"en": "rainy", "cn": "阴雨的;多雨的"}],
+    "Unit8": [{"en": "post", "cn": "邮政"}, {"en": "office", "cn": "办公室"}, {"en": "post office", "cn": "邮局"}, {"en": "police", "cn": "警察"}, {"en": "police station", "cn": "警察局"}, {"en": "hotel", "cn": "旅馆;酒店"}, {"en": "restaurant", "cn": "餐馆"}, {"en": "bank", "cn": "银行"}, {"en": "hospital", "cn": "医院"}, {"en": "street", "cn": "大街"}, {"en": "pay", "cn": "&n.付费"}, {"en": "pay phone", "cn": "付费电话"}, {"en": "near", "cn": "在……附近"}, {"en": "across", "cn": "&prep.过;穿过"}, {"en": "across from", "cn": "在……对面"}, {"en": "front", "cn": "前面"}, {"en": "in front of", "cn": "在……前面"}, {"en": "behind", "cn": "在……后面"}, {"en": "town", "cn": "镇;市镇"}, {"en": "around", "cn": "&prep.到处;大约"}, {"en": "north", "cn": "&adj.北;北方;北方的"}, {"en": "along", "cn": "沿着"}, {"en": "turn", "cn": "转向;翻"}, {"en": "right", "cn": "&n.向右边;右边"}, {"en": "left", "cn": "&n.向左边;左边"}, {"en": "crossing", "cn": "十字路口"}, {"en": "neighborhood", "cn": "街区;街坊"}, {"en": "spend", "cn": "花(时间、钱等)"}, {"en": "spend time", "cn": "花时间"}, {"en": "climb", "cn": "爬"}, {"en": "road", "cn": "路"}, {"en": "often", "cn": "时常;常常"}, {"en": "air", "cn": "空气"}, {"en": "sunshine", "cn": "阳光"}, {"en": "free", "cn": "免费的"}, {"en": "enjoy", "cn": "享受;喜爱"}, {"en": "enjoy reading", "cn": "喜欢阅读"}, {"en": "easily", "cn": "容易地"}, {"en": "money", "cn": "钱"}],
+    "Unit9": [{"en": "curly", "cn": "卷曲的"}, {"en": "straight", "cn": "直的"}, {"en": "tall", "cn": "高的"}, {"en": "medium", "cn": "中等的"}, {"en": "height", "cn": "身高;高度"}, {"en": "thin", "cn": "瘦的"}, {"en": "heavy", "cn": "重的"}, {"en": "build", "cn": "身材"}, {"en": "tonight", "cn": "&n.(在)今晚;(在)今夜"}, {"en": "little", "cn": "小的"}, {"en": "a little", "cn": "一点;少量"}, {"en": "cinema", "cn": "电影院"}, {"en": "glasses", "cn": "(pl.)眼睛"}, {"en": "later", "cn": "以后"}, {"en": "handsome", "cn": "英俊的"}, {"en": "actor", "cn": "演员"}, {"en": "actress", "cn": "女演员"}, {"en": "person", "cn": "人"}, {"en": "nose", "cn": "鼻子"}, {"en": "blonde", "cn": "金黄色的"}, {"en": "mouth", "cn": "嘴"}, {"en": "round", "cn": "圆形的"}, {"en": "face", "cn": "脸"}, {"en": "eye", "cn": "眼睛"}, {"en": "singer", "cn": "歌手"}, {"en": "artist", "cn": "艺术家"}, {"en": "crime", "cn": "犯罪活动"}, {"en": "criminal", "cn": "罪犯"}, {"en": "put", "cn": "放"}, {"en": "each", "cn": "&pron.每个;各自"}, {"en": "way", "cn": "方式;路线"}, {"en": "describe", "cn": "描述"}, {"en": "differently", "cn": "不同地"}, {"en": "another", "cn": "&pron.另一;又一"}, {"en": "end", "cn": "结尾;尽头"}, {"en": "in the end", "cn": "最后"}, {"en": "real", "cn": "真正的;真实的"}, {"en": "jeans", "cn": "牛仔裤"}],
+    "Unit10": [{"en": "noodle", "cn": "面条"}, {"en": "mutton", "cn": "羊肉"}, {"en": "beef", "cn": "牛肉"}, {"en": "cabbage", "cn": "卷心菜;洋白菜"}, {"en": "potato", "cn": "土豆;马铃薯"}, {"en": "special", "cn": "&adj.特色菜;特价品;特别的;特殊的"}, {"en": "would", "cn": "v.(表示意愿)愿意"}, {"en": "would like", "cn": "(表示意愿)愿意;喜欢"}, {"en": "yet", "cn": "(常用于否定句或疑问句)还;仍然"}, {"en": "large", "cn": "大号的;大的"}, {"en": "order", "cn": "&v.点菜;命令"}, {"en": "take one's order", "cn": "点菜"}, {"en": "size", "cn": "大小;尺码"}, {"en": "bowl", "cn": "碗"}, {"en": "tofu", "cn": "豆腐"}, {"en": "meat", "cn": "(可食用的)肉"}, {"en": "dumpling", "cn": "饺子"}, {"en": "porridge", "cn": "粥;面糊"}, {"en": "onion", "cn": "洋葱"}, {"en": "fish", "cn": "鱼;鱼肉"}, {"en": "pancake", "cn": "烙饼;薄饼"}, {"en": "world", "cn": "世界"}, {"en": "around the world", "cn": "世界各地"}, {"en": "answer", "cn": "&v.答案;回答"}, {"en": "different", "cn": "不同的"}, {"en": "cake", "cn": "蛋糕"}, {"en": "candle", "cn": "蜡烛"}, {"en": "age", "cn": "年龄"}, {"en": "make a wish", "cn": "许愿"}, {"en": "blow", "cn": "吹"}, {"en": "blow out", "cn": "吹灭"}, {"en": "if", "cn": "如果"}, {"en": "will", "cn": "将要;会"}, {"en": "the UK", "cn": "英国"}, {"en": "candy", "cn": "糖果"}, {"en": "lucky", "cn": "幸运的"}, {"en": "popular", "cn": "受欢迎的;普遍的"}, {"en": "get popular", "cn": "受欢迎;流行"}, {"en": "cut up", "cn": "切碎"}, {"en": "idea", "cn": "想法;主意"}],
+    "Unit11": [{"en": "milk", "cn": "挤奶"}, {"en": "cow", "cn": "奶牛"}, {"en": "milk a cow", "cn": "给奶牛挤奶"}, {"en": "horse", "cn": "马"}, {"en": "ride a horse", "cn": "骑马"}, {"en": "feed (fed)", "cn": "喂养;饲养"}, {"en": "feed chickens", "cn": "喂鸡"}, {"en": "farmer", "cn": "农民;农场主"}, {"en": "quite", "cn": "相当;完全"}, {"en": "anything", "cn": "(常用于否定句或疑问句)任何东西;任何事物"}, {"en": "grow (grew)", "cn": "种植;生长;发育"}, {"en": "farm", "cn": "&v.农场;务农;种田"}, {"en": "pick", "cn": "采;摘"}, {"en": "excellent", "cn": "极好的;优秀的"}, {"en": "countryside", "cn": "乡村;农村"}, {"en": "in the countryside", "cn": "在乡下;在农村"}, {"en": "yesterday", "cn": "昨天"}, {"en": "flower", "cn": "花"}, {"en": "worry", "cn": "&n.担心;担忧"}, {"en": "luckily", "cn": "幸运地;好运地"}, {"en": "sun", "cn": "太阳"}, {"en": "museum", "cn": "博物馆"}, {"en": "fire", "cn": "火;火灾"}, {"en": "fire station", "cn": "消防站"}, {"en": "painting", "cn": "油画;绘画"}, {"en": "exciting", "cn": "使人兴奋的;令人激动的"}, {"en": "lovely", "cn": "可爱的"}, {"en": "expensive", "cn": "昂贵的"}, {"en": "cheap", "cn": "廉价的;便宜的"}, {"en": "slow", "cn": "缓慢的;迟缓的"}, {"en": "fast", "cn": "&adj.快地(的)"}, {"en": "robot", "cn": "机器人"}, {"en": "guide", "cn": "导游;向导"}, {"en": "gift", "cn": "礼物;赠品"}, {"en": "all in all", "cn": "总的说来"}, {"en": "everything", "cn": "所有事物;一切"}, {"en": "interested", "cn": "感兴趣的"}, {"en": "be interested in", "cn": "对……感兴趣"}, {"en": "dark", "cn": "黑暗的;昏暗的"}, {"en": "hear (heard)", "cn": "听到;听见"}],
+    "Unit12": [{"en": "camp", "cn": "扎营;搭帐篷"}, {"en": "lake", "cn": "湖;湖泊"}, {"en": "beach", "cn": "海滩;沙滩"}, {"en": "badminton", "cn": "羽毛球运动"}, {"en": "sheep", "cn": "羊;绵羊"}, {"en": "as", "cn": "&adv.作为;当作"}, {"en": "natural", "cn": "自然的"}, {"en": "butterfly", "cn": "蝴蝶"}, {"en": "visitor", "cn": "游客;访问者"}, {"en": "tired", "cn": "疲倦的;疲劳的"}, {"en": "stay", "cn": "停留;待"}, {"en": "stay up late", "cn": "深夜不留睡;熬夜"}, {"en": "away", "cn": "离开;远离"}, {"en": "run away", "cn": "跑开"}, {"en": "mouse (pl. mice)", "cn": "老鼠;耗子"}, {"en": "baby", "cn": "&n.幼小的;婴儿"}, {"en": "shout", "cn": "呼叫;喊叫"}, {"en": "shout at…", "cn": "冲……大声叫嚷"}, {"en": "woof", "cn": "int.(狗叫声)汪汪"}, {"en": "language", "cn": "语言"}, {"en": "fly (flew)", "cn": "飞"}, {"en": "kite", "cn": "风筝"}, {"en": "fiy a kite", "cn": "放风筝"}, {"en": "high", "cn": "&adv.高的(地)"}, {"en": "high school", "cn": "中学"}, {"en": "ago", "cn": "以前"}, {"en": "India", "cn": "印度"}, {"en": "tent", "cn": "帐篷"}, {"en": "put up", "cn": "搭起;举起"}, {"en": "moon", "cn": "月亮"}, {"en": "surprise", "cn": "&v.惊奇;惊讶;使吃惊"}, {"en": "get a surprise", "cn": "吃惊"}, {"en": "snake", "cn": "蛇"}, {"en": "scared", "cn": "惊慌的;吓坏了的"}, {"en": "move", "cn": "移动"}, {"en": "shout to…", "cn": "对……大声喊叫"}, {"en": "start", "cn": "开始;着手"}, {"en": "jump", "cn": "跳;跃"}, {"en": "up and down", "cn": "上上下下;起伏"}, {"en": "wake (woke)", "cn": "弄醒;醒"}, {"en": "wake…up", "cn": "把……弄醒"}, {"en": "into", "cn": "到……里面;进入"}, {"en": "forest", "cn": "森林"}, {"en": "ear", "cn": "耳朵"}]
+  },
+  "八年级上册": {
+    "Unit 1": [{"en": "anyone", "cn": "任何人"}, {"en": "anywhere", "cn": "任何地方"}, {"en": "wonderful", "cn": "精彩的;绝妙的"}, {"en": "few", "cn": "&pron.不多;很少"}, {"en": "quite a few", "cn": "相当多;不少"}, {"en": "most", "cn": "&adv.最多的;大多数"}, {"en": "something", "cn": "某事;某物"}, {"en": "nothing", "cn": "没有什么;没有一件东西"}, {"en": "everyone", "cn": "每人;人人;所有人"}, {"en": "of course", "cn": "当然;自然"}, {"en": "myself", "cn": "我自己;我本人"}, {"en": "yourself", "cn": "你自己;您自己"}, {"en": "hen", "cn": "母鸡"}, {"en": "pig", "cn": "猪"}, {"en": "seem", "cn": "好像;似乎;看来"}, {"en": "bored", "cn": "厌倦的;烦闷的"}, {"en": "someone", "cn": "某人"}, {"en": "diary", "cn": "日记;日记簿"}, {"en": "activity", "cn": "活动"}, {"en": "decide", "cn": "决定;选定"}, {"en": "try", "cn": "&n.尝试;设法;努力"}, {"en": "paragliding", "cn": "滑翔伞运动"}, {"en": "feel like", "cn": "给……的感觉;感受到"}, {"en": "bird", "cn": "鸟"}, {"en": "bicycle", "cn": "自行车;脚踏车"}, {"en": "building", "cn": "建筑物;房子"}, {"en": "trader", "cn": "商人"}, {"en": "wonder", "cn": "想知道;琢磨"}, {"en": "difference", "cn": "差别;差异"}, {"en": "top", "cn": "顶部;表面"}, {"en": "wait", "cn": "等待;等候"}, {"en": "umbrella", "cn": "伞;雨伞"}, {"en": "wet", "cn": "湿的;潮湿的;下雨的"}, {"en": "because of", "cn": "因为"}, {"en": "below", "cn": "&adv.在 ... 下面;到……下面"}, {"en": "enough", "cn": "&adv.足够的(地);充足的(地);充分的(地)"}, {"en": "hungry", "cn": "饥饿的"}, {"en": "as", "cn": "像 ... 一样;如同"}, {"en": "hill", "cn": "小山;山丘"}, {"en": "duck", "cn": "鸭"}, {"en": "dislike", "cn": "&n.不喜爱(的事物);厌恶(的事物)"}],
+    "Unit 2": [{"en": "housework", "cn": "家务劳动;家务事"}, {"en": "hardly", "cn": "几乎不;几乎没有"}, {"en": "ever", "cn": "在任何时候;从不;曾经"}, {"en": "hardly ever", "cn": "几乎从不"}, {"en": "once", "cn": "一次;曾经"}, {"en": "twice", "cn": "两次;两倍"}, {"en": "Internet", "cn": "(国际)互联网;因特网"}, {"en": "program (=programme)", "cn": "节目"}, {"en": "full", "cn": "忙的;满的;充满的"}, {"en": "swing", "cn": "&v.摆动;秋千;(使)摆动;摇摆"}, {"en": "swing dance", "cn": "摇摆舞"}, {"en": "maybe", "cn": "大概;或许;可能"}, {"en": "least", "cn": "adj.最小;最少;最小的;最少的"}, {"en": "at least", "cn": "至少;不少于;起码"}, {"en": "junk", "cn": "无用的东西;无价值的东西"}, {"en": "junk food", "cn": "垃圾食品"}, {"en": "coffee", "cn": "咖啡"}, {"en": "health", "cn": "健康;人的身体;(或精神)状态"}, {"en": "result", "cn": "结果;后果"}, {"en": "percent (=per cent)", "cn": "百分之…"}, {"en": "online", "cn": "&adv.在线(的);联网(的)"}, {"en": "television", "cn": "电视节目;电视机"}, {"en": "although", "cn": "虽然;尽管;即使"}, {"en": "through", "cn": "以;凭借;穿过"}, {"en": "mind", "cn": "头脑;心智"}, {"en": "body", "cn": "身体"}, {"en": "such", "cn": "&pron.这样的;那样的;类似的"}, {"en": "such as", "cn": "例如;像…这样"}, {"en": "together", "cn": "在一起;共同"}, {"en": "die", "cn": "消失;灭亡;死亡"}, {"en": "writer", "cn": "作者;作家"}, {"en": "dentist", "cn": "牙科医生"}, {"en": "magazine", "cn": "杂志;期刊"}, {"en": "however", "cn": "然而;不过"}, {"en": "than", "cn": "&conj.(用以引出比较的第二部分)比"}, {"en": "more than", "cn": "多于"}, {"en": "almost", "cn": "几乎;差不多"}, {"en": "none", "cn": "没有一个;毫无"}, {"en": "less", "cn": "adj.较少;较小;较少的;更少的"}, {"en": "less than", "cn": "少于"}, {"en": "point", "cn": "得分;点"}],
+    "Unit 3": [{"en": "outgoing", "cn": "爱交际的;友好的;外向的"}, {"en": "better", "cn": "&adv.(good和well的比较级)较好的(地);更好的(地)"}, {"en": "loudly", "cn": "喧闹地;大声地;响亮地"}, {"en": "quietly", "cn": "轻声地;轻柔地;安静地"}, {"en": "hard-working", "cn": "工作努力的;辛勤的"}, {"en": "competition", "cn": "比赛;竞赛;竞争"}, {"en": "fantastic", "cn": "极好的;了不起的"}, {"en": "which", "cn": "&adj.哪一个;哪一些"}, {"en": "clearly", "cn": "清楚的;清晰地;明白的"}, {"en": "win", "cn": "获胜;赢;赢得"}, {"en": "though", "cn": "&conj.不过;可是;然而;虽然;尽管;不过"}, {"en": "talented", "cn": "有才能的;有才干的"}, {"en": "truly", "cn": "真正;确实"}, {"en": "care", "cn": "在意;担忧;关心"}, {"en": "care about", "cn": "关心;在意"}, {"en": "serious", "cn": "严肃的;稳重的"}, {"en": "mirror", "cn": "镜子"}, {"en": "kid", "cn": "小孩;年轻人"}, {"en": "as long as", "cn": "只要;既然"}, {"en": "necessary", "cn": "必需的;必要的"}, {"en": "be different from", "cn": "与…不同;与…有差异"}, {"en": "both", "cn": "&pron.两个;两个都"}, {"en": "bring out", "cn": "使显现;使表现出"}, {"en": "grade", "cn": "成绩等级;评分等级"}, {"en": "should", "cn": "v.应该;应当;可以"}, {"en": "the same as", "cn": "和…相同;与…一致"}, {"en": "saying", "cn": "谚语;格言;警句"}, {"en": "reach", "cn": "伸手;到达;抵达"}, {"en": "hand", "cn": "手"}, {"en": "touch", "cn": "感动;触摸"}, {"en": "heart", "cn": "内心;心脏"}, {"en": "fact", "cn": "现实;事实"}, {"en": "in fact", "cn": "确切的说;事实上;实际上"}, {"en": "break (broke)", "cn": "(使)破;裂;碎;损坏"}, {"en": "arm", "cn": "手臂;上肢"}, {"en": "laugh", "cn": "&n.笑;发笑;笑声"}, {"en": "share", "cn": "分享;共享;共用;分摊"}, {"en": "loud", "cn": "响亮的;大声的"}, {"en": "similar", "cn": "相像的;类似的"}, {"en": "be similar to", "cn": "与…相像的;类似的"}, {"en": "primary", "cn": "最初的;最早的"}, {"en": "primary school", "cn": "小学"}, {"en": "information", "cn": "信息;消息"}],
+    "Unit 4": [{"en": "theater (=theatre)", "cn": "戏院;剧场"}, {"en": "comfortable", "cn": "使人舒服的;舒适的"}, {"en": "seat", "cn": "座位;坐处(如椅子等)"}, {"en": "screen", "cn": "银幕;屏幕"}, {"en": "close", "cn": "(在空间、时间上)接近"}, {"en": "ticket", "cn": "票;入场券"}, {"en": "worst", "cn": "&adv.(bad和badly的最高级)最差(的);最坏(的);最糟(的)"}, {"en": "cheaply", "cn": "便宜的;低廉的"}, {"en": "song", "cn": "歌;歌曲"}, {"en": "DJ", "cn": "音乐节目主持人"}, {"en": "choose (chose)", "cn": "选择;挑选"}, {"en": "carefully", "cn": "细致地;小心地;谨慎地"}, {"en": "reporter", "cn": "记者"}, {"en": "so far", "cn": "到目前为止;迄今为止"}, {"en": "fresh", "cn": "新鲜的;清新的"}, {"en": "comfortably", "cn": "舒服地;舒适地"}, {"en": "worse", "cn": "&adv.(bad和badly的比较级)更差(的);更坏(的);更糟(的)"}, {"en": "service", "cn": "接待;服务"}, {"en": "pretty", "cn": "&adj.相当;十分;很;漂亮的"}, {"en": "menu", "cn": "菜单"}, {"en": "act", "cn": "&n.扮演;表演者"}, {"en": "meal", "cn": "早(或午、晚)餐;一餐所吃的食物"}, {"en": "creative", "cn": "有创造力的;创造性的"}, {"en": "performer", "cn": "表演者;演员"}, {"en": "talent", "cn": "天资;天赋"}, {"en": "have…in common", "cn": "有相同特征;(想法,兴趣等方面)相同"}, {"en": "magician", "cn": "魔术师"}, {"en": "all kinds of", "cn": "各种类型的;各种各样的"}, {"en": "beautifully", "cn": "美好地;漂亮地"}, {"en": "be up to", "cn": "是…的职责;由…决定"}, {"en": "role", "cn": "作用;职能;角色"}, {"en": "play a role", "cn": "发挥作用;有影响"}, {"en": "winner", "cn": "获胜者;优胜者"}, {"en": "prize", "cn": "奖;奖品;奖金"}, {"en": "everybody", "cn": "每人;人人;所有人"}, {"en": "make up", "cn": "编造(故事、谎言等)"}, {"en": "example", "cn": "实例;范例"}, {"en": "for example", "cn": "例如"}, {"en": "poor", "cn": "贫穷的;清贫的"}, {"en": "seriously", "cn": "严重地;严肃地;认真地"}, {"en": "take…seriously", "cn": "认真对待…"}, {"en": "give", "cn": "提供;给"}, {"en": "crowded", "cn": "人多的;拥挤的;挤满的"}],
+    "Unit 5": [{"en": "sitcom (=situation comedy)", "cn": "情景喜剧"}, {"en": "news", "cn": "新闻节目;新闻"}, {"en": "soap", "cn": "肥皂剧"}, {"en": "educational", "cn": "教育的;有教育意义的"}, {"en": "plan", "cn": "&n.打算;计划"}, {"en": "hope", "cn": "&n.希望"}, {"en": "find out", "cn": "查明;弄清"}, {"en": "discussion", "cn": "讨论;商量"}, {"en": "stand", "cn": "忍受;站立"}, {"en": "happen", "cn": "发生;出现"}, {"en": "may", "cn": "v.也许;可能;可以"}, {"en": "expect", "cn": "预料;期待"}, {"en": "joke", "cn": "笑话;玩笑"}, {"en": "comedy", "cn": "喜剧;喜剧片"}, {"en": "meaningless", "cn": "毫无意义的;意思不明确的"}, {"en": "action", "cn": "行动"}, {"en": "action movie", "cn": "动作影片"}, {"en": "cartoon", "cn": "动画片;卡通片"}, {"en": "culture", "cn": "文化;文明"}, {"en": "famous", "cn": "著名的;出名的"}, {"en": "appear", "cn": "出现"}, {"en": "become (became)", "cn": "开始变得;变成"}, {"en": "rich", "cn": "富有的"}, {"en": "successful", "cn": "获得成功的;有成就的"}, {"en": "might", "cn": "v.可能;可以"}, {"en": "main", "cn": "主要的;最重要的"}, {"en": "reason", "cn": "原因;理由"}, {"en": "common", "cn": "普通的;常见的"}, {"en": "film (=movie)", "cn": "电影"}, {"en": "unlucky", "cn": "不幸的;不吉利的"}, {"en": "lose (lost)", "cn": "失去;丢失"}, {"en": "girlfriend", "cn": "女朋友"}, {"en": "ready", "cn": "愿意的;准备好的"}, {"en": "be ready to", "cn": "愿意迅速做某事"}, {"en": "character", "cn": "人物;角色"}, {"en": "simple", "cn": "简单的;易做的"}, {"en": "dress up", "cn": "装扮;乔装打扮"}, {"en": "take sb.’s place", "cn": "代替;替换"}, {"en": "army", "cn": "陆军;陆军部队"}]
+  },
+  "八年级下册": {
+    "Unit 1": [{"en": "matter", "cn": "问题;事情"}, {"en": "sore", "cn": "疼痛的;酸痛的"}, {"en": "have a cold", "cn": "感冒"}, {"en": "stomachache", "cn": "胃痛;腹痛"}, {"en": "have a stomachache", "cn": "胃痛"}, {"en": "foot", "cn": "脚;足"}, {"en": "neck", "cn": "颈;脖子"}, {"en": "stomach", "cn": "胃;腹部"}, {"en": "throat", "cn": "咽喉;喉咙"}, {"en": "fever", "cn": "发烧"}, {"en": "lie", "cn": "(lay /leɪ/)躺;平躺"}, {"en": "lie down", "cn": "躺下"}, {"en": "rest", "cn": "&n.放松;休息"}, {"en": "cough", "cn": "& v.咳嗽"}, {"en": "X-ray", "cn": "X射线;X光"}, {"en": "toothache", "cn": "牙痛"}, {"en": "headache", "cn": "头痛"}, {"en": "have a fever", "cn": "发烧"}, {"en": "break", "cn": "间歇;休息"}, {"en": "hurt", "cn": "(hurt /hɜ:(r)t/ ) （使）疼痛; 受伤"}, {"en": "passenger", "cn": "乘客; 旅客"}, {"en": "off", "cn": "& prep. 离开（某处）; 不工作"}, {"en": "get off", "cn": "下车"}, {"en": "onto", "cn": "向; 朝"}, {"en": "trouble", "cn": "问题; 苦恼"}, {"en": "hit", "cn": "(hit /hɪt/) （用手或器具）击; 打"}, {"en": "right away", "cn": "立即; 马上"}, {"en": "get into", "cn": "陷入; 参与"}, {"en": "herself", "cn": "(she的反身代词) 她自己"}, {"en": "bandage", "cn": "绷带 v. 用绷带包扎"}, {"en": "sick", "cn": "生病的; 有病的"}, {"en": "knee", "cn": "膝; 膝盖"}, {"en": "nosebleed", "cn": "鼻出血"}, {"en": "breathe", "cn": "呼吸"}, {"en": "sunburned", "cn": "晒伤的"}, {"en": "ourselves", "cn": "(we的反身代词) 我们自己"}, {"en": "climber", "cn": "登山者; 攀登者"}, {"en": "be used to", "cn": "习惯于......; 适应于......"}, {"en": "risk", "cn": "& v. 危险; 风险; 冒险"}, {"en": "accident", "cn": "（交通）事故; 意外遭遇"}, {"en": "situation", "cn": "情况; 状况"}, {"en": "kilo (=kilogram)", "cn": "千克; 公斤"}, {"en": "rock", "cn": "岩石"}, {"en": "run out (of)", "cn": "用尽; 耗尽"}, {"en": "knife", "cn": "(pl. knives /naɪvz/) 刀"}, {"en": "cut off", "cn": "切除"}, {"en": "blood", "cn": "血"}, {"en": "mean", "cn": "(meant /ment/) 意思是; 打算; 意欲"}, {"en": "get out of", "cn": "离开; 从......出来"}, {"en": "importance", "cn": "重要性; 重要"}, {"en": "decision", "cn": "决定; 抉择"}, {"en": "control", "cn": "&v. 限制; 约束; 管理"}, {"en": "spirit", "cn": "勇气; 意志"}, {"en": "death", "cn": "死; 死亡"}, {"en": "give up", "cn": "放弃"}, {"en": "nurse", "cn": "护士"}],
+    "Unit 2": [{"en": "clean up", "cn": "打扫（或清除）干净"}, {"en": "cheer", "cn": "欢呼; 喝彩"}, {"en": "cheer up", "cn": "（使）变得更高兴; 振奋起来"}, {"en": "give out", "cn": "分发; 散发"}, {"en": "volunteer", "cn": "义务做; 自愿做 n. 志愿者"}, {"en": "come up with", "cn": "想出; 提出（主意、计划、回答等）"}, {"en": "put off", "cn": "推迟"}, {"en": "sign", "cn": "标志; 信号"}, {"en": "notice", "cn": "通知; 通告; 注意 v. 注意到; 意识到"}, {"en": "hand out", "cn": "分发"}, {"en": "call up", "cn": "打电话给（某人）; 征召"}, {"en": "used to", "cn": "曾经......; 过去......"}, {"en": "lonely", "cn": "孤独的; 寂寞的"}, {"en": "care for", "cn": "照顾; 非常喜欢"}, {"en": "several", "cn": "几个; 数个; 一些"}, {"en": "strong", "cn": "强烈的; 强壮的"}, {"en": "feeling", "cn": "感觉; 感触"}, {"en": "satisfaction", "cn": "满足; 满意"}, {"en": "joy", "cn": "高兴; 愉快"}, {"en": "owner", "cn": "物主; 主人"}, {"en": "try out", "cn": "参加......选拔; 试用"}, {"en": "journey", "cn": "（尤指长途）旅行; 行程"}, {"en": "raise", "cn": "募集; 征集"}, {"en": "alone", "cn": "独自; 单独"}, {"en": "repair", "cn": "修理; 修补"}, {"en": "fix", "cn": "修理; 安装"}, {"en": "fix up", "cn": "修理; 装饰"}, {"en": "give away", "cn": "赠送; 捐赠"}, {"en": "take after", "cn": "（外貌或行为）像"}, {"en": "broken", "cn": "破损的; 残缺的"}, {"en": "wheel", "cn": "车轮; 轮子"}, {"en": "letter", "cn": "信; 函"}, {"en": "Miss", "cn": "女士; 小姐"}, {"en": "set up", "cn": "建起; 设立"}, {"en": "disabled", "cn": "丧失能力的; 有残疾的"}, {"en": "make a difference", "cn": "影响; 有作用"}, {"en": "blind", "cn": "瞎的; 失明的"}, {"en": "deaf", "cn": "聋的"}, {"en": "imagine", "cn": "想象; 设想"}, {"en": "difficulty", "cn": "困难; 难题"}, {"en": "open", "cn": "开; 打开"}, {"en": "door", "cn": "门"}, {"en": "carry", "cn": "拿; 提; 扛"}, {"en": "train", "cn": "训练; 培训"}, {"en": "excited", "cn": "激动的; 兴奋的"}, {"en": "training", "cn": "训练; 培训"}, {"en": "kindness", "cn": "仁慈; 善良"}, {"en": "clever", "cn": "聪明的; 聪颖的"}, {"en": "understand", "cn": "(understood /ʌndə(r)'stʊd/ ) 理解; 领会"}, {"en": "change", "cn": "&n. 变化; 改变"}, {"en": "interest", "cn": "兴趣; 关注  v. 使感兴趣; 使关注"}, {"en": "sir", "cn": "先生（用于正式信函中对不知名的男性收信人的称呼时, 写为Sir）"}, {"en": "madam", "cn": "夫人; 女士（用于正式信函中对不知名的女性收信人的称呼时, 写为Madam）"}],
+    "Unit 3": [{"en": "rubbish", "cn": "垃圾; 废弃物"}, {"en": "fold", "cn": "折叠; 对折"}, {"en": "sweep", "cn": "(swept /swept/ ) 扫; 打扫"}, {"en": "floor", "cn": "地板"}, {"en": "mess", "cn": "杂乱; 不整洁"}, {"en": "throw", "cn": "(threw /θru:/  ) 扔; 掷"}, {"en": "all the time", "cn": "频繁; 反复"}, {"en": "neither", "cn": "也不"}, {"en": "shirt", "cn": "衬衫"}, {"en": "as soon as", "cn": "一......就......; 尽快"}, {"en": "pass", "cn": "给; 递; 走过; 通过"}, {"en": "borrow", "cn": "借; 借用"}, {"en": "lend", "cn": "(lent /lent/ ) 借给; 借出"}, {"en": "finger", "cn": "手指"}, {"en": "hate", "cn": "厌恶; 讨厌"}, {"en": "chore", "cn": "杂务; 乏味无聊的工作"}, {"en": "while", "cn": "与......同时; 当......的时候; 而; 然而"}, {"en": "snack", "cn": "点心; 小吃; 快餐"}, {"en": "stress", "cn": "精神压力; 心理负担"}, {"en": "waste", "cn": "浪费; 垃圾 v. 浪费; 滥用"}, {"en": "in order to", "cn": "目的是; 为了"}, {"en": "provide", "cn": "提供; 供应"}, {"en": "anyway", "cn": "而且; 加之"}, {"en": "depend", "cn": "依靠; 信赖"}, {"en": "depend on", "cn": "依靠; 信赖"}, {"en": "develop", "cn": "发展; 壮大"}, {"en": "independence", "cn": "独立"}, {"en": "fairness", "cn": "公正性; 合理性"}, {"en": "since", "cn": "因为; 既然prep.,conj. & adv. 从......以后; 自......以来"}, {"en": "neighbor (=neighbour)", "cn": "邻居"}, {"en": "take care of", "cn": "照顾; 处理"}, {"en": "ill", "cn": "有病; 不舒服"}, {"en": "drop", "cn": "落下; 掉下"}, {"en": "independent", "cn": "独立的; 自主的"}, {"en": "fair", "cn": "合理的; 公正的"}, {"en": "unfair", "cn": "不合理的; 不公正的"}],
+    "Unit 4": [{"en": "allow", "cn": "允许; 准许"}, {"en": "wrong", "cn": "有毛病; 错误的"}, {"en": "What' s wrong?", "cn": "哪儿不舒服?"}, {"en": "midnight", "cn": "午夜; 子夜"}, {"en": "look through", "cn": "快速查看;  浏览"}, {"en": "guess", "cn": "猜测; 估计"}, {"en": "deal", "cn": "协议; 交易"}, {"en": "big deal", "cn": "重要的事"}, {"en": "work out", "cn": "成功地发展; 解决"}, {"en": "get on with", "cn": "和睦相处; 关系良好"}, {"en": "relation", "cn": "关系; 联系; 交往"}, {"en": "communication", "cn": "交流; 沟通"}, {"en": "argue", "cn": "争吵; 争论"}, {"en": "cloud", "cn": "云; 云朵"}, {"en": "elder", "cn": "年纪较长的"}, {"en": "instead", "cn": "代替; 反而; 却"}, {"en": "whatever", "cn": "任何; 每一"}, {"en": "nervous", "cn": "焦虑的; 担忧的"}, {"en": "offer", "cn": "主动提出; 自愿给予"}, {"en": "proper", "cn": "正确的; 恰当的"}, {"en": "secondly", "cn": "第二; 其次"}, {"en": "communicate", "cn": "交流; 沟通"}, {"en": "explain", "cn": "解释; 说明"}, {"en": "clear", "cn": "清楚易懂的; 晴朗的"}, {"en": "copy", "cn": "抄袭; 模仿; 复制; 复印"}, {"en": "return", "cn": "归还; 回来; 返回"}, {"en": "anymore", "cn": "（常用于否定句和疑问句末）再也（不）; （不）再"}, {"en": "member", "cn": "成员; 分子"}, {"en": "pressure", "cn": "压力"}, {"en": "compete", "cn": "竞争; 对抗"}, {"en": "opinion", "cn": "意见; 想法; 看法"}, {"en": "skill", "cn": "技艺; 技巧"}, {"en": "typical", "cn": "典型的"}, {"en": "football", "cn": "（美式）橄榄球; 足球"}, {"en": "cut out", "cn": "删除; 删去"}, {"en": "quick", "cn": "快的; 迅速的; 时间短暂的"}, {"en": "continue", "cn": "持续; 继续存在"}, {"en": "compare", "cn": "比较"}, {"en": "compare … with", "cn": "比较；对比"}, {"en": "crazy", "cn": "不理智的; 疯狂的"}, {"en": "push", "cn": "鞭策; 督促; 推动"}, {"en": "development", "cn": "发展; 发育; 成长"}, {"en": "cause", "cn": "造成; 引起"}, {"en": "usual", "cn": "通常的; 寻常的"}, {"en": "perhaps", "cn": "可能; 大概; 也许"}],
+    "Unit 5": [{"en": "rainstorm", "cn": "暴风雨"}, {"en": "alarm", "cn": "闹钟"}, {"en": "go off", "cn": "（闹钟）发出响声"}, {"en": "begin", "cn": "(began /bɪ'gæn/ ) 开始"}, {"en": "heavily", "cn": "在很大程度上; 大量地"}, {"en": "suddenly", "cn": "突然; 忽然"}, {"en": "strange", "cn": "奇特的;奇怪的"}, {"en": "storm", "cn": "暴风雨"}, {"en": "wind", "cn": "风"}, {"en": "light", "cn": "光; 光线; 光亮"}, {"en": "report", "cn": "& n. 报道; 公布"}, {"en": "area", "cn": "地域; 地区"}, {"en": "wood", "cn": "木; 木头"}, {"en": "window", "cn": "窗; 窗户"}, {"en": "flashlight", "cn": "手电筒; 火炬"}, {"en": "match", "cn": "火柴"}, {"en": "beat", "cn": "敲打; 打败"}, {"en": "against", "cn": "倚; 碰; 撞"}, {"en": "asleep", "cn": "睡着"}, {"en": "fall asleep", "cn": "进入梦乡; 睡着"}, {"en": "die down", "cn": "逐渐变弱; 逐渐消失"}, {"en": "rise", "cn": "& n. 升起; 增加; 提高"}, {"en": "fallen", "cn": "倒下的; 落下的"}, {"en": "apart", "cn": "分离; 分开"}, {"en": "have a look", "cn": "看一看"}, {"en": "icy", "cn": "覆盖着冰的; 冰冷的"}, {"en": "kid", "cn": "开玩笑; 欺骗"}, {"en": "realize", "cn": "理解; 领会; 认识到"}, {"en": "passage", "cn": "章节; 段落"}, {"en": "pupil", "cn": "学生"}, {"en": "completely", "cn": "彻底地; 完全地"}, {"en": "shocked", "cn": "惊愕的; 受震惊的"}, {"en": "silence", "cn": "沉默; 缄默; 无声"}, {"en": "in silence", "cn": "沉默; 无声"}, {"en": "recently", "cn": "不久前; 最近"}, {"en": "take down", "cn": "拆除; 往下拽; 记录"}, {"en": "terrorist", "cn": "恐怖主义者; 恐怖分子"}, {"en": "date", "cn": "日期; 日子"}, {"en": "tower", "cn": "塔; 塔楼"}, {"en": "at first", "cn": "首先; 最初"}, {"en": "truth", "cn": "实情; 事实"}, {"en": "Animal Helpline", "cn": "动物保护热线"}, {"en": "World Trade Center", "cn": "世贸大楼（美国纽约）"}],
+    "Unit 6": [{"en": "shoot", "cn": "(shot /ʃɒt/, /ʃɑ:t/) 射击; 发射"}, {"en": "stone", "cn": "石头"}, {"en": "weak", "cn": "虚弱的; 无力的"}, {"en": "god", "cn": "神; 上帝"}, {"en": "remind", "cn": "提醒; 使想起"}, {"en": "bit", "cn": "一点; 小块"}, {"en": "a little bit", "cn": "有点儿; 稍微"}, {"en": "silly", "cn": "愚蠢的; 不明事理的"}, {"en": "instead of", "cn": "代替; 反而"}, {"en": "turn…into", "cn": "变成"}, {"en": "object", "cn": "物体; 物品"}]
+  },
+  "九年级全册": {
+    "Unit 1": [{"en": "textbook", "cn": "教科书；课本"}, {"en": "conversation", "cn": "交谈；谈话"}, {"en": "aloud", "cn": "大声地；出声地"}, {"en": "pronunciation", "cn": "发音；读音"}, {"en": "sentence", "cn": "句子"}, {"en": "patient", "cn": "有耐心的"}, {"en": "expression", "cn": "表达(方式)；表示"}, {"en": "discover", "cn": "发现；发觉"}, {"en": "secret", "cn": "秘密；秘诀"}, {"en": "grammar", "cn": "语法"}, {"en": "repeat", "cn": "重复；重做"}, {"en": "note", "cn": "笔记；记录 v. 注意"}, {"en": "pal", "cn": "朋友；伙伴"}, {"en": "pattern", "cn": "模式；方式"}, {"en": "physics", "cn": "物理；物理学"}, {"en": "chemistry", "cn": "化学"}, {"en": "partner", "cn": "搭档；同伴"}, {"en": "pronounce", "cn": "发音"}, {"en": "increase", "cn": "增加；增长"}, {"en": "speed", "cn": "速度"}, {"en": "ability", "cn": "能力；才能"}, {"en": "brain", "cn": "大脑"}, {"en": "active", "cn": "活跃的；积极的"}, {"en": "attention", "cn": "注意；关注"}, {"en": "pay attention to", "cn": "注意；关注"}, {"en": "connect", "cn": "连接；与⋯⋯有联系"}, {"en": "connect with", "cn": "把⋯⋯和⋯⋯联系起来"}, {"en": "overnight", "cn": "一夜之间；在夜间"}, {"en": "review", "cn": "回顾；复习"}, {"en": "knowledge", "cn": "知识；学问"}, {"en": "wisely", "cn": "明智地；聪明地"}],
+    "Unit 2": [{"en": "lantern", "cn": "灯笼"}, {"en": "stranger", "cn": "陌生人"}, {"en": "relative", "cn": "亲属；亲戚"}, {"en": "put", "cn": "增加(体重)；发胖"}, {"en": "pound", "cn": "磅(重量单位)；英镑"}, {"en": "folk", "cn": "民间的；民俗的"}, {"en": "goddess", "cn": "女神"}, {"en": "steal", "cn": "偷；窃取"}, {"en": "lay", "cn": "放置；安放；产(卵)；下(蛋)"}, {"en": "lay out", "cn": "摆开；布置"}, {"en": "dessert", "cn": "(饭后)甜点；甜食"}, {"en": "garden", "cn": "花园；园子"}, {"en": "admire", "cn": "欣赏；仰慕"}, {"en": "tie", "cn": "领带 捆；束"}, {"en": "haunted", "cn": "有鬼魂出没的；闹鬼的"}, {"en": "ghost", "cn": "鬼；鬼魂"}, {"en": "trick", "cn": "花招；把戏"}, {"en": "treat", "cn": "款待；招待v.请(客)"}, {"en": "spider", "cn": "蜘蛛"}, {"en": "Christmas", "cn": "圣诞节"}, {"en": "fool", "cn": "蠢人；傻瓜 愚蠢的"}, {"en": "lie", "cn": "平躺；处于"}, {"en": "novel", "cn": "(长篇)小说"}, {"en": "eve", "cn": "前夕；前夜"}, {"en": "bookstore", "cn": "书店"}, {"en": "dead", "cn": "死的；失去生命的"}, {"en": "business", "cn": "生意；商业"}, {"en": "punish", "cn": "处罚；惩罚"}, {"en": "warn", "cn": "警告；告诫"}, {"en": "present", "cn": "礼物 现在的"}, {"en": "nobody", "cn": "没有人"}, {"en": "warmth", "cn": "温暖；暖和"}, {"en": "spread", "cn": "传播；展开蔓延"}],
+    "Unit 3": [{"en": "restroom", "cn": "洗手间；公共厕所"}, {"en": "stamp", "cn": "邮票；印章"}, {"en": "postcard", "cn": "明信片"}, {"en": "pardon", "cn": "请再说一遍；抱歉"}, {"en": "washroom", "cn": "洗手间；厕所"}, {"en": "bathroom", "cn": "浴室；洗手间"}, {"en": "quick", "cn": "迅速的；快速地；"}, {"en": "rush", "cn": "仓促；急促"}, {"en": "suggest", "cn": "建议；提议"}, {"en": "staff", "cn": "管理人员；职工"}, {"en": "grape", "cn": "葡萄"}, {"en": "central", "cn": "中心的；中央的"}, {"en": "mail", "cn": "邮寄；发电子邮件n."}, {"en": "east", "cn": "东方的；东方；朝东"}, {"en": "fascinating", "cn": "迷人的；极有吸引力的"}, {"en": "convenient", "cn": "便利的；方便的"}, {"en": "mall", "cn": "商场；购物中心"}, {"en": "clerk", "cn": "职员"}, {"en": "corner", "cn": "拐角；角落"}, {"en": "polite", "cn": "有礼貌的；客气的"}, {"en": "politely", "cn": "礼貌地；客气地"}, {"en": "speaker", "cn": "讲(某种语言)的人；发言者"}, {"en": "request", "cn": "要求；请求"}, {"en": "choice", "cn": "选择；挑选"}, {"en": "direction", "cn": "方向；方位"}, {"en": "correct", "cn": "正确的；恰当的"}, {"en": "direct", "cn": "直接的；"}, {"en": "whom", "cn": "谁；什么人"}, {"en": "address", "cn": "住址；"}, {"en": "faithfully", "cn": "忠实地；忠诚地"}, {"en": "Italian", "cn": "意大利(人)的；n."}],
+    "Unit 4": [{"en": "humorous", "cn": "有幽默感的；滑稽有趣的"}, {"en": "silent", "cn": "不说话的；沉默的"}, {"en": "helpful", "cn": "有用的；有帮助的"}, {"en": "score", "cn": "得分；打分"}, {"en": "background", "cn": "背景"}, {"en": "interview", "cn": "采访；面试n."}, {"en": "Asian", "cn": "亚洲的；亚洲人的，亚洲人"}, {"en": "deal with", "cn": "对付；应付"}, {"en": "dare", "cn": "敢于；胆敢"}, {"en": "private", "cn": "私人的；私密的"}, {"en": "guard", "cn": "警卫；看守v.守卫；保卫"}, {"en": "require", "cn": "需要；要求"}, {"en": "European", "cn": "欧洲的；欧洲人的"}, {"en": "British", "cn": "英国的；英国人的"}, {"en": "speech", "cn": "讲话；发言"}, {"en": "ant", "cn": "蚂蚁"}, {"en": "insect", "cn": "昆虫"}, {"en": "influence", "cn": "影响"}, {"en": "seldom", "cn": "不常；很少"}, {"en": "proud", "cn": "自豪的；骄傲的"}, {"en": "be proud of", "cn": "为⋯⋯骄傲；感到自豪"}, {"en": "absent", "cn": "缺席；不在"}, {"en": "fail", "cn": "失败；未能(做到)"}, {"en": "examination", "cn": "考试；审查"}, {"en": "boarding school", "cn": "寄宿学校"}, {"en": "in person", "cn": "亲身；亲自"}, {"en": "exactly", "cn": "确切地；精确地"}, {"en": "pride", "cn": "自豪；骄傲"}, {"en": "take pride in", "cn": "为⋯⋯感到自豪"}, {"en": "grandson", "cn": "孙子；外孙"}, {"en": "general", "cn": "普遍的；常规的；总的将军"}, {"en": "introduction", "cn": "介绍"}],
+    "Unit 5": [{"en": "material", "cn": "材料；原料"}, {"en": "chopsticks", "cn": "筷子"}, {"en": "coin", "cn": "硬币"}, {"en": "fork", "cn": "餐叉，叉子"}, {"en": "blouse", "cn": "(女士)短上衣；衬衫"}, {"en": "sliver", "cn": "银，银器；银色的"}, {"en": "glass", "cn": "玻璃"}, {"en": "cotton", "cn": "棉；棉花"}, {"en": "steel", "cn": "钢；钢铁"}, {"en": "grass", "cn": "草；草地"}, {"en": "leaf", "cn": "叶；叶子"}, {"en": "produce", "cn": "生产；制造；出产"}, {"en": "widely", "cn": "广泛地；普遍地"}, {"en": "process", "cn": "加工；处理"}, {"en": "France", "cn": "法国"}, {"en": "no matter", "cn": "不论；无论"}, {"en": "local", "cn": "当地的；本地的"}, {"en": "even though", "cn": "虽然；即使"}, {"en": "brand", "cn": "品牌；牌子"}, {"en": "avoid", "cn": "避免；回避"}, {"en": "product", "cn": "产品；制品"}, {"en": "handbag", "cn": "小手提包"}, {"en": "mobile", "cn": "可移动的；非固定的"}, {"en": "Germany", "cn": "德国"}, {"en": "surface", "cn": "表面；表层"}, {"en": "postman", "cn": "邮递员"}, {"en": "cap", "cn": "(尤指有帽舌的)帽子"}, {"en": "glove", "cn": "(分手指的)手套"}, {"en": "international", "cn": "国际的"}, {"en": "competitor", "cn": "参赛者；竞争者"}, {"en": "paint", "cn": "用颜料画；刷漆"}, {"en": "its", "cn": "它的"}, {"en": "form", "cn": "形式；类型"}, {"en": "clay", "cn": "黏土；陶土"}, {"en": "balloon", "cn": "气球"}, {"en": "scissors", "cn": "剪刀"}, {"en": "lively", "cn": "生气勃勃的；(色彩)鲜艳的"}, {"en": "fairy", "cn": "童话故事"}, {"en": "heat", "cn": "热；高温"}, {"en": "polish", "cn": "磨光；修改；润色"}, {"en": "complete", "cn": "完成"}],
+    "Unit 6": [{"en": "heel", "cn": "鞋跟；足跟"}, {"en": "electricity", "cn": "电；电能"}, {"en": "scoop", "cn": "勺；铲子"}, {"en": "style", "cn": "样式；款式"}, {"en": "project", "cn": "项目；工程"}, {"en": "pleasure", "cn": "高兴；愉快"}, {"en": "zipper=zip", "cn": "拉链；拉锁"}, {"en": "daily", "cn": "每日的；日常的"}, {"en": "website", "cn": "网站"}, {"en": "pioneer", "cn": "先锋；先驱"}, {"en": "list", "cn": "列表；列清单n.名单"}, {"en": "mention", "cn": "提到；说到"}, {"en": "by accident", "cn": "偶然；意外地"}, {"en": "nearly", "cn": "几乎；差不多"}, {"en": "boil", "cn": "煮沸；烧开"}, {"en": "smell", "cn": "气味v.发出⋯⋯气味"}, {"en": "saint", "cn": "圣人；圣徒"}, {"en": "take place", "cn": "发生；出现"}, {"en": "doubt", "cn": "疑惑；疑问"}, {"en": "without doubt", "cn": "毫无疑问；的确"}, {"en": "fridge", "cn": "冰箱"}, {"en": "translate", "cn": "翻译"}, {"en": "lock", "cn": "锁上；锁住"}, {"en": "earthquake", "cn": "地震"}, {"en": "sudden", "cn": "突然(的)"}, {"en": "biscuit", "cn": "饼干"}, {"en": "cookie", "cn": "曲奇饼"}, {"en": "instrument", "cn": "器械；仪器；工具"}, {"en": "crispy", "cn": "脆的；酥脆的"}, {"en": "sour", "cn": "酸的；有酸味的"}, {"en": "by mistake", "cn": "错误地；无意中"}, {"en": "customer", "cn": "顾客；客户"}, {"en": "Canadian", "cn": "加拿大的;加拿大人(的 )"}, {"en": "divide", "cn": "分开；分散"}, {"en": "divide into", "cn": "把⋯⋯分开"}, {"en": "purpose", "cn": "目的；目标"}, {"en": "basket", "cn": "篮；筐"}, {"en": "the Olympics", "cn": "奥林匹克运动会"}, {"en": "look up to", "cn": "钦佩；仰慕"}, {"en": "hero", "cn": "英雄；男主角"}],
+    "Unit 7": [{"en": "smoke", "cn": "冒烟；吸烟"}, {"en": "pierce", "cn": "扎；刺破；穿透"}, {"en": "license =licence", "cn": "证；证件"}, {"en": "safety", "cn": "安全；安全性"}, {"en": "earring", "cn": "耳环；耳饰"}, {"en": "cry", "cn": "哭；叫喊"}, {"en": "field", "cn": "田野；场地"}, {"en": "hug", "cn": "拥抱；搂抱"}, {"en": "lift", "cn": "举起；抬高"}, {"en": "talk back", "cn": "回嘴；顶嘴"}, {"en": "awful", "cn": "很坏的；讨厌的"}, {"en": "teen", "cn": "十几岁(十三至十九岁之间)"}, {"en": "regret", "cn": "感到遗憾；懊悔"}, {"en": "poem", "cn": "诗；韵文"}, {"en": "bedroom", "cn": "卧室"}, {"en": "community", "cn": "社区；社团"}, {"en": "keep away from", "cn": "避免接近；远离"}, {"en": "chance", "cn": "机会；可能性"}, {"en": "manage", "cn": "完成(困难的事)；应付(困难局面)"}, {"en": "society", "cn": "社会"}, {"en": "Unit", "cn": "单位；单元"}, {"en": "educate", "cn": "教育；教导"}, {"en": "professional", "cn": "职业的；专业的"}, {"en": "enter", "cn": "进来；进去"}, {"en": "support", "cn": "支持"}]
+  }
+};
+
+const GS = Object.keys(WORDS);
+
+let S = { grade:'', unit:'', mode:0, items:[], ord:[], q:0, ok:0, err:0, ans:false, wl:[], ms:{q:0,ok:0,sel:null,items:[],tot:0} };
+
+function $(id){return document.getElementById(id)}
+
+function pg(n){for(let i=1;i<=4;i++)$('pg'+i).style.display=(i===n?'block':'none')}
+
+// ===== 年级页 =====
+function goGrade(){pg(1);rGrades()}
+function rGrades(){
+  const g=$('gGrid');g.innerHTML='';
+  GS.forEach(grade=>{
+    const us=Object.keys(WORDS[grade]||{});
+    const wc=us.reduce((s,u)=>s+(WORDS[grade][u]||[]).length,0);
+    const d=document.createElement('div');d.className='gcard';
+    d.innerHTML='<div class="icon">📖</div><div class="name">'+grade+'</div><div class="cnt">'+us.length+'单元 · '+wc+'词</div>';
+    d.onclick=()=>{S.grade=grade;goUnit()};
+    g.appendChild(d);
+  });
+}
+
+// ===== 单元页 =====
+function goUnit(){
+  if(!S.grade){goGrade();return}
+  pg(2);$('gTitle').textContent=S.grade;rUnits();
+}
+function rUnits(){
+  const g=$('uGrid');g.innerHTML='';
+  const us=WORDS[S.grade]||{};const names=Object.keys(us);
+  const pr=JSON.parse(localStorage.getItem('rvp')||'{}');
+  names.forEach(un=>{
+    const ws=us[un]||[];
+    const d=document.createElement('div');d.className='ucard';
+    const k=S.grade+'_'+un;const st=pr[k]||0;
+    if(st>0)d.classList.add('done');
+    d.innerHTML='<div class="un">'+un+'</div><div class="uc">'+ws.length+' 词</div><div class="us">'+'⭐'.repeat(st)+'☆'.repeat(3-st)+'</div>';
+    d.onclick=()=>{S.unit=un;S.items=ws;goMode()};
+    g.appendChild(d);
+  });
+}
+
+// ===== 模式页 =====
+function goMode(){pg(3);$('uTitle').textContent=S.unit}
+function setM(m){S.mode=m;[0,1,2,3].forEach(i=>$('m'+i).className='mtab'+(i===m?' on':''))}
+
+// ===== 开始 =====
+function go(){
+  if(!S.items||S.items.length<2){alert('词汇不足');return}
+  S.ord=shuf([...Array(S.items.length).keys()]);
+  S.q=0;S.ok=0;S.err=0;S.ans=false;S.wl=[];
+  S.ms={q:0,ok:0,sel:null,items:[],tot:0};
+  pg(4);$('gInfo').textContent=S.grade+' · '+S.unit;
+  if(S.mode===3)startM();else showQ();
+}
+
+// ===== 普通模式 0/1/2 =====
+function showQ(){
+  const it=S.items[S.ord[S.q]],tot=S.items.length;
+  let h='<div class="qw">';
+  if(S.mode===0)h+=it.cn;
+  else if(S.mode===1)h+=it.en;
+  else h+='🔊 听音辨词';
+  h+='</div><div class="qt">';
+  if(S.mode===0)h+='请选择对应的英文单词';
+  else if(S.mode===1)h+='请选择对应的中文释义';
+  else h+='请听发音，选择对应的中文释义';
+  h+='</div>';
+  if(S.mode===2)h+='<button class="pbtn" onclick="playA()">🔊 播放发音</button>';
+  h+='<div class="ogrid" id="opts"></div>';
+  h+=progH(tot);
+  $('gc').innerHTML=h;
+  if(S.mode===2)playI(it.en);
+  genOpts(it);
+}
+
+function genOpts(it){
+  const field=S.mode===0?'en':'cn';
+  const correct=it[field];
+  let pool=S.items.map(x=>x[field]).filter(x=>x!==correct);
+  if(pool.length<3){
+    const all=[];
+    GS.forEach(g=>{Object.values(WORDS[g]||{}).forEach(u=>{u.forEach(x=>all.push(x[field]))})});
+    const ex=new Set([correct,...pool]);
+    pool=pool.concat(all.filter(x=>!ex.has(x)));
+  }
+  const others=shuf(pool).slice(0,3);
+  shuf([correct,...others]).forEach(opt=>{
+    const b=document.createElement('button');b.className='opt';b.textContent=opt;
+    b.onclick=()=>chk(b,opt,correct);
+    $('opts').appendChild(b);
+  });
+}
+
+function chk(btn,chosen,correct){
+  if(S.ans)return;S.ans=true;
+  if(chosen===correct){btn.classList.add('ok');S.ok++}
+  else{
+    btn.classList.add('no');
+    document.querySelectorAll('#opts .opt').forEach(b=>{if(b.textContent===correct)b.classList.add('ok')});
+    S.err++;S.wl.push(S.items[S.ord[S.q]]);
+  }
+  upSt();
+  if(S.q+1<S.items.length)setTimeout(()=>{S.q++;S.ans=false;showQ()},600);
+  else setTimeout(showR,800);
+}
+
+function playA(){playI(S.items[S.ord[S.q]].en)}
+
+// ===== 连线配对模式 =====
+function startM(){S.ms={q:0,ok:0,sel:null,items:[],tot:0};nextM()}
+
+function nextM(){
+  const remain=S.ord.slice(S.q);
+  const n=Math.min(4,remain.length);
+  if(n<2){setTimeout(showR,400);return}
+  const ms=S.ms;ms.tot=n;ms.sel=null;ms.ok=0;
+  ms.items=remain.slice(0,n).map(i=>S.items[i]);
+
+  let h='<div class="qt">🔗 连线配对（'+(S.q+1)+'/'+S.items.length+'）</div>';
+  h+='<div style="text-align:center;color:#64748b;margin:8px 0">点选英文再点选对应中文进行配对</div>';
+  h+='<div class="marea"><div class="mcol" id="cL"></div><div class="mcol" id="cR"></div></div>';
+  h+=progH(S.items.length);
+  $('gc').innerHTML=h;
+
+  // 英文列打乱
+  const sL=shuf([...Array(n).keys()]);
+  // 中文列打乱
+  const sR=shuf([...Array(n).keys()]);
+  sL.forEach(i=>{
+    const b=document.createElement('button');b.className='opt';
+    b.textContent=ms.items[i].en;b.dataset.i=i;b.dataset.s='L';
+    b.onclick=()=>mClick(b);$('cL').appendChild(b);
+  });
+  sR.forEach(i=>{
+    const b=document.createElement('button');b.className='opt';
+    b.textContent=ms.items[i].cn;b.dataset.i=i;b.dataset.s='R';
+    b.onclick=()=>mClick(b);$('cR').appendChild(b);
+  });
+  upSt();
+}
+
+function mClick(el){
+  if(el.classList.contains('ok'))return;
+  const ms=S.ms;
+  if(!ms.sel){
+    ms.sel=el;el.classList.add('sel');
+  }else{
+    // 同列切换
+    if(ms.sel.dataset.s===el.dataset.s){
+      ms.sel.classList.remove('sel');
+      ms.sel=el;el.classList.add('sel');
+      return;
+    }
+    el.classList.add('sel');
+    const prev=ms.sel;
+    // 检查配对：两个按钮的 data-i 相同则匹配
+    if(prev.dataset.i===el.dataset.i){
+      prev.classList.remove('sel');prev.classList.add('ok');prev.classList.add('off');
+      el.classList.remove('sel');el.classList.add('ok');el.classList.add('off');
+      ms.ok++;S.ok++;ms.sel=null;
+      if(ms.ok>=ms.tot){
+        S.q+=ms.tot;
+        if(S.q>=S.items.length)setTimeout(showR,600);
+        else setTimeout(nextM,700);
+      }
+    }else{
+      S.err++;S.wl.push(ms.items[parseInt(prev.dataset.i)]);
+      prev.classList.add('no');el.classList.add('no');
+      ms.sel=null;
+      setTimeout(()=>{prev.classList.remove('sel','no');el.classList.remove('sel','no')},500);
+    }
+    upSt();
+  }
+}
+
+// ===== 公共 =====
+function progH(tot){
+  return '<div class="pbar"><div class="pfill" id="pF"></div></div><div class="sts"><span>进度 <strong id="sQ">0</strong>/<strong id="sT">'+tot+'</strong></span><span>正确 <strong id="sO" style="color:#4ade80">0</strong></span><span>错误 <strong id="sE" style="color:#f87171">0</strong></span></div>';
+}
+
+function upSt(){
+  const t=S.items.length;
+  if($('sQ'))$('sQ').textContent=Math.min(S.q+1,t);
+  if($('sT'))$('sT').textContent=t;
+  if($('sO'))$('sO').textContent=S.ok;
+  if($('sE'))$('sE').textContent=S.err;
+  if($('pF'))$('pF').style.width=(S.q/Math.max(t,1)*100)+'%';
+}
+
+function showR(){
+  const tot=S.items.length;
+  const acc=tot>0?Math.round(S.ok/tot*100):0;
+  const st=acc>=80?3:acc>=60?2:1;
+  const msg={3:'🎉 太棒了！全部通关！',2:'👍 做得不错！继续加油！',1:'💪 继续加油，你可以的！'};
+  $('rT').textContent=msg[st];
+  $('rS').textContent='⭐'.repeat(st)+'☆'.repeat(3-st);
+  $('rSc').textContent=S.ok+' / '+tot+' 正确';
+  $('rAc').textContent='正确率 '+acc+'%';
+  const k=S.grade+'_'+S.unit;
+  const pr=JSON.parse(localStorage.getItem('rvp')||'{}');
+  if(!pr[k]||pr[k]<st){pr[k]=st;localStorage.setItem('rvp',JSON.stringify(pr))}
+  const ws=$('wSec');
+  if(S.wl.length>0){
+    ws.style.display='block';
+    const wl=$('wLst');wl.innerHTML='';
+    S.wl.forEach(it=>{
+      const d=document.createElement('div');d.className='wi';
+      d.innerHTML='<span>'+it.en+'</span><span>'+it.cn+'</span>';
+      wl.appendChild(d);
+    });
+  }else ws.style.display='none';
+  $('ov').classList.add('show');
+}
+
+function retry(){$('ov').classList.remove('show');go()}
+function cpW(){cpT(S.wl.map(it=>it.en+' - '+it.cn).join('\n'))}
+
+function playI(w){
+  try{const a=new Audio('https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(w)+'&type=2');a.play().catch(()=>spk(w))}catch(e){spk(w)}
+}
+function spk(w){try{const u=new SpeechSynthesisUtterance(w);u.lang='en-US';window.speechSynthesis.cancel();window.speechSynthesis.speak(u)}catch(e){}}
+
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function cpT(t){navigator.clipboard.writeText(t).then(()=>alert('✅ 已复制')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('✅ 已复制')})}
+function quit(){if(confirm('确定退出？进度不保存'))goUnit()}
+
+goGrade();
+</script>
+</body>
+</html>
