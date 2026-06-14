@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学公式可视化工具 - 从初中到大学</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-surface: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-card) 100%);
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .category-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-btn {
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .category-btn:hover {
+            background: var(--bg-surface);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .category-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .formula-panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .formula-panel h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .formula-item {
+            background: var(--bg-surface);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .formula-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .formula-item.active {
+            border-color: var(--accent);
+            background: var(--bg-card);
+        }
+
+        .formula-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .formula-preview {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .visualization-panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .canvas-container {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #graphCanvas {
+            width: 100%;
+            height: 400px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .controls {
+            background: var(--bg-surface);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-dark);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-hover);
+            transform: scale(1.2);
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: center;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .formula-display {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .formula-display .katex {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 50px;
+        }
+
+        .info-box {
+            background: var(--bg-surface);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📐 数学公式可视化工具</h1>
+        <p class="subtitle">从初中到大学的数学公式交互式图形演示</p>
+    </header>
+
+    <div class="container">
+        <nav class="category-nav">
+            <button class="category-btn active" data-category="middle">初中数学</button>
+            <button class="category-btn" data-category="high">高中数学</button>
+            <button class="category-btn" data-category="university">大学数学</button>
+        </nav>
+
+        <div class="content-grid">
+            <div class="formula-panel">
+                <h2 id="category-title">初中数学公式</h2>
+                <div id="formula-list"></div>
+            </div>
+
+            <div class="visualization-panel">
+                <div class="canvas-container">
+                    <canvas id="graphCanvas"></canvas>
+                </div>
+
+                <div class="controls">
+                    <h3 style="margin-bottom: 15px; color: var(--accent);">参数调节</h3>
+                    <div id="controls-container"></div>
+                </div>
+
+                <div class="formula-display">
+                    <div id="formula-latex"></div>
+                </div>
+
+                <div class="info-box" id="formula-info">
+                    选择一个公式开始探索！
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>💡 提示：调整参数滑块观察图形变化 | 点击不同公式查看各种数学概念</p>
+    </footer>
+
+    <script>
+        // 数学公式数据库
+        const formulas = {
+            middle: [
+                {
+                    id: 'linear',
+                    title: '一次函数',
+                    formula: 'y = kx + b',
+                    latex: 'y = kx + b',
+                    info: '一次函数是最基础的函数形式，k为斜率，b为y轴截距。图形为一条直线。',
+                    params: [
+                        { name: 'k', label: '斜率 k', min: -5, max: 5, step: 0.5, default: 1 },
+                        { name: 'b', label: '截距 b', min: -10, max: 10, step: 1, default: 0 }
+                    ],
+                    func: (x, params) => params.k * x + params.b
+                },
+                {
+                    id: 'quadratic',
+                    title: '二次函数',
+                    formula: 'y = ax² + bx + c',
+                    latex: 'y = ax^2 + bx + c',
+                    info: '二次函数图形为抛物线。a决定开口方向和大小，顶点在x=-b/2a处。',
+                    params: [
+                        { name: 'a', label: '系数 a', min: -5, max: 5, step: 0.5, default: 1 },
+                        { name: 'b', label: '系数 b', min: -10, max: 10, step: 1, default: 0 },
+                        { name: 'c', label: '常数 c', min: -10, max: 10, step: 1, default: 0 }
+                    ],
+                    func: (x, params) => params.a * x * x + params.b * x + params.c
+                },
+                {
+                    id: 'circle',
+                    title: '圆的面积',
+                    formula: 'S = πr²',
+                    latex: 'S = \\pi r^2',
+                    info: '圆的面积公式，r为半径。这是几何学中最著名的公式之一。',
+                    params: [
+                        { name: 'r', label: '半径 r', min: 1, max: 10, step: 0.5, default: 5 }
+                    ],
+                    draw: function(ctx, canvas, params) {
+                        const centerX = canvas.width / 2;
+                        const centerY = canvas.height / 2;
+                        const radius = params.r * 15;
+                        
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        drawGrid(ctx, canvas);
+                        
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
+                        ctx.fill();
+                        
+                        // 标注半径
+                        ctx.beginPath();
+                        ctx.moveTo(centerX, centerY);
+                        ctx.lineTo(centerX + radius, centerY);
+                        ctx.strokeStyle = '#f59e0b';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.font = '16px Arial';
+                        ctx.fillText('r = ' + params.r, centerX + radius/2 - 10, centerY - 10);
+                    }
+                },
+                {
+                    id: 'triangle',
+                    title: '三角形面积',
+                    formula: 'S = ½ah',
+                    latex: 'S = \\frac{1}{2}ah',
+                    info: '三角形面积公式：底×高÷2。a为底边长度，h为高。',
+                    params: [
+                        { name: 'a', label: '底边 a', min: 2, max: 15, step: 0.5, default: 8 },
+                        { name: 'h', label: '高 h', min: 2, max: 15, step: 0.5, default: 6 }
+                    ],
+                    draw: function(ctx, canvas, params) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        const baseX = 100;
+                        const baseY = canvas.height - 100;
+                        const topX = baseX + params.a * 20;
+                        const topY = baseY - params.h * 20;
+                        
+                        // 绘制三角形
+                        ctx.beginPath();
+                        ctx.moveTo(baseX, baseY);
+                        ctx.lineTo(topX, topY);
+                        ctx.lineTo(baseX + params.a * 40, baseY);
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(99, 102, 241, 0.3)';
+                        ctx.fill();
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        
+                        // 标注高
+                        ctx.beginPath();
+                        ctx.moveTo(topX, topY);
+                        ctx.lineTo(topX, baseY);
+                        ctx.strokeStyle = '#f59e0b';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([5, 5]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.font = '14px Arial';
+                        ctx.fillText('h = ' + params.h, topX + 10, (topY + baseY) / 2);
+                        ctx.fillText('a = ' + params.a, (baseX + topX + params.a * 40) / 2 - 20, baseY + 20);
+                    }
+                }
+            ],
+            high: [
+                {
+                    id: 'sine',
+                    title: '正弦函数',
+                    formula: 'y = A·sin(ωx + φ)',
+                    latex: 'y = A\\sin(\\omega x + \\varphi)',
+                    info: '正弦函数是周期函数，A为振幅，ω为角频率，φ为初相位。周期为2π/ω。',
+                    params: [
+                        { name: 'A', label: '振幅 A', min: 0.5, max: 5, step: 0.5, default: 2 },
+                        { name: 'omega', label: '角频率 ω', min: 0.5, max: 5, step: 0.5, default: 1 },
+                        { name: 'phi', label: '初相位 φ', min: -3.14, max: 3.14, step: 0.1, default: 0 }
+                    ],
+                    func: (x, params) => params.A * Math.sin(params.omega * x + params.phi)
+                },
+                {
+                    id: 'cosine',
+                    title: '余弦函数',
+                    formula: 'y = A·cos(ωx + φ)',
+                    latex: 'y = A\\cos(\\omega x + \\varphi)',
+                    info: '余弦函数与正弦函数相似，但相位差π/2。在波动和振动中有广泛应用。',
+                    params: [
+                        { name: 'A', label: '振幅 A', min: 0.5, max: 5, step: 0.5, default: 2 },
+                        { name: 'omega', label: '角频率 ω', min: 0.5, max: 5, step: 0.5, default: 1 },
+                        { name: 'phi', label: '初相位 φ', min: -3.14, max: 3.14, step: 0.1, default: 0 }
+                    ],
+                    func: (x, params) => params.A * Math.cos(params.omega * x + params.phi)
+                },
+                {
+                    id: 'exponential',
+                    title: '指数函数',
+                    formula: 'y = aˣ',
+                    latex: 'y = a^x',
+                    info: '指数函数，a>0且a≠1。当a>1时单调递增，0<a<1时单调递减。',
+                    params: [
+                        { name: 'a', label: '底数 a', min: 0.1, max: 5, step: 0.1, default: 2 }
+                    ],
+                    func: (x, params) => Math.pow(params.a, x)
+                },
+                {
+                    id: 'logarithm',
+                    title: '对数函数',
+                    formula: 'y = logₐ(x)',
+                    latex: 'y = \\log_a(x)',
+                    info: '对数函数是指数函数的反函数。定义域为x>0，过定点(1,0)。',
+                    params: [
+                        { name: 'a', label: '底数 a', min: 1.1, max: 10, step: 0.1, default: 2 }
+                    ],
+                    func: (x, params) => x > 0 ? Math.log(x) / Math.log(params.a) : null
+                },
+                {
+                    id: 'ellipse',
+                    title: '椭圆',
+                    formula: 'x²/a² + y²/b² = 1',
+                    latex: '\\frac{x^2}{a^2} + \\frac{y^2}{b^2} = 1',
+                    info: '椭圆的标准方程。a为长半轴，b为短半轴。当a=b时为圆。',
+                    params: [
+                        { name: 'a', label: '长半轴 a', min: 2, max: 10, step: 0.5, default: 6 },
+                        { name: 'b', label: '短半轴 b', min: 2, max: 10, step: 0.5, default: 4 }
+                    ],
+                    draw: function(ctx, canvas, params) {
+                        const centerX = canvas.width / 2;
+                        const centerY = canvas.height / 2;
+                        const scale = 15;
+                        
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        drawGrid(ctx, canvas);
+                        
+                        ctx.beginPath();
+                        for (let i = 0; i <= 360; i++) {
+                            const angle = i * Math.PI / 180;
+                            const x = centerX + params.a * scale * Math.cos(angle);
+                            const y = centerY - params.b * scale * Math.sin(angle);
+                            if (i === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        }
+                        ctx.closePath();
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        ctx.fillStyle = 'rgba(99, 102, 241, 0.1)';
+                        ctx.fill();
+                    }
+                }
+            ],
+            university: [
+                {
+                    id: 'derivative',
+                    title: '导数与切线',
+                    formula: "f'(x) = lim(h→0) [f(x+h)-f(x)]/h",
+                    latex: "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h)-f(x)}{h}",
+                    info: '导数的定义：函数在某点的瞬时变化率。红色线为切线，展示导数值。',
+                    params: [
+                        { name: 'x0', label: '切点 x₀', min: -5, max: 5, step: 0.5, default: 1 },
+                        { name: 'a', label: '函数系数 a', min: -3, max: 3, step: 0.5, default: 1 }
+                    ],
+                    draw: function(ctx, canvas, params) {
+                        const width = canvas.width;
+                        const height = canvas.height;
+                        const scale = 40;
+                        const offsetX = width / 2;
+                        const offsetY = height / 2;
+                        
+                        ctx.clearRect(0, 0, width, height);
+                        drawGrid(ctx, canvas);
+                        
+                        // 绘制函数 f(x) = a*x²
+                        ctx.beginPath();
+                        for (let i = -width/2; i < width/2; i++) {
+                            const x = i / scale;
+                            const y = params.a * x * x;
+                            const plotX = offsetX + i;
+                            const plotY = offsetY - y * scale;
+                            if (i === -width/2) ctx.moveTo(plotX, plotY);
+                            else ctx.lineTo(plotX, plotY);
+                        }
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        
+                        // 绘制切线
+                        const x0 = params.x0;
+                        const y0 = params.a * x0 * x0;
+                        const slope = 2 * params.a * x0; // f'(x) = 2ax
+                        const tangentLength = 3;
+                        
+                        const x1 = x0 - tangentLength;
+                        const y1 = y0 - slope * tangentLength;
+                        const x2 = x0 + tangentLength;
+                        const y2 = y0 + slope * tangentLength;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(offsetX + x1 * scale, offsetY - y1 * scale);
+                        ctx.lineTo(offsetX + x2 * scale, offsetY - y2 * scale);
+                        ctx.strokeStyle = '#ef4444';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        
+                        // 标记切点
+                        ctx.beginPath();
+                        ctx.arc(offsetX + x0 * scale, offsetY - y0 * scale, 6, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#ef4444';
+                        ctx.fill();
+                        
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.font = '14px Arial';
+                        ctx.fillText("f'(x₀) = " + slope.toFixed(2), offsetX + x0 * scale + 10, offsetY - y0 * scale - 10);
+                    }
+                },
+                {
+                    id: 'integral',
+                    title: '定积分面积',
+                    formula: '∫ₐᵇ f(x)dx',
+                    latex: '\\int_a^b f(x) dx',
+                    info: '定积分表示曲线与x轴之间的面积。展示积分区间内的面积可视化。',
+                    params: [
+                        { name: 'a', label: '下限 a', min: -5, max: 0, step: 0.5, default: -3 },
+                        { name: 'b', label: '上限 b', min: 0, max: 5, step: 0.5, default: 3 },
+                        { name: 'A', label: '振幅 A', min: 0.5, max: 3, step: 0.5, default: 1 }
+                    ],
+                    draw: function(ctx, canvas, params) {
+                        const width = canvas.width;
+                        const height = canvas.height;
+                        const scale = 40;
+                        const offsetX = width / 2;
+                        const offsetY = height / 2;
+                        
+                        ctx.clearRect(0, 0, width, height);
+                        drawGrid(ctx, canvas);
+                        
+                        // 绘制函数 f(x) = A*sin(x)
+                        ctx.beginPath();
+                        for (let i = -width/2; i < width/2; i++) {
+                            const x = i / scale;
+                            const y = params.A * Math.sin(x);
+                            const plotX = offsetX + i;
+                            const plotY = offsetY - y * scale;
+                            if (i === -width/2) ctx.moveTo(plotX, plotY);
+                            else ctx.lineTo(plotX, plotY);
+                        }
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        
+                        // 填充积分区域
+                        ctx.beginPath();
+                        for (let x = params.a; x <= params.b; x += 0.01) {
+                            const plotX = offsetX + x * scale;
+                            const y = params.A * Math.sin(x);
+                            const plotY = offsetY - y * scale;
+                            if (x === params.a) ctx.moveTo(plotX, offsetY);
+                            ctx.lineTo(plotX, plotY);
+                        }
+                        ctx.lineTo(offsetX + params.b * scale, offsetY);
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+                        ctx.fill();
+                        ctx.strokeStyle = '#f59e0b';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                },
+                {
+                    id: 'parametric',
+                    title: '参数方程 - 螺旋线',
+                    formula: 'x = t·cos(t), y = t·sin(t)',
+                    latex: '\\begin{cases} x = t\\cos(t) \\\\ y = t\\sin(t) \\end{cases}',
+                    info: '参数方程用参数t表示x和y。这是阿基米德螺旋线，广泛应用于自然界和工程中。',
+                    params: [
+                        { name: 'tmax', label: '最大参数 t', min: 1, max: 20, step: 1, default: 8 },
+                        { name: 'scale', label: '缩放比例', min: 5, max: 30, step: 1, default: 15 }
+                    ],
+                    draw: function(ctx, canvas, params) {
+                        const centerX = canvas.width / 2;
+                        const centerY = canvas.height / 2;
+                        
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        drawGrid(ctx, canvas);
+                        
+                        // 绘制螺旋线
+                        ctx.beginPath();
+                        for (let t = 0; t <= params.tmax * Math.PI; t += 0.01) {
+                            const x = t * Math.cos(t);
+                            const y = t * Math.sin(t);
+                            const plotX = centerX + x * params.scale;
+                            const plotY = centerY - y * params.scale;
+                            if (t === 0) ctx.moveTo(plotX, plotY);
+                            else ctx.lineTo(plotX, plotY);
+                        }
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+                },
+                {
+                    id: 'fourier',
+                    title: '傅里叶级数',
+                    formula: 'f(x) = a₀/2 + Σ[aₙcos(nx) + bₙsin(nx)]',
+                    latex: 'f(x) = \\frac{a_0}{2} + \\sum_{n=1}^{\\infty} [a_n\\cos(nx) + b_n\\sin(nx)]',
+                    info: '傅里叶级数将任意周期函数分解为正弦和余弦的叠加。调节谐波数量观察逼近过程。',
+                    params: [
+                        { name: 'n', label: '谐波数量 n', min: 1, max: 20, step: 1, default: 5 },
+                        { name: 'type', label: '波形类型', min: 0, max: 2, step: 1, default: 0 }
+                    ],
+                    draw: function(ctx, canvas, params) {
+                        const width = canvas.width;
+                        const height = canvas.height;
+                        const scale = 80;
+                        const offsetX = width / 2;
+                        const offsetY = height / 2;
+                        
+                        ctx.clearRect(0, 0, width, height);
+                        drawGrid(ctx, canvas);
+                        
+                        // 方波的傅里叶逼近
+                        ctx.beginPath();
+                        for (let i = -width/2; i < width/2; i++) {
+                            const x = i / scale;
+                            let y = 0;
+                            
+                            // 计算傅里叶级数
+                            for (let n = 1; n <= params.n; n++) {
+                                if (params.type === 0) {
+                                    // 方波: 4/π * Σ(sin((2k-1)x)/(2k-1))
+                                    if (n % 2 === 1) {
+                                        y += (4 / Math.PI) * Math.sin(n * x) / n;
+                                    }
+                                } else if (params.type === 1) {
+                                    // 锯齿波: -2/π * Σ(sin(nx)/n)
+                                    y += (-2 / Math.PI) * Math.sin(n * x) / n;
+                                } else {
+                                    // 三角波: -4/π² * Σ(cos((2k-1)x)/(2k-1)²)
+                                    if (n % 2 === 1) {
+                                        y += (-4 / (Math.PI * Math.PI)) * Math.cos(n * x) / (n * n);
+                                    }
+                                }
+                            }
+                            
+                            const plotX = offsetX + i;
+                            const plotY = offsetY - y * scale;
+                            if (i === -width/2) ctx.moveTo(plotX, plotY);
+                            else ctx.lineTo(plotX, plotY);
+                        }
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+                }
+            ]
+        };
+
+        // 全局变量
+        let currentCategory = 'middle';
+        let currentFormula = null;
+        let currentParams = {};
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            initCategoryNav();
+            loadFormulas(currentCategory);
+            initCanvas();
+        });
+
+        // 初始化分类导航
+        function initCategoryNav() {
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentCategory = btn.dataset.category;
+                    loadFormulas(currentCategory);
+                });
+            });
+        }
+
+        // 加载公式列表
+        function loadFormulas(category) {
+            const formulaList = document.getElementById('formula-list');
+            const categoryTitle = document.getElementById('category-title');
+            
+            const titles = {
+                middle: '初中数学公式',
+                high: '高中数学公式',
+                university: '大学数学公式'
+            };
+            categoryTitle.textContent = titles[category];
+            
+            formulaList.innerHTML = '';
+            formulas[category].forEach((formula, index) => {
+                const div = document.createElement('div');
+                div.className = 'formula-item';
+                div.innerHTML = `
+                    <div class="formula-title">${formula.title}</div>
+                    <div class="formula-preview">${formula.formula}</div>
+                `;
+                div.addEventListener('click', () => selectFormula(category, index));
+                formulaList.appendChild(div);
+            });
+
+            // 默认选择第一个
+            if (formulas[category].length > 0) {
+                selectFormula(category, 0);
+            }
+        }
+
+        // 选择公式
+        function selectFormula(category, index) {
+            currentFormula = formulas[category][index];
+            
+            // 更新UI
+            document.querySelectorAll('.formula-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+
+            // 初始化参数
+            currentParams = {};
+            currentFormula.params.forEach(param => {
+                currentParams[param.name] = param.default;
+            });
+
+            // 更新公式显示
+            renderFormula();
+            
+            // 更新信息
+            document.getElementById('formula-info').textContent = currentFormula.info;
+            
+            // 创建控制器
+            createControls();
+            
+            // 绘制图形
+            drawGraph();
+        }
+
+        // 渲染公式
+        function renderFormula() {
+            const formulaDisplay = document.getElementById('formula-latex');
+            formulaDisplay.innerHTML = '';
+            katex.render(currentFormula.latex, formulaDisplay, {
+                throwOnError: false,
+                displayMode: true
+            });
+        }
+
+        // 创建参数控制器
+        function createControls() {
+            const container = document.getElementById('controls-container');
+            container.innerHTML = '';
+
+            currentFormula.params.forEach(param => {
+                const controlGroup = document.createElement('div');
+                controlGroup.className = 'control-group';
+                
+                const label = document.createElement('label');
+                label.textContent = param.label;
+                
+                const sliderContainer = document.createElement('div');
+                sliderContainer.className = 'slider-container';
+                
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = param.min;
+                slider.max = param.max;
+                slider.step = param.step;
+                slider.value = param.default;
+                
+                const valueDisplay = document.createElement('span');
+                valueDisplay.className = 'slider-value';
+                valueDisplay.textContent = param.default;
+                
+                slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    currentParams[param.name] = value;
+                    valueDisplay.textContent = value.toFixed(2);
+                    drawGraph();
+                });
+                
+                sliderContainer.appendChild(slider);
+                sliderContainer.appendChild(valueDisplay);
+                controlGroup.appendChild(label);
+                controlGroup.appendChild(sliderContainer);
+                container.appendChild(controlGroup);
+            });
+        }
+
+        // 初始化Canvas
+        function initCanvas() {
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置Canvas实际尺寸
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // 窗口大小改变时重新调整
+            window.addEventListener('resize', () => {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                drawGraph();
+            });
+        }
+
+        // 绘制网格
+        function drawGrid(ctx, canvas) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const gridSize = 40;
+            
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            
+            // 垂直线
+            for (let x = 0; x <= width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            // 水平线
+            for (let y = 0; y <= height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // 坐标轴
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = 2;
+            
+            // x轴
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.stroke();
+            
+            // y轴
+            ctx.beginPath();
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.stroke();
+        }
+
+        // 绘制图形
+        function drawGraph() {
+            if (!currentFormula) return;
+            
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 如果公式有自定义绘制函数，使用它
+            if (currentFormula.draw) {
+                currentFormula.draw(ctx, canvas, currentParams);
+                return;
+            }
+            
+            // 否则使用默认的函数绘图
+            const width = canvas.width;
+            const height = canvas.height;
+            const scale = 40;
+            const offsetX = width / 2;
+            const offsetY = height / 2;
+            
+            ctx.clearRect(0, 0, width, height);
+            drawGrid(ctx, canvas);
+            
+            // 绘制函数曲线
+            ctx.beginPath();
+            let started = false;
+            
+            for (let i = -width/2; i < width/2; i++) {
+                const x = i / scale;
+                const y = currentFormula.func(x, currentParams);
+                
+                if (y === null || y === undefined || !isFinite(y)) {
+                    started = false;
+                    continue;
+                }
+                
+                const plotX = offsetX + i;
+                const plotY = offsetY - y * scale;
+                
+                // 防止线条跳跃
+                if (plotY < -1000 || plotY > height + 1000) {
+                    started = false;
+                    continue;
+                }
+                
+                if (!started) {
+                    ctx.moveTo(plotX, plotY);
+                    started = true;
+                } else {
+                    ctx.lineTo(plotX, plotY);
+                }
+            }
+            
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
