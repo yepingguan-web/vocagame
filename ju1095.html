@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>词汇闯关 1095</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0f23;color:#e8e8f0;min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#7dd3fc;margin-bottom:4px;letter-spacing:2px;word-break:break-word}
+.subtitle{text-align:center;color:#64748b;font-size:.82em;margin-bottom:20px;word-break:break-word}
+.card{background:#1e1e3a;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.4);margin-bottom:16px}
+.level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:16px}
+.level-btn{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.8em}
+.level-btn:hover{border-color:#7dd3fc;background:#1a2a3a}
+.level-btn.done{border-color:#4ade80;background:#052016}
+.level-btn .lnum{font-size:1.1em;font-weight:700;display:block;color:#e2e8f0}
+.level-btn .lcount{font-size:.7em;color:#64748b;display:block;margin-top:2px}
+.level-btn .lcount.ok{color:#4ade80}
+.question{text-align:center;margin-bottom:20px}
+.qword{font-size:1.6em;font-weight:700;color:#7dd3fc;letter-spacing:1px;word-break:break-word}
+.qtype{font-size:.8em;color:#64748b;margin-top:4px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.option{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .2s;font-size:.95em;color:#cbd5e1;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.option:hover{border-color:#7dd3fc;background:#1a2a3a}
+.option.correct{border-color:#4ade80;background:#052016;color:#4ade80}
+.option.wrong{border-color:#f87171;background:#2a0a0a;color:#f87171}
+.option:disabled{cursor:default}
+.progress-bar{height:6px;background:#2a2a4a;border-radius:3px;margin-top:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#4ade80);border-radius:3px;transition:width .4s ease}
+.stats{display:flex;justify-content:center;gap:32px;margin-top:16px;color:#94a3b8;font-size:.85em}
+.stats span{color:#e2e8f0}
+.btn{background:#2563eb;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-size:.95em;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.btn-ghost:hover{border-color:#7dd3fc;color:#7dd3fc}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 20px;border-radius:8px;border:2px solid #3a3a5a;background:transparent;color:#94a3b8;cursor:pointer;font-size:.9em;transition:all .2s}
+.mode-tab.active{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc}
+.hint-btn{background:transparent;border:1px solid #3a3a5a;border-radius:6px;color:#64748b;padding:6px 14px;font-size:.8em;cursor:pointer;margin-top:12px}
+.hint-btn:hover{border-color:#7dd3fc;color:#7dd3fc}
+.hint-text{color:#fbbf24;font-size:.85em;margin-top:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#1e1e3a;border-radius:16px;padding:32px;max-width:420px;text-align:center;width:90%;max-height:90vh;overflow-y:auto}
+.modal h2{color:#7dd3fc;margin-bottom:16px;font-size:1.4em}
+.modal .score-big{font-size:3em;font-weight:700;color:#fbbf24;margin:16px 0}
+.modal .acc{color:#4ade80;font-size:1.1em}
+.modal .msg{margin-top:12px;color:#94a3b8;font-size:.85em}
+.match-area{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:20px}
+.match-col{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.match-item{padding:10px 16px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#e8e8f0;cursor:pointer;transition:all .2s;text-align:center;font-size:.9em;user-select:none;min-width:100px;word-break:break-word}
+.match-item:hover{border-color:#7dd3fc}
+.match-item.selected{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc;box-shadow:0 0 8px rgba(125,211,252,.3)}
+.match-item.matched{border-color:#4ade80;background:#052016;color:#4ade80;cursor:default;opacity:.7}
+.match-item.wrong-flash{border-color:#f87171;background:#2a0a0a;color:#f87171;animation:shake .4s}
+.match-group-label{color:#94a3b8;font-size:.85em;text-align:center;margin:12px 0 4px;padding:4px 16px;background:#2a2a4a;border-radius:6px;display:inline-block}
+.match-progress{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.match-dot{width:14px;height:14px;border-radius:50%;background:#3a3a5a;transition:all .3s}
+.match-dot.cur{background:#7dd3fc;transform:scale(1.2)}
+.match-dot.ok{background:#4ade80}
+.match-dot.err{background:#f87171}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:600px){
+  .options-grid{grid-template-columns:1fr}
+  .level-grid{grid-template-columns:repeat(auto-fill,minmax:65px,1fr)}
+  .qword{font-size:1.3em}
+  .match-area{gap:12px}
+  .match-col{min-width:90px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1 id="gTitle">词汇闯关 1095</h1>
+<p class="subtitle" id="gSub">上传自 Excel 的词汇列表</p>
+
+<div id="levelView" class="card">
+  <div style="text-align:center;color:#94a3b8;font-size:.85em;margin-bottom:8px">📚 选择关卡开始闯关</div>
+  <div class="level-grid" id="lg"></div>
+</div>
+
+<div id="gameView" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-ghost" onclick="backToLevels()" style="font-size:.8em;padding:6px 14px">← 返回关卡</button>
+    <span id="lvTitle" style="color:#7dd3fc;font-size:.9em">第 1 关</span>
+  </div>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div id="qArea">
+    <div class="question">
+      <div class="qword" id="qw"></div>
+      <div class="qtype" id="qt"></div>
+    </div>
+    <div class="options-grid" id="oa"></div>
+    <div style="text-align:center">
+      <button class="hint-btn" id="hb" onclick="sh()">💡 提示</button>
+    </div>
+    <div class="hint-text" id="ht" style="display:none"></div>
+  </div>
+  <div id="matchArea" class="match-area" style="display:none"></div>
+  <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+  <div class="stats">
+    <div>✅ 正确 <span id="so">0</span></div>
+    <div>❌ 错误 <span id="se">0</span></div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2 id="rt"></h2>
+    <div class="score-big" id="rs"></div>
+    <div class="acc" id="rsc"></div>
+    <div class="acc" id="rac" style="margin-top:4px"></div>
+    <div class="msg" id="rmg"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="retry()">🔄 重玩本关</button>
+      <button class="btn btn-ghost" onclick="backToLevels()">📚 返回关卡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== Game Data ======
+const D = {"star1":[{"en":"about","cn":"adv.大约；到处；四处 prep. 关于；在各处；四处","key":"a"},{"en":"after","cn":"adv. 在后；后来prep. 在…之后；在后面 conj. 在...后面","key":"a"},{"en":"afternoon","cn":"下午，午后","key":"a"},{"en":"again","cn":"再一次；再，又","key":"a"},{"en":"age","cn":"年龄；时代","key":"a"},{"en":"ago","cn":"以前","key":"a"},{"en":"air","cn":"空气；大气","key":"a"},{"en":"all","cn":"adv.全部地 adj. 全（部）;所有的;总;整 pron.全部;全体人员","key":"a"},{"en":"also","cn":"也","key":"a"},{"en":"always","cn":"总是；一直；永远","key":"a"},{"en":"and","cn":"和；又；而","key":"a"},{"en":"angry","cn":"生气的，愤怒的","key":"a"},{"en":"animal","cn":"动物","key":"a"},{"en":"answer","cn":"n. 回答,答复;回信;答案 v.回答,答复;回信;（作出）答案","key":"a"},{"en":"any","cn":"pron.任何数量，任一数额;任一;任何一些 det. 任何的，任一的","key":"a"},{"en":"apple","cn":"苹果","key":"a"},{"en":"arm","cn":"v. 以…装备,武装起来  n. （美）武器,武力","key":"a"},{"en":"art","cn":"艺术，美术；技艺","key":"a"},{"en":"ask","cn":"问；请求，要求；邀请","key":"a"},{"en":"astronaut","cn":"宇航员; 航天员; 太空人","key":"a"},{"en":"at","cn":"在（几点钟）;在（某处）","key":"a"},{"en":"aunt","cn":"伯母；舅母；婶 ；姑；姨","key":"a"},{"en":"autumn","cn":"秋天，秋季","key":"a"},{"en":"baby","cn":"婴儿","key":"b"},{"en":"back","cn":"adv. 回（原处）；向后 adj. 后面的 n. 背后，后部；背","key":"b"},{"en":"bad","cn":"坏的；有害的，不利的；严重的","key":"b"},{"en":"bag","cn":"书包；提包；袋子","key":"b"},{"en":"ball","cn":"球 n. 舞会","key":"b"},{"en":"banana","cn":"香蕉","key":"b"},{"en":"basketball","cn":"篮球","key":"b"}],"star2":[{"en":"be(am,are,is)","cn":"是 (am/is/are, was/were, being, been)；成为","key":"b"},{"en":"beach","cn":"海滨，海滩","key":"b"},{"en":"bear","cn":"vt.承受，负担，承担；忍受；容忍 n. 熊","key":"b"},{"en":"beautiful","cn":"美，美丽，美观的","key":"b"},{"en":"because","cn":"因为","key":"b"},{"en":"bed","cn":"床","key":"b"},{"en":"bee","cn":"蜜蜂","key":"b"},{"en":"before","cn":"prep. 在…以前；在…前面 adv. 以前 conj. 在…之前","key":"b"},{"en":"begin","cn":"开始,着手","key":"b"},{"en":"behind","cn":"prep.  (表示位置)在…后面 adv. 在后面；向后","key":"b"},{"en":"beside","cn":"在…旁边；靠近","key":"b"},{"en":"best","cn":"(good/well 的最高级) 最好的； adv.最好地","key":"b"},{"en":"between","cn":"在（两者）之间；在…中间","key":"b"},{"en":"big","cn":"大的","key":"b"},{"en":"bike (bicycle)","cn":"自行车","key":"b"},{"en":"bird","cn":"鸟","key":"b"},{"en":"birthday","cn":"生日","key":"b"},{"en":"black","cn":"黑色 ; 黑色的","key":"b"},{"en":"blackboard","cn":"黑板","key":"b"},{"en":"blue","cn":"n. 蓝色 adj.蓝色的 ；悲伤的；沮丧的","key":"b"},{"en":"boat","cn":"小船，小舟","key":"b"},{"en":"body","cn":"身体,躯体,尸体","key":"b"},{"en":"book","cn":"n. 书；本子 v. 预定，定（房间、车票等）","key":"b"},{"en":"box","cn":"盒子，箱子","key":"b"},{"en":"boy","cn":"男孩","key":"b"},{"en":"bread","cn":"面包","key":"b"},{"en":"breakfast","cn":"早餐","key":"b"},{"en":"bring","cn":"拿来，带来，取来","key":"b"},{"en":"brother","cn":"兄；弟","key":"b"},{"en":"brown","cn":"n. 褐色，棕色 adj. 褐色的，棕色的","key":"b"}],"star3":[{"en":"bus","cn":"公共汽车","key":"b"},{"en":"busy","cn":"忙（碌）的","key":"b"},{"en":"but","cn":"conj.但是，可是 prep. 除了, 除……外","key":"b"},{"en":"buy","cn":"买","key":"b"},{"en":"by","cn":"靠近，在…旁；在…时间；不迟于；被","key":"b"},{"en":"cake","cn":"蛋糕，糕点；饼","key":"c"},{"en":"call","cn":"n. 喊，叫；电话，通话 vt. 称呼；呼唤；喊，叫","key":"c"},{"en":"can","cn":"modal v. 可能；能够；可以 n.罐头；罐子","key":"c"},{"en":"candle","cn":"蜡烛","key":"c"},{"en":"candy","cn":"糖果","key":"c"},{"en":"cap","cn":"（无檐的或仅在前面有檐的）帽子；笔套","key":"c"},{"en":"car","cn":"汽车，小卧车","key":"c"},{"en":"card","cn":"卡片；名片；纸牌","key":"c"},{"en":"careful","cn":"小心，仔细，谨慎的","key":"c"},{"en":"cat","cn":"猫 ","key":"c"},{"en":"catch","cn":"接住；捉住；赶上；染上（疾病）","key":"c"},{"en":"chair","cn":"椅子","key":"c"},{"en":"chicken","cn":"鸡；鸡肉","key":"c"},{"en":"child (pl. children)","cn":"孩子，儿童","key":"c"},{"en":"China","cn":"中国","key":"c"},{"en":"Chinese","cn":"adj.中国(人)的，汉语的 n.中国人汉语，中文","key":"c"},{"en":"chore","cn":"日常的零星事务; 琐事；讨厌的或累人的工作","key":"c"},{"en":"cinema","cn":"电影院；电影","key":"c"},{"en":"city","cn":"市，城市，都市","key":"c"},{"en":"class","cn":"（学校的）班；年级；课","key":"c"},{"en":"classroom","cn":"教室","key":"c"},{"en":"clean","cn":"vt. 弄干净，擦干净 adj. 清洁的，干净的","key":"c"},{"en":"clever","cn":"聪明的，伶俐的","key":"c"},{"en":"clock","cn":"钟","key":"c"},{"en":"close","cn":"adj. 亲密的；近的，靠近的 adv. 近，靠近 vt. 关，关闭","key":"c"}],"star4":[{"en":"clothes","cn":"衣服；各种衣物","key":"c"},{"en":"cloudy","cn":"多云的，阴天的","key":"c"},{"en":"coat","cn":"n.外套, 涂层； vt. 给……穿外套；涂上","key":"c"},{"en":"cold","cn":"adj. 冷的，寒的 n. 寒冷；感冒，伤风","key":"c"},{"en":"colour (AmE color)","cn":"n. 颜色 vt.给…着色，涂色","key":"c"},{"en":"come (came, come)","cn":"来，来到","key":"c"},{"en":"computer","cn":"电子计算机, 电脑","key":"c"},{"en":"cook","cn":"n.炊事员,厨师 vt.烹调,做饭","key":"c"},{"en":"cool","cn":"凉的，凉爽的；酷","key":"c"},{"en":"cousin","cn":"堂（表）兄弟，堂（表）姐妹","key":"c"},{"en":"cow","cn":"母牛，奶牛","key":"c"},{"en":"cry","cn":"n.叫喊；哭声 vi. 喊叫；哭","key":"c"},{"en":"cup","cn":"茶杯","key":"c"},{"en":"cut (cut, cut)","cn":"切，剪，削，割, 伤口","key":"c"},{"en":"cute","cn":"可爱的;漂亮迷人的;机灵的","key":"c"},{"en":"dance","cn":"跳舞","key":"d"},{"en":"day","cn":"（一）天，（一）日；白天","key":"d"},{"en":"dear","cn":"int. （表示惊愕）哎呀！唷！ adj. 亲爱的；贵的","key":"d"},{"en":"desk","cn":"书桌，写字台","key":"d"},{"en":"difficult","cn":"难；艰难；不易相处","key":"d"},{"en":"dinner","cn":"正餐，宴会","key":"d"},{"en":"dirty","cn":"脏的","key":"d"},{"en":"do (did, done)","cn":"做/干; 不做/不干","key":"d"},{"en":"doctor","cn":"医生，大夫；博士","key":"d"},{"en":"dog","cn":"狗","key":"d"},{"en":"doll","cn":"玩偶; 玩具娃娃","key":"d"},{"en":"door","cn":"门","key":"d"},{"en":"down","cn":"prep.沿着，沿…而下 adv. 向下","key":"d"},{"en":"draw","cn":"绘画；绘制；拉，拖；提取（金钱）","key":"d"},{"en":"dress","cn":"n.女服，连衣裙；(统指)服装 vt 给…穿衣","key":"d"}],"star5":[{"en":"drink","cn":"n.饮料 vt.喝，饮","key":"d"},{"en":"driver","cn":"司机，驾驶员","key":"d"},{"en":"duck","cn":"鸭子","key":"d"},{"en":"ear","cn":"耳朵,耳状物；听力，听觉","key":"e"},{"en":"early","cn":"早的,  早地","key":"e"},{"en":"earth","cn":"地球；土，泥；大地","key":"e"},{"en":"easy","cn":"容易的，不费力的","key":"e"},{"en":"eat (ate, eaten)","cn":"吃","key":"e"},{"en":"egg","cn":"蛋；卵","key":"e"},{"en":"elephant","cn":"大象","key":"e"},{"en":"email","cn":"n.电子邮件 vt.发电子邮件","key":"e"},{"en":"English","cn":"adj.英国的，英国人的，英语的 n. 英语","key":"e"},{"en":"evening","cn":"傍晚，晚上","key":"e"},{"en":"every","cn":"每一，每个的","key":"e"},{"en":"excited","cn":"激动的;兴奋的","key":"e"},{"en":"exercise","cn":"n.锻炼，做操；练习，习题 vi. 锻炼","key":"e"},{"en":"eye","cn":"眼睛","key":"e"},{"en":"face","cn":"n.脸 vt. 面向；面对","key":"f"},{"en":"family","cn":"家庭；家族；子女","key":"f"},{"en":"famous","cn":"著名的","key":"f"},{"en":"fan","cn":"迷；热心的爱好者; 风扇","key":"f"},{"en":"far","cn":"远的；远地","key":"f"},{"en":"farm","cn":"农场；农庄","key":"f"},{"en":"farmer","cn":"农民","key":"f"},{"en":"fast","cn":"adj. 快的，迅速的；紧密的 adv. 快地，迅速地；紧密地","key":"f"},{"en":"father (dad)","cn":"n.父亲（ dad [dæd] /daddy[dædi] 爸爸;爹爹）","key":"f"},{"en":"favourite (AmE favorite)","cn":"adj.喜爱的 n. 特别喜爱的人（或物）","key":"f"},{"en":"feel (felt, felt)","cn":"感觉，觉得；摸，触","key":"f"},{"en":"film","cn":"n.电影；胶卷 vt. 拍摄，把……拍成电影","key":"f"},{"en":"find","cn":"找到，发现，感到","key":"f"}],"star6":[{"en":"fine","cn":"adj. 晴朗的，美好的，身体健康的  n/vt. 罚款","key":"f"},{"en":"fire","cn":"n. 火；火炉；火灾 vi. 开火;射击","key":"f"},{"en":"fish","cn":"n.鱼；鱼肉 vi. 钓鱼；捕鱼","key":"f"},{"en":"floor","cn":"地面，地板.（楼房的）层","key":"f"},{"en":"flower","cn":"花","key":"f"},{"en":"fly","cn":"vi.飞；飞行 vt. 空运；放风筝 n. 飞行；苍蝇","key":"f"},{"en":"food","cn":"食物，食品","key":"f"},{"en":"foot (pl・ feet)","cn":"足，脚；英尺","key":"f"},{"en":"football","cn":"（英式）足球；（美式）橄榄球","key":"f"},{"en":"for","cn":"prep. 为了，因为，对于，对…来说 conj. 因为，由于","key":"f"},{"en":"free","cn":"自由的，空闲的；免费的","key":"f"},{"en":"friend","cn":"朋友","key":"f"},{"en":"from","cn":"从；从…起.距.来自","key":"f"},{"en":"front","cn":"adj.前面的；前部的 n. 前面；前部；前线","key":"f"},{"en":"fruit","cn":"水果；果实","key":"f"},{"en":"game","cn":"游戏；运动；比赛","key":"g"},{"en":"garden","cn":"花园，果园，菜园","key":"g"},{"en":"get (got , got)","cn":"成为；得到；具有；到达","key":"g"},{"en":"gift","cn":"赠品；礼物","key":"g"},{"en":"girl","cn":"女孩","key":"g"},{"en":"give","cn":"给,递给,付出,给予","key":"g"},{"en":"glass","cn":"玻璃; 玻璃杯；(复)眼镜","key":"g"},{"en":"go","cn":"vi. 去；走；驶；通到；到达 n. 尝试（做某事）","key":"g"},{"en":"good","cn":"好；良好","key":"g"},{"en":"goodbye (bye)","cn":"再见；再会","key":"g"},{"en":"grandfather = grandpa","cn":"n.爷爷,外公（ grandpa口语）","key":"g"},{"en":"grandmother = grandma","cn":"n.奶奶；外婆（grandma口语）","key":"g"},{"en":"grape","cn":"葡萄","key":"g"},{"en":"grass","cn":"草；草场；牧草","key":"g"},{"en":"great","cn":"伟大的,重要的,好极了","key":"g"}],"star7":[{"en":"green","cn":"adj.绿色的；青的 n. 绿色","key":"g"},{"en":"hair","cn":"头发","key":"h"},{"en":"half","cn":"半，一半，半个","key":"h"},{"en":"hand","cn":"n.手；指针 vt. 递；给；交付 交上；交进","key":"h"},{"en":"happy","cn":"幸福；快乐的，高兴的","key":"h"},{"en":"hard","cn":"adv.努力地；猛烈地 adj.硬的；困难的；艰难的","key":"h"},{"en":"have (has)","cn":"有；吃；喝；进行；经受","key":"h"},{"en":"he","cn":"他","key":"h"},{"en":"head","cn":"n.头；标题 adj.主要的；首席的 vt. 率领；出发","key":"h"},{"en":"healthy","cn":"健康的，健壮的","key":"h"},{"en":"hear (heard, heard)","cn":"听见；听说,得知","key":"h"},{"en":"heavy","cn":"重的","key":"h"},{"en":"hello","cn":"喂；你好（表示打招呼，问候或唤起注意）","key":"h"},{"en":"help","cn":"帮助，帮忙","key":"h"},{"en":"helpful","cn":"有帮助的，有益的","key":"h"},{"en":"her","cn":"她(宾格),她的","key":"h"},{"en":"here","cn":"这里，在这里；向这里","key":"h"},{"en":"hi","cn":"你好（表示打招呼、问候或唤起注 意）","key":"h"},{"en":"hill","cn":"小山;丘陵;土堆;斜坡","key":"h"},{"en":"him","cn":"他（宾格）","key":"h"},{"en":"his","cn":"他的","key":"h"},{"en":"holiday","cn":"假日；假期","key":"h"},{"en":"home","cn":"n.家,住所 adv. 到家；在家","key":"h"},{"en":"hometown","cn":"故乡","key":"h"},{"en":"horse","cn":"马","key":"h"},{"en":"hospital","cn":"医院","key":"h"},{"en":"hot","cn":"热的","key":"h"},{"en":"hour","cn":"小时","key":"h"},{"en":"house","cn":"房子；住宅","key":"h"},{"en":"how","cn":"怎样,如何；多少；多么","key":"h"}],"star8":[{"en":"hungry","cn":"饥饿的","key":"h"},{"en":"hurry","cn":"赶快；急忙","key":"h"},{"en":"hurt (hurt, hurt)","cn":"伤害，受伤；伤人感情","key":"h"},{"en":"I","cn":"我","key":"i"},{"en":"ice","cn":"冰","key":"i"},{"en":"ice--cream","cn":"冰淇淋","key":"i"},{"en":"idea","cn":"主意,意见,打算,想法","key":"i"},{"en":"ill","cn":"有病的；不健康的","key":"i"},{"en":"in","cn":"prep. 在…里(内)；在…；以… adv. 在家，在内，向内","key":"i"},{"en":"interesting","cn":"有趣的","key":"i"},{"en":"Internet","cn":"互联网，英特网","key":"i"},{"en":"it","cn":"它(主/宾格)","key":"i"},{"en":"its","cn":"它的","key":"i"},{"en":"job","cn":"工作;职业;任务","key":"j"},{"en":"juice","cn":"汁、液","key":"j"},{"en":"jump","cn":"n.跳跃；跳变 vi/vt. 跳跃；惊起；猛扑","key":"j"},{"en":"keep (kept, kept)","cn":"vt. 培育，饲养 link v.保持；保存；继续不断","key":"k"},{"en":"kid","cn":"小孩","key":"k"},{"en":"kind","cn":"n.种;类  adj. 善良,友好的","key":"k"},{"en":"kitchen","cn":"厨房","key":"k"},{"en":"kite","cn":"风筝","key":"k"},{"en":"know(knew,known)","cn":"知道，了解；认识；懂得","key":"k"},{"en":"lake","cn":"湖","key":"l"},{"en":"last","cn":"adj.最后的 adv.最后地 n.最后vi.持续","key":"l"},{"en":"late","cn":"adj.晚的,迟的adv.晚地,迟地","key":"l"},{"en":"learn (learnt, learnt；--ed --ed)","cn":"学，学习，学会","key":"l"},{"en":"left","cn":"adj.左边的 adv.向左 n.左,左边","key":"l"},{"en":"leg","cn":"腿；腿脚；支柱","key":"l"},{"en":"lesson","cn":"课；功课；教训","key":"l"},{"en":"let","cn":"让","key":"l"}],"star9":[{"en":"letter","cn":"信；字母","key":"l"},{"en":"library","cn":"图书馆，图书室","key":"l"},{"en":"light","cn":"n.光;灯光vt. 点火adj. 明亮的；轻的；浅色的","key":"l"},{"en":"like","cn":"prep. 像，跟…一样 vt. 喜欢，喜爱","key":"l"},{"en":"lion","cn":"狮子","key":"l"},{"en":"listen","cn":"听,仔细听","key":"l"},{"en":"little","cn":"adj.小的,少的 adv. 很少地, 稍许 n.没有多少,一点","key":"l"},{"en":"live","cn":"vi.生活;居住;活着; adj. 活的,活着的;实况,现场（直播）的","key":"l"},{"en":"long","cn":"adj. 长的，远 adv. 长久","key":"l"},{"en":"look","cn":"n.看，瞧 vi. 看，观看 link v.看起来","key":"l"},{"en":"lot","cn":"许多，大量","key":"l"},{"en":"love","cn":"爱；热爱;很喜欢","key":"l"},{"en":"lovely","cn":"美好的，可爱的","key":"l"},{"en":"lunch","cn":"午餐，午饭","key":"l"},{"en":"make (made,made)","cn":"vt .制造,做;使得 n. 样式；制造","key":"m"},{"en":"man (pl. men)","cn":"成年男人;人类","key":"m"},{"en":"many (more, most)","cn":"pron.许多人（或物）adj. 许多的","key":"m"},{"en":"map","cn":"地图","key":"m"},{"en":"maths(= mathematics, AmE math)","cn":"数学","key":"m"},{"en":"may","cn":"可以;也许,可能","key":"m"},{"en":"me","cn":"我（宾格）","key":"m"},{"en":"meat","cn":"(猪、牛、羊等的)肉","key":"m"},{"en":"meet (met, met)","cn":"遇见，见到 会；集会","key":"m"},{"en":"middle","cn":"n.中间;中部 adj.中间的，中级的","key":"m"},{"en":"milk","cn":"n.牛奶 vt. 挤奶","key":"m"},{"en":"minute","cn":"分钟;一会儿，瞬间","key":"m"},{"en":"Miss","cn":"小姐,女士(称呼未婚妇女)","key":"m"},{"en":"money","cn":"钱；货币","key":"m"},{"en":"monkey","cn":"猴子","key":"m"},{"en":"month","cn":"月，月份","key":"m"}],"star10":[{"en":"moon","cn":"月球；月光；月状物","key":"m"},{"en":"morning","cn":"早晨，上午","key":"m"},{"en":"mother (mum AmE mom)","cn":"母亲 （口语mum[mʌm]/mom[mɒm]）","key":"m"},{"en":"mouse (pl.mice)","cn":"鼠，耗子；（计算机）鼠标","key":"m"},{"en":"mouth","cn":"嘴，口","key":"m"},{"en":"move","cn":"移动，搬动，搬家","key":"m"},{"en":"Mr","cn":"先生（用于姓名前）","key":"m"},{"en":"Mrs","cn":"夫人, 太太（称呼已婚妇女）","key":"m"},{"en":"Ms","cn":"女士(用在婚姻状况不明的女子姓名前)","key":"m"},{"en":"much (more, most)","cn":"adj.许多的，大量的 adv. 非常；更加","key":"m"},{"en":"music","cn":"音乐，乐曲","key":"m"},{"en":"must","cn":"必须,应当;必定是","key":"m"},{"en":"my","cn":"我的","key":"m"},{"en":"name","cn":"n.名字,姓名,名称 vt. 命名,名叫","key":"n"},{"en":"near","cn":"adj.近的 adv. 附近，邻近 prep. 在…附近，靠近","key":"n"},{"en":"never","cn":"决不，从来没有","key":"n"},{"en":"new","cn":"新的；新鲜的","key":"n"},{"en":"next","cn":"adj.隔壁的；下一次 adv. 随后，下一步","key":"n"},{"en":"nice","cn":"令人愉快;好的漂亮的","key":"n"},{"en":"night","cn":"夜；夜间","key":"n"},{"en":"no","cn":"adv.不,不是 int.没有,无,不","key":"n"},{"en":"noodle","cn":"面条","key":"n"},{"en":"nose","cn":"鼻子","key":"n"},{"en":"not","cn":"不，没有","key":"n"},{"en":"now","cn":"现在","key":"n"},{"en":"nurse","cn":"护士；保育员","key":"n"},{"en":"o'clock","cn":"点钟","key":"o"},{"en":"of","cn":"(表所属,数量,) …...的","key":"o"},{"en":"off","cn":"离开,脱离,（走）开","key":"o"},{"en":"often","cn":"经常，常常","key":"o"}],"star11":[{"en":"OK","cn":"int.好,对,不错 adj&adv.安然无恙，平安","key":"o"},{"en":"old","cn":"老的，旧的","key":"o"},{"en":"on","cn":"prep. 在…上;关于 adv.进行下去；灯开着","key":"o"},{"en":"open","cn":"adj.开着的,开的 vt.开,打开","key":"o"},{"en":"or","cn":"或；还是；否则","key":"o"},{"en":"orange","cn":"n.橘子，橙子，橘汁 adj. 橘色的，橙色的","key":"o"},{"en":"our","cn":"我们的","key":"o"},{"en":"out","cn":"从……出来，不在家，外出","key":"o"},{"en":"over","cn":"prep在…上方,越过,遍及 adv. 翻倒,遍布,越过,结束","key":"o"},{"en":"pair","cn":"一双，一对","key":"p"},{"en":"panda","cn":"熊猫","key":"p"},{"en":"paper","cn":"纸；报纸","key":"p"},{"en":"parent","cn":"父(母)，双亲","key":"p"},{"en":"park","cn":"n.公园 vt. 停放（汽车）","key":"p"},{"en":"party","cn":"聚会，晚会；党派","key":"p"},{"en":"PE (= physical education)","cn":"体育","key":"p"},{"en":"pen","cn":"钢笔，笔","key":"p"},{"en":"pencil","cn":"铅笔","key":"p"},{"en":"people","cn":"人，人们；人民","key":"p"},{"en":"pet","cn":"宠物，爱畜","key":"p"},{"en":"phone","cn":"vt.打电话 n. 电话，电话机","key":"p"},{"en":"photo (= photograph)","cn":"照片","key":"p"},{"en":"piano","cn":"钢琴","key":"p"},{"en":"picture","cn":"图片，画片，照片","key":"p"},{"en":"pig","cn":"猪","key":"p"},{"en":"ping-pong","cn":"乒乓球；乒乓球运动","key":"p"},{"en":"pink","cn":"adj. 粉红色的 n. 粉红色","key":"p"},{"en":"place","cn":"n.地方，处所 vt. 放置，安置，安排","key":"p"},{"en":"plane","cn":"飞机","key":"p"},{"en":"plant","cn":"vt.种植，播种 n. 植物","key":"p"}],"star12":[{"en":"play","cn":"vt.玩；打（球）；游戏；播放 n. 玩耍，戏剧","key":"p"},{"en":"playground","cn":"操场，运动场","key":"p"},{"en":"please","cn":"int.(客气地请求/吩咐)请 vt.请,使人高兴,使人满意","key":"p"},{"en":"police","cn":"警察，警务人员","key":"p"},{"en":"potato","cn":"土豆，马铃薯","key":"p"},{"en":"put","cn":"放，安置，用力插入","key":"p"},{"en":"question","cn":"n. 问题, 疑问， 怀疑 vt.正式提问，质询","key":"q"},{"en":"quiet","cn":"安静的；寂静的","key":"q"},{"en":"rabbit","cn":"兔，家兔","key":"r"},{"en":"rain","cn":"n.雨，雨水 vi. 下雨","key":"r"},{"en":"read","cn":"读；朗读","key":"r"},{"en":"red","cn":"n.红色 adj.红色的","key":"r"},{"en":"rice","cn":"稻米；米饭","key":"r"},{"en":"right","cn":"adj. 对的,正确的，右边的 adv.恰恰,完全地  n.权利，右边","key":"r"},{"en":"river","cn":"江；河；水道；巨流","key":"r"},{"en":"robot","cn":"机器人","key":"r"},{"en":"room","cn":"房间,室;空间;地方","key":"r"},{"en":"ruler","cn":"统治者；直尺","key":"r"},{"en":"run (ran, run)","cn":"跑，奔跑，跑步 ；经营","key":"r"},{"en":"sad","cn":"（使人）悲伤的","key":"s"},{"en":"safe","cn":"adj.安全的 n. 保险柜","key":"s"},{"en":"say","cn":"说，讲","key":"s"},{"en":"school","cn":"学校","key":"s"},{"en":"schoolbag","cn":"书包","key":"s"},{"en":"science","cn":"科学，自然科学","key":"s"},{"en":"sea","cn":"海，海洋","key":"s"},{"en":"season","cn":"季；季节","key":"s"},{"en":"see (saw, seen)","cn":"看见，看到；领会；拜会","key":"s"},{"en":"sell","cn":"卖，售","key":"s"},{"en":"share","cn":"分享，共同使用","key":"s"}],"star13":[{"en":"she","cn":"她","key":"s"},{"en":"sheep (pl・ sheep)","cn":"绵羊；驯服者 ,易受摆布之人","key":"s"},{"en":"ship","cn":"n.船，轮船 vt. 用船装运,运输","key":"s"},{"en":"shirt","cn":"男衬衫","key":"s"},{"en":"shoe","cn":"鞋","key":"s"},{"en":"shop","cn":"vi/vt.买东西,去商店买 n. 商店,店铺，车间","key":"s"},{"en":"short","cn":"短的；矮的","key":"s"},{"en":"shorts","cn":"短裤；运动短裤","key":"s"},{"en":"should","cn":"应当，应该，会（shall的过去时态）","key":"s"},{"en":"show","cn":"vt.给…看,出示,表明，证明 n.节目，演出，展览会","key":"s"},{"en":"sing (sang, sung)","cn":"唱，唱歌","key":"s"},{"en":"sister","cn":"姐；妹","key":"s"},{"en":"sit (sat, sat)","cn":"坐","key":"s"},{"en":"skirt","cn":"女裙","key":"s"},{"en":"sleep","cn":"睡觉","key":"s"},{"en":"slow","cn":"慢速的/地，缓慢的/地","key":"s"},{"en":"small","cn":"小的，少的","key":"s"},{"en":"snow","cn":"n.雪 vi.下雪","key":"s"},{"en":"so","cn":"adv.这么，那么，那样，如此;很; conj. 因此，所以","key":"s"},{"en":"sock","cn":"短袜","key":"s"},{"en":"some","cn":"adj.一些，若干；有些；某一 pron. 若干，一些","key":"s"},{"en":"sometimes","cn":"有时","key":"s"},{"en":"song","cn":"歌唱；歌曲","key":"s"},{"en":"sorry","cn":"对不起,抱歉;难过的","key":"s"},{"en":"soup","cn":"汤","key":"s"},{"en":"space","cn":"空间","key":"s"},{"en":"speak (spoke, spoken)","cn":"说,讲,谈话,发言","key":"s"},{"en":"sport","cn":"vi.做体育运动,锻炼 n.体育运动","key":"s"},{"en":"spring","cn":"vt.跳,跃,蹦 n.春天,春季,泉水,弹簧","key":"s"},{"en":"stand","cn":"vi. 站立,起立,经受,持久 n.态度,立场,台,坛,摊","key":"s"}],"star14":[{"en":"star","cn":"vt.主演,担任主演 n.星,恒星","key":"s"},{"en":"stop","cn":"vt. 停,停止,阻止 n. 停,停车站","key":"s"},{"en":"story","cn":"故事,小说","key":"s"},{"en":"street","cn":"街,街道","key":"s"},{"en":"strong","cn":"强壮的,坚固的,强烈的,坚强的","key":"s"},{"en":"student","cn":"学生","key":"s"},{"en":"study","cn":"vi.学习,研究 n. 书房,研究","key":"s"},{"en":"subject","cn":"n.主题,学科,主语","key":"s"},{"en":"summer","cn":"n.夏天,夏季","key":"s"},{"en":"sun","cn":"n.太阳,阳光","key":"s"},{"en":"sunny","cn":"adj.晴朗的,阳光充足的","key":"s"},{"en":"supermarket","cn":"n.超级市场","key":"s"},{"en":"sure","cn":"adj.确信的,肯定的 adv. 当然,确实,的确","key":"s"},{"en":"sweater","cn":"n.厚运动衫,毛衣 ","key":"s"},{"en":"sweep","cn":"vt.扫除,扫","key":"s"},{"en":"swim (swam, swum)","cn":"vi.游泳,游  n.游泳,游","key":"s"},{"en":"table","cn":"n.桌子,表格","key":"t"},{"en":"tail","cn":"n.动物的尾巴","key":"t"},{"en":"take (took, taken)","cn":"vt.拿,拿走,做,服用,乘坐,花费","key":"t"},{"en":"talk","cn":"谈话,讲话,演讲,交谈","key":"t"},{"en":"tall","cn":"adj.高的","key":"t"},{"en":"taxi","cn":"n.出租汽车","key":"t"},{"en":"tea  ","cn":"n.茶,茶叶 ","key":"t"},{"en":"teacher","cn":"n.教师，教员","key":"t"},{"en":"tell (told, told)","cn":"vt.告诉,讲述,吩咐","key":"t"},{"en":"thank","cn":"感谢,谢谢","key":"t"},{"en":"that","cn":"那，那个","key":"t"},{"en":"the","cn":"指已提到或易领会到的人或事物;指独一无二的、","key":"t"},{"en":"their","cn":"他(她,它)们的","key":"t"},{"en":"them","cn":"他/她/它们","key":"t"}],"star15":[{"en":"then","cn":"当时,那时,然后,那么","key":"t"},{"en":"there","cn":"那里； 在那里; 往那里","key":"t"},{"en":"these","cn":"这些","key":"t"},{"en":"they","cn":"他（她）们；它们","key":"t"},{"en":"thin","cn":"薄的；瘦的；稀的","key":"t"},{"en":"think","cn":"想；认为；考虑","key":"t"},{"en":"this","cn":"这，这个","key":"t"},{"en":"those","cn":"那些","key":"t"},{"en":"tidy","cn":"整洁的，干净的 vt. 弄整洁，弄干净","key":"t"},{"en":"tiger","cn":"老虎","key":"t"},{"en":"time","cn":"n. 时间;时期;次vt.测定…的时间","key":"t"},{"en":"tired","cn":"疲劳的，累的","key":"t"},{"en":"to","cn":"动词不定式符号，无词义；给；对，向，到","key":"t"},{"en":"today","cn":"今天;现在,当前","key":"t"},{"en":"toilet","cn":"厕所；卫生间；洗手间","key":"t"},{"en":"tomato","cn":"西红柿，番茄","key":"t"},{"en":"tomorrow","cn":"明天","key":"t"},{"en":"too","cn":"也,还,又,太,过分,很,非常","key":"t"},{"en":"top","cn":"顶部,（物体的）上面","key":"t"},{"en":"toy","cn":"玩具, 玩物","key":"t"},{"en":"train","cn":"n. 火车 v. 培训,训练","key":"t"},{"en":"travel","cn":"旅行","key":"t"},{"en":"tree","cn":"树","key":"t"},{"en":"trousers","cn":"裤子，长裤","key":"t"},{"en":"try","cn":"试，试图，努力","key":"t"},{"en":"turn","cn":"vi. 旋转，翻转，转弯 n. 轮流，顺序","key":"t"},{"en":"TV(=television)","cn":"n.电视","key":"t"},{"en":"umbrella","cn":"雨伞","key":"u"},{"en":"uncle","cn":"叔,伯,舅,姑夫,姨父","key":"u"},{"en":"under","cn":"在…下面，向…下面","key":"u"}],"star16":[{"en":"up","cn":"adv.向上；在上方；上面的，向上的n. 上升；繁荣 prep. 向高处；在…上面","key":"u"},{"en":"us","cn":"我们;我","key":"u"},{"en":"use","cn":"利用,使用,应用","key":"u"},{"en":"vegetable","cn":"蔬菜","key":"v"},{"en":"very","cn":"很，非常","key":"v"},{"en":"visit","cn":"参观，访问，拜访","key":"v"},{"en":"wait","cn":"等，等候","key":"w"},{"en":"wake (woke, woken)","cn":"醒来,叫醒","key":"w"},{"en":"walk","cn":"步行；散步","key":"w"},{"en":"wall","cn":"墙","key":"w"},{"en":"want","cn":"想,想要,需要,必要","key":"w"},{"en":"warm","cn":"暖和的,温暖的;热情的","key":"w"},{"en":"wash","cn":"洗涤;冲洗","key":"w"},{"en":"watch","cn":"vt.观看，注视；当心，注意 n. 手表，表","key":"w"},{"en":"water","cn":"n. 水 v. 浇水","key":"w"},{"en":"way","cn":"路，路线；方式，手段","key":"w"},{"en":"we","cn":"我们","key":"w"},{"en":"wear (wore, worn)","cn":"穿，戴","key":"w"},{"en":"weather","cn":"天气","key":"w"},{"en":"week","cn":"星期，周","key":"w"},{"en":"welcome","cn":"欢迎;受欢迎的","key":"w"},{"en":"well  (better, best)","cn":"adv. 好;完全地 adj.好的,,健康的int.好吧;哎呀 n. 井","key":"w"},{"en":"what","cn":"pron. 什么,怎么样 adj. 多么，何等；什么","key":"w"},{"en":"when","cn":"conj. 当…的时候 adv. 什么时候，何时","key":"w"},{"en":"where","cn":"在哪里；往哪里","key":"w"},{"en":"which","cn":"conj.一个；那(哪)一些 adj.这(哪)个；这(哪)些；无论哪个(些)","key":"w"},{"en":"white","cn":"adj. 白色的 n. 白色","key":"w"},{"en":"who","cn":"谁","key":"w"},{"en":"whose","cn":"谁的","key":"w"},{"en":"why","cn":"conj. 为什么, 你难道不知道（表示反驳、不耐烦等）","key":"w"}],"star17":[{"en":"will","cn":"n. 意志, 遗嘱 ; modal v.将,会(表示将来)；愿意，要","key":"w"},{"en":"win (won, won)","cn":"获胜，赢得","key":"w"},{"en":"window","cn":"窗户；计算机的窗","key":"w"},{"en":"windy","cn":"有风的，多风的","key":"w"},{"en":"winter","cn":"冬天，冬季","key":"w"},{"en":"wish","cn":"n.  愿望，祝愿 vt. 希望，想要，祝愿","key":"w"},{"en":"with","cn":"关于,带有,以,和,用,有","key":"w"},{"en":"woman (pl. women)","cn":"妇女;女人","key":"w"},{"en":"wonderful","cn":"美妙的，精彩的；了不起的；太好了","key":"w"},{"en":"word","cn":"词，单词；话","key":"w"},{"en":"work","cn":"n.工作,劳动,事情 vi. 工作;机器/器官等运转;活动","key":"w"},{"en":"worker","cn":"工人；工作者","key":"w"},{"en":"world","cn":"世界","key":"w"},{"en":"worry","cn":"烦恼,担忧,发怒,困扰","key":"w"},{"en":"write  (wrote, written)","cn":"写，书写；写作，著述","key":"w"},{"en":"wrong","cn":"错误,不正常,有毛病的","key":"w"},{"en":"year","cn":"年","key":"y"},{"en":"yellow","cn":"黄色的 ;黄色","key":"y"},{"en":"yes","cn":"是，好，同意","key":"y"},{"en":"yesterday","cn":"昨天","key":"y"},{"en":"you","cn":"你；你们","key":"y"},{"en":"young","cn":"年轻的","key":"y"},{"en":"your","cn":"你的；你们的","key":"y"},{"en":"zoo","cn":"动物园","key":"z"}]};
+const LVS = Object.keys(D);
+const TOTAL_LV = LVS.length;
+
+const MODES = [
+  {id:"en-cn", label:"📖 英→中", q:"选择正确的中文释义", enFirst:true},
+  {id:"cn-en", label:"📝 中→英", q:"选择正确的英文单词", enFirst:false},
+  {id:"listen", label:"🔊 听音选", q:"听发音选择正确的中文", enFirst:true},
+  {id:"match", label:"🔗 配对", q:"将英文与中文配对", enFirst:true}
+];
+
+const S = {s:1, l:0, q:0, ord:[], ok:0, err:0, a:false, m:0, wrongList:[]};
+function $(id){return document.getElementById(id)}
+
+function renderLv(){
+  const lg=$("lg");
+  lg.innerHTML="";
+  LVS.forEach((key,i)=>{
+    const items=D[key].filter(it=>it.cn);
+    const done=JSON.parse(localStorage.getItem("vp")||"{}")[i];
+    lg.innerHTML+='<div class="level-btn'+(done?" done":"")+'" onclick="startL('+i+')"><span class="lnum">'+(i+1)+'</span><span class="lcount'+(done?" ok":"")+'">'+(done?done+"/"+items.length+" ✅":items.length+"词")+'</span></div>';
+  });
+}
+
+function backToLevels(){
+  $("ov").classList.remove("show");
+  $("gameView").style.display="none";
+  $("levelView").style.display="block";
+  renderLv();
+}
+
+function startL(idx){
+  if(idx<0||idx>=TOTAL_LV)return;
+  S.l=idx;S.q=0;S.ok=0;S.err=0;S.a=false;S.wrongList=[];
+  const lv=D[LVS[idx]];
+  const items=lv.filter(it=>it.cn);
+  S.ord=items.map((_,i)=>i);
+  S.ord=sha(S.ord);
+  $("levelView").style.display="none";
+  $("gameView").style.display="block";
+  $("lvTitle").textContent="第 "+(idx+1)+" 关 · "+items.length+" 题";
+  renderModes();
+  showQ();
+}
+
+function renderModes(){
+  const c=$("modeTabs");
+  c.innerHTML="";
+  MODES.forEach((m,i)=>{
+    const b=document.createElement("button");
+    b.className="mode-tab"+(i===S.m?" active":"");
+    b.textContent=m.label;
+    b.onclick=()=>{S.m=i;document.querySelectorAll(".mode-tab").forEach(t=>t.classList.remove("active"));b.classList.add("active");showQ()};
+    c.appendChild(b);
+  });
+}
+
+function playAudio(word){
+  try{
+    if(window._aud){try{window._aud.pause();}catch(e){}}
+    const url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(word)+'&type=1';
+    window._aud=new Audio(url);
+    const p=window._aud.play();
+    if(p)p.catch(e=>console.warn('playAudio failed:',word,e));
+  }catch(e){console.warn('playAudio error:',word,e);}
+}
+
+function showQ(){
+  S.a=false;$("ht").style.display="none";$("hb").textContent="💡 提示";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  if(!items.length){backToLevels();return}
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  if(mode.id==="match"){showMatchQ();return}
+  const field=mode.enFirst?"en":"cn";
+  $("qArea").style.display="block";$("matchArea").style.display="none";
+  if(mode.id==="listen"){
+    $("qw").innerHTML='🔊';
+  }else{
+    $("qw").textContent=field==="en"?it.en:it.cn;
+  }
+  window._cw=it.en;$("qw").onclick=()=>{try{playAudio(window._cw)}catch(e){}};
+  if(mode.id==="listen")setTimeout(()=>playAudio(it.en),300);
+  $("qt").textContent=mode.q+"（"+(S.q+1)+"/"+S.ord.length+"）";
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  buildOpts(it,mode);
+}
+
+function buildOpts(it,mode){
+  const lv=D[LVS[S.l]];const items=lv.filter(x=>x.cn);
+  const correct=mode.enFirst?it.cn:it.en;
+  const optField=mode.enFirst?"cn":"en";
+  let pool=[];
+  if(mode.id==="listen"){
+    const others=mode.enFirst?items.map(x=>x.cn):items.map(x=>x.en);
+    pool=others.filter(x=>x!==correct);
+  }else if(optField==="cn"){
+    pool=items.map(x=>x.cn).filter(x=>x!==correct);
+  }else{
+    pool=items.map(x=>x.en).filter(x=>x!==correct);
+  }
+  if(pool.length<3){
+    const allItems=Object.values(D).flat().filter(x=>x.cn);
+    const exclude=new Set([correct,...pool]);
+    const extra=optField==="cn"?allItems.map(x=>x.cn):allItems.map(x=>x.en);
+    pool=pool.concat(extra.filter(x=>!exclude.has(x)));
+  }
+  const others=sha(pool).slice(0,3);
+  const opts=sha([correct,...others]);
+  let h="";
+  opts.forEach(o=>{
+        h+='<button class="option" data-v="'+encodeURIComponent(String(o))+'" onclick="check(this)">'+o+'</button>';
+  });
+  $("oa").innerHTML=h;
+}
+
+let _correct="";
+function check(btn){
+  if(S.a)return;S.a=true;
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  var chosen="";try{chosen=decodeURIComponent(btn.dataset.v)}catch(ex){chosen=btn.dataset.v}
+  _correct=mode.id==="cn-en"?it.en:it.cn;
+  const isOk=chosen===_correct;
+  if(isOk){btn.classList.add("correct");S.ok++;playOK()}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(b=>{if(b.textContent===_correct)b.classList.add("correct")});
+    S.err++;S.wrongList.push(it);playErr()
+  }
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  if(S.q+1<S.ord.length)setTimeout(nQ,500);else setTimeout(showRes,600);
+}
+
+// ====== Match Mode ======
+let M={sel:null,pairs:0,total:0};
+function showMatchQ(){
+  $("qArea").style.display="none";$("matchArea").style.display="flex";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const enOrder=sha([...items.keys()]);
+  const cnOrder=sha([...items.keys()]);
+  M={sel:null,pairs:0,total:items.length};
+  let enHtml='<div class="match-group-label">📖 英文</div>';
+  let cnHtml='<div class="match-group-label">📝 中文</div>';
+  enOrder.forEach((origIdx,i)=>{
+    enHtml+='<div class="match-item" data-idx="'+origIdx+'" data-pair="en" onclick="matchClick(this,'+origIdx+')">'+items[origIdx].en+'</div>';
+  });
+  cnOrder.forEach((origIdx,i)=>{
+    cnHtml+='<div class="match-item" data-idx="'+origIdx+'" data-pair="cn" onclick="matchClick(this,'+origIdx+')">'+items[origIdx].cn+'</div>';
+  });
+  $("matchArea").innerHTML='<div class="match-col" id="mcEn">'+enHtml+'</div><div class="match-col" id="mcCn">'+cnHtml+'</div>';
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  $("qt").textContent="将英文与中文配对（全部 "+items.length+" 词）";
+}
+
+function matchClick(el,idx){
+  const pair=el.getAttribute('data-pair');
+  if(el.classList.contains("matched"))return;
+  if(!M.sel){el.classList.add("selected");M.sel={el,idx,pair};return;}
+  if(M.sel.el===el){el.classList.remove("selected");M.sel=null;return;}
+  if(M.sel.pair===pair){M.sel.el.classList.remove("selected");el.classList.add("selected");M.sel={el,idx,pair};return;}
+  const first=M.sel;
+  if(first.idx===idx){
+    first.el.classList.remove("selected");
+    first.el.classList.add("matched");
+    el.classList.add("matched");
+    M.sel=null;M.pairs++;S.ok++;playOK();
+    $("so").textContent=S.ok;
+    if(M.pairs>=M.total)setTimeout(goNext,600);
+    return;
+  }
+  first.el.classList.add("wrong-flash");
+  el.classList.add("wrong-flash");
+  S.err++;playErr();
+  // Determine EN/CN for wrong list
+  var enText = first.pair==="en"?first.el.textContent:el.textContent;
+  var cnText = first.pair==="cn"?first.el.textContent:el.textContent;
+  S.wrongList.push({en:enText,cn:cnText});
+  M.sel=null;
+  $("se").textContent=S.err;
+  setTimeout(()=>{
+    document.querySelectorAll(".wrong-flash").forEach(function(e){
+      e.classList.remove("wrong-flash");
+      e.classList.remove("selected");
+    });
+  },500);
+}
+
+function goNext(){S.q++;showRes();}
+
+function sha(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function nQ(){S.q++;showQ();}
+
+function sh(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];const mode=MODES[S.m];
+  $("ht").textContent="英文："+it.en;
+  $("ht").style.display="block";$("hb").textContent="已提示 ✓";
+  try{playAudio(it.en)}catch(e){}
+}
+
+function playOK(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sine";o.frequency.value=880;g.gain.setValueAtTime(.25,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.35)}catch(e){}
+}
+function playErr(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sawtooth";o.frequency.value=220;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.25);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.25)}catch(e){}
+}
+
+function showRes(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const tot=items.length;const acc=tot>0?Math.round(S.ok/tot*100):0;
+  const stars=acc>=80?"★★★":acc>=60?"★★":"★";
+  const msgs=["继续加油！","做得不错！","太棒了！"];
+  $("rt").textContent=acc>=80?msgs[2]:acc>=60?msgs[1]:msgs[0];
+  $("rs").textContent=stars;$("rsc").textContent=S.ok+"/"+tot+" 正确";
+  $("rac").textContent="正确率 "+acc+"%";
+  const prog=JSON.parse(localStorage.getItem("vp")||"{}");
+  if(!prog[S.l]||prog[S.l]<S.ok)prog[S.l]=S.ok;
+  localStorage.setItem("vp",JSON.stringify(prog));
+  let wh="";
+  if(S.wrongList.length>0){
+    wh='<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#f87171;font-size:.9em">❌ 错误单词列表：</span><button onclick="copyWL()" style="background:#252545;border:1px solid #3a3a5a;color:#94a3b8;padding:4px 14px;border-radius:6px;font-size:.82em;cursor:pointer">📋 复制</button></div>';
+    wh+='<div style="max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:12px;text-align:left">';
+    S.wrongList.forEach(it=>{wh+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em"><span style="color:#e2e8f0">'+esc(it.en)+'</span><span style="color:#94a3b8">'+esc(it.cn)+'</span></div>'});
+    wh+='</div></div>';
+  }
+  $("rmg").innerHTML=wh;$("ov").classList.add("show");
+}
+
+function retry(){$("ov").classList.remove("show");startL(S.l);}
+function copyWL(){
+  const t=S.wrongList.map(it=>it.en+" - "+it.cn).join("\n");
+  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)}).catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)});
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ====== Click word to pronounce ======
+// Handled by $("qw").onclick in showQ()
+// ====== Init ======
+renderLv();
+
+</script>
+
+</body>
+</html>

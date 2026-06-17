@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>词汇闯关 1001</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0f23;color:#e8e8f0;min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#7dd3fc;margin-bottom:4px;letter-spacing:2px;word-break:break-word}
+.subtitle{text-align:center;color:#64748b;font-size:.82em;margin-bottom:20px;word-break:break-word}
+.card{background:#1e1e3a;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.4);margin-bottom:16px}
+.level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:16px}
+.level-btn{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.8em}
+.level-btn:hover{border-color:#7dd3fc;background:#1a2a3a}
+.level-btn.done{border-color:#4ade80;background:#052016}
+.level-btn .lnum{font-size:1.1em;font-weight:700;display:block;color:#e2e8f0}
+.level-btn .lcount{font-size:.7em;color:#64748b;display:block;margin-top:2px}
+.level-btn .lcount.ok{color:#4ade80}
+.question{text-align:center;margin-bottom:20px}
+.qword{font-size:1.6em;font-weight:700;color:#7dd3fc;letter-spacing:1px;word-break:break-word}
+.qtype{font-size:.8em;color:#64748b;margin-top:4px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.option{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .2s;font-size:.95em;color:#cbd5e1;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.option:hover{border-color:#7dd3fc;background:#1a2a3a}
+.option.correct{border-color:#4ade80;background:#052016;color:#4ade80}
+.option.wrong{border-color:#f87171;background:#2a0a0a;color:#f87171}
+.option:disabled{cursor:default}
+.progress-bar{height:6px;background:#2a2a4a;border-radius:3px;margin-top:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#4ade80);border-radius:3px;transition:width .4s ease}
+.stats{display:flex;justify-content:center;gap:32px;margin-top:16px;color:#94a3b8;font-size:.85em}
+.stats span{color:#e2e8f0}
+.btn{background:#2563eb;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-size:.95em;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.btn-ghost:hover{border-color:#7dd3fc;color:#7dd3fc}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 20px;border-radius:8px;border:2px solid #3a3a5a;background:transparent;color:#94a3b8;cursor:pointer;font-size:.9em;transition:all .2s}
+.mode-tab.active{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc}
+.hint-btn{background:transparent;border:1px solid #3a3a5a;border-radius:6px;color:#64748b;padding:6px 14px;font-size:.8em;cursor:pointer;margin-top:12px}
+.hint-btn:hover{border-color:#7dd3fc;color:#7dd3fc}
+.hint-text{color:#fbbf24;font-size:.85em;margin-top:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#1e1e3a;border-radius:16px;padding:32px;max-width:420px;text-align:center;width:90%;max-height:90vh;overflow-y:auto}
+.modal h2{color:#7dd3fc;margin-bottom:16px;font-size:1.4em}
+.modal .score-big{font-size:3em;font-weight:700;color:#fbbf24;margin:16px 0}
+.modal .acc{color:#4ade80;font-size:1.1em}
+.modal .msg{margin-top:12px;color:#94a3b8;font-size:.85em}
+.match-area{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:20px}
+.match-col{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.match-item{padding:10px 16px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#e8e8f0;cursor:pointer;transition:all .2s;text-align:center;font-size:.9em;user-select:none;min-width:100px;word-break:break-word}
+.match-item:hover{border-color:#7dd3fc}
+.match-item.selected{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc;box-shadow:0 0 8px rgba(125,211,252,.3)}
+.match-item.matched{border-color:#4ade80;background:#052016;color:#4ade80;cursor:default;opacity:.7}
+.match-item.wrong-flash{border-color:#f87171;background:#2a0a0a;color:#f87171;animation:shake .4s}
+.match-group-label{color:#94a3b8;font-size:.85em;text-align:center;margin:12px 0 4px;padding:4px 16px;background:#2a2a4a;border-radius:6px;display:inline-block}
+.match-progress{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.match-dot{width:14px;height:14px;border-radius:50%;background:#3a3a5a;transition:all .3s}
+.match-dot.cur{background:#7dd3fc;transform:scale(1.2)}
+.match-dot.ok{background:#4ade80}
+.match-dot.err{background:#f87171}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:600px){
+  .options-grid{grid-template-columns:1fr}
+  .level-grid{grid-template-columns:repeat(auto-fill,minmax:65px,1fr)}
+  .qword{font-size:1.3em}
+  .match-area{gap:12px}
+  .match-col{min-width:90px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1 id="gTitle">词汇闯关 1001</h1>
+<p class="subtitle" id="gSub">上传自 Excel 的词汇列表</p>
+
+<div id="levelView" class="card">
+  <div style="text-align:center;color:#94a3b8;font-size:.85em;margin-bottom:8px">📚 选择关卡开始闯关</div>
+  <div class="level-grid" id="lg"></div>
+</div>
+
+<div id="gameView" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-ghost" onclick="backToLevels()" style="font-size:.8em;padding:6px 14px">← 返回关卡</button>
+    <span id="lvTitle" style="color:#7dd3fc;font-size:.9em">第 1 关</span>
+  </div>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div id="qArea">
+    <div class="question">
+      <div class="qword" id="qw"></div>
+      <div class="qtype" id="qt"></div>
+    </div>
+    <div class="options-grid" id="oa"></div>
+    <div style="text-align:center">
+      <button class="hint-btn" id="hb" onclick="sh()">💡 提示</button>
+    </div>
+    <div class="hint-text" id="ht" style="display:none"></div>
+  </div>
+  <div id="matchArea" class="match-area" style="display:none"></div>
+  <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+  <div class="stats">
+    <div>✅ 正确 <span id="so">0</span></div>
+    <div>❌ 错误 <span id="se">0</span></div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2 id="rt"></h2>
+    <div class="score-big" id="rs"></div>
+    <div class="acc" id="rsc"></div>
+    <div class="acc" id="rac" style="margin-top:4px"></div>
+    <div class="msg" id="rmg"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="retry()">🔄 重玩本关</button>
+      <button class="btn btn-ghost" onclick="backToLevels()">📚 返回关卡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== Game Data ======
+const D = {"star1":[{"en":"abandon","cn":"抛弃，舍弃，放弃","key":"a"},{"en":"abnormal","cn":"反常的，变态的","key":"a"},{"en":"aboard","cn":"上（船，飞机，火车，汽车等）","key":"a"},{"en":"absence","cn":"不在，缺席","key":"a"},{"en":"absorb","cn":"吸收，使全神贯注","key":"a"},{"en":"abstract","cn":"抽象的（作品）","key":"a"},{"en":"abuse","cn":"(酗酒）滥用,虐待,恶语","key":"a"},{"en":"academic","cn":"学术的，教学的","key":"a"},{"en":"accent","cn":"口音，音调","key":"a"},{"en":"access","cn":"n. 通路,入径,使用…的机会/权利 vi到达,进入,使用","key":"a"},{"en":"accommodation","cn":"住宿，膳宿","key":"a"},{"en":"accompany","cn":"陪同，陪伴，与…同时发生","key":"a"},{"en":"accurate","cn":"正确无误的,精确的","key":"a"},{"en":"accuse","cn":"控告;控诉;谴责","key":"a"},{"en":"acid","cn":"酸的","key":"a"},{"en":"acknowledge","cn":"承认","key":"a"},{"en":"AD","cn":"n. 公元","key":"a"},{"en":"adaptation","cn":"适应，改编本","key":"a"},{"en":"adjust","cn":"调整,调节,适应,习惯","key":"a"},{"en":"administration","cn":"管理,行政部门","key":"a"},{"en":"adopt","cn":"收养，领养","key":"a"},{"en":"adorable","cn":"可爱的;讨人喜爱的","key":"a"},{"en":"advertise","cn":"vt. 做广告, 登广告","key":"a"},{"en":"advertisement(ad)","cn":"广告","key":"a"},{"en":"advocate","cn":"拥护，支持，提倡","key":"a"},{"en":"affect","cn":"影响","key":"a"},{"en":"afterward","cn":"后来","key":"a"},{"en":"agency","cn":"代理机构","key":"a"},{"en":"agenda","cn":"（会议）议程表，议事日程","key":"a"},{"en":"airline","cn":"n.航空公司","key":"a"}],"star2":[{"en":"alcohol","cn":"含酒精饮料，酒","key":"a"},{"en":"alongside","cn":"在…旁边,与…同时","key":"a"},{"en":"alternative","cn":"可供替代,非传统的","key":"a"},{"en":"altogether","cn":"总共","key":"a"},{"en":"amateur","cn":"业余爱好的","key":"a"},{"en":"ambition","cn":"目标,野心,雄心,抱负","key":"a"},{"en":"ambitious","cn":"有野心的,有雄心的,费力的,耗资的,耗时的","key":"a"},{"en":"ambulance","cn":"救护车","key":"a"},{"en":"amuse","cn":"（使人）快乐，逗乐","key":"a"},{"en":"analyse(analyze)","cn":"分析","key":"a"},{"en":"ancestor","cn":"祖宗； 祖先","key":"a"},{"en":"anger","cn":"怒;怒火;怒气","key":"a"},{"en":"angle","cn":"角度","key":"a"},{"en":"ankle","cn":"踝，踝关节","key":"a"},{"en":"annoy","cn":"（使）烦恼","key":"a"},{"en":"anticipate","cn":"预料;预期;预见，预计(并做准备);期盼;期望","key":"a"},{"en":"antique","cn":"古董","key":"a"},{"en":"anxiety","cn":"担忧，焦虑","key":"a"},{"en":"anyhow","cn":"不管怎样","key":"a"},{"en":"apart","cn":"相隔，相距，除外","key":"a"},{"en":"apparently","cn":"显而易见地","key":"a"},{"en":"appeal","cn":"上诉，申诉，吸引力","key":"a"},{"en":"appetite","cn":"食欲，胃口","key":"a"},{"en":"applaud","cn":"鼓掌,赞许,赞赏","key":"a"},{"en":"applicant","cn":"申请人","key":"a"},{"en":"appointment","cn":"约会","key":"a"},{"en":"appreciate","cn":"欣赏； 感激","key":"a"},{"en":"appropriate","cn":"合适的，恰当的","key":"a"},{"en":"approve","cn":"赞成,同意,批准,通过","key":"a"},{"en":"arch","cn":"拱，拱门","key":"a"}],"star3":[{"en":"architect","cn":"建筑师，设计师","key":"a"},{"en":"arise","cn":"起来，升起；出现","key":"a"},{"en":"arrest","cn":"逮捕，拘留","key":"a"},{"en":"arrow","cn":"箭；箭头","key":"a"},{"en":"artificial","cn":"人工的，人造的","key":"a"},{"en":"ashamed","cn":"惭愧； 害臊","key":"a"},{"en":"aside","cn":"在旁边","key":"a"},{"en":"assess","cn":"评价,评定（性质,质量）","key":"a"},{"en":"assign","cn":"vt. 分配(某物),分派，布置,指派","key":"a"},{"en":"assistant","cn":"助手，助理","key":"a"},{"en":"association","cn":"协会，社团，联系","key":"a"},{"en":"assumption","cn":"假定，假设","key":"a"},{"en":"astonish","cn":"使惊讶","key":"a"},{"en":"astronaut","cn":"宇航员","key":"a"},{"en":"astronomer","cn":"天文学家","key":"a"},{"en":"atmosphere","cn":"大气；气氛","key":"a"},{"en":"attain","cn":"（经过努力）获得,得到","key":"a"},{"en":"automatic","cn":"自动的，机械的","key":"a"},{"en":"autonomous","cn":"自治的，自主的","key":"a"},{"en":"available","cn":"可获得的，有空的","key":"a"},{"en":"awesome","cn":"令人惊叹,很困难的","key":"a"},{"en":"backward","cn":"向后","key":"b"},{"en":"bacon","cn":"咸猪肉；熏猪肉 ","key":"b"},{"en":"bakery","cn":"面包店","key":"b"},{"en":"ban","cn":"禁令 v. 禁止；取缔","key":"b"},{"en":"barbecue","cn":"烤肉野餐","key":"b"},{"en":"barely","cn":"仅仅, 勉强可能,几乎没有,刚好","key":"b"},{"en":"bark","cn":"狗叫 n. 狗叫声","key":"b"},{"en":"barrier","cn":"屏障，障碍，关卡","key":"b"},{"en":"basin","cn":"水盆，脸盆","key":"b"}],"star4":[{"en":"bat","cn":"（棒球、板球的）球棒 n. 蝙蝠","key":"b"},{"en":"bath","cn":"洗澡；浴室；澡盆","key":"b"},{"en":"bay","cn":"湾； 海湾","key":"b"},{"en":"BC","cn":"公元前","key":"b"},{"en":"bean curd(tofu)","cn":"豆腐=tofu","key":"b"},{"en":"beard","cn":"（下巴上的）胡须","key":"b"},{"en":"beauty","cn":"美丽，美人","key":"b"},{"en":"behalf","cn":"代表某人，为了某人","key":"b"},{"en":"behave","cn":"守规矩，行为","key":"b"},{"en":"being","cn":"物；生物；人","key":"b"},{"en":"belief","cn":"信条，信念","key":"b"},{"en":"bend","cn":"使弯曲","key":"b"},{"en":"bet","cn":"vt.下赌注(于);用…打赌 n. 打赌;赌注","key":"b"},{"en":"billion","cn":"十亿，百亿","key":"b"},{"en":"biology","cn":"生物（学）","key":"b"},{"en":"bitter","cn":"有苦味的；痛苦的，难过的；严酷的","key":"b"},{"en":"blame","cn":"责备；责怪","key":"b"},{"en":"blank","cn":"空格，空白（处）；空的；茫然无表情的","key":"b"},{"en":"blanket","cn":"毛毯，毯子","key":"b"},{"en":"bleed","cn":"出血，流血","key":"b"},{"en":"bless","cn":"保佑，降福","key":"b"},{"en":"boil","cn":"沸腾；烧开；煮……","key":"b"},{"en":"bomb","cn":"n.炸弹 vt. 轰炸","key":"b"},{"en":"bond","cn":"纽带，联系，使牢固","key":"b"},{"en":"bonus","cn":"津贴，奖金，红利","key":"b"},{"en":"boost","cn":"vt.使增长;使兴旺  n. 帮助;激励;增长","key":"b"},{"en":"border","cn":"边缘；边境，国界","key":"b"},{"en":"botanical","cn":"植物学的","key":"b"},{"en":"bother","cn":"vt.使…烦恼,给…造成麻烦 n. 麻烦,困难","key":"b"},{"en":"bounce","cn":"弹起，蹦，上下晃动","key":"b"}],"star5":[{"en":"bound","cn":"跳跃","key":"b"},{"en":"boundary","cn":"边界，界限","key":"b"},{"en":"bow","cn":"鞠躬，弯腰行礼","key":"b"},{"en":"bowling","cn":"保龄球","key":"b"},{"en":"breast","cn":"乳房，胸脯","key":"b"},{"en":"breath","cn":"气息；呼吸","key":"b"},{"en":"brick","cn":"砖；砖块","key":"b"},{"en":"bride/bridegroom","cn":"新娘/新郎","key":"b"},{"en":"brilliant","cn":"巧妙的; 技艺高的","key":"b"},{"en":"broadcast","cn":"n.广播节目vt.广播","key":"b"},{"en":"budget","cn":"预算","key":"b"},{"en":"buffet","cn":"自助餐","key":"b"},{"en":"bunch","cn":"串,束,扎,大量,大批","key":"b"},{"en":"bury","cn":"埋；葬","key":"b"},{"en":"butcher","cn":"肉店；屠夫","key":"b"},{"en":"cabbage","cn":"卷心菜，洋白菜","key":"c"},{"en":"cafeteria","cn":"自助餐厅","key":"c"},{"en":"cage","cn":"笼；鸟笼","key":"c"},{"en":"calculate","cn":"计算，核算，推测","key":"c"},{"en":"calligraphy","cn":"书法;书法艺术","key":"c"},{"en":"calorie","cn":"卡，卡路里","key":"c"},{"en":"camel","cn":"骆驼","key":"c"},{"en":"campaign","cn":"运动，战役","key":"c"},{"en":"canal","cn":"运河；水道","key":"c"},{"en":"cancer","cn":"癌","key":"c"},{"en":"candidate","cn":"候选人，申请人","key":"c"},{"en":"canteen","cn":"餐厅；食堂","key":"c"},{"en":"capacity","cn":"容量;容积,领悟能力","key":"c"},{"en":"capsule","cn":"（药）胶囊","key":"c"},{"en":"captain","cn":"（海军）上校；船长，舰长；队长","key":"c"}],"star6":[{"en":"career","cn":"生涯;职业;经历;事业","key":"c"},{"en":"carpet","cn":"地毯","key":"c"},{"en":"carve","cn":"刻；雕刻","key":"c"},{"en":"cast","cn":"扔，抛，撒","key":"c"},{"en":"castle","cn":"城堡","key":"c"},{"en":"category","cn":"类别，种类","key":"c"},{"en":"cave","cn":"洞，穴；地窖","key":"c"},{"en":"cease","cn":"(使)停止，终止，结束","key":"c"},{"en":"ceiling","cn":"天花板，顶棚","key":"c"},{"en":"celebrity","cn":"名人;名流;名望;名誉;著名","key":"c"},{"en":"cell","cn":"细胞,单人牢房, 单人小室,小蜂窝","key":"c"},{"en":"centimetre(centimeter)","cn":"公分，厘米","key":"c"},{"en":"certificate","cn":"证明，证明书","key":"c"},{"en":"chairman/chairwoman","cn":"(女)主席， (女)会长； (女)议长","key":"c"},{"en":"channel","cn":"频道；通道；水渠","key":"c"},{"en":"chaos","cn":"混乱，杂乱，紊乱","key":"c"},{"en":"characteristic","cn":"典型的，独特的","key":"c"},{"en":"chart","cn":"图表；航海图","key":"c"},{"en":"cheat","cn":"骗取，哄骗；作弊","key":"c"},{"en":"cheek","cn":"面颊，脸蛋","key":"c"},{"en":"cheese","cn":"奶酪","key":"c"},{"en":"chef","cn":"厨师长，主厨","key":"c"},{"en":"chemical","cn":"化学的 n. 化学品","key":"c"},{"en":"chemist","cn":"药剂师；化学家","key":"c"},{"en":"chest","cn":"箱子；盒子；胸部","key":"c"},{"en":"chew","cn":"咀嚼","key":"c"},{"en":"choke","cn":"窒息","key":"c"},{"en":"chorus","cn":"合唱曲，歌咏队","key":"c"},{"en":"church","cn":"教堂；教会","key":"c"},{"en":"cigarette","cn":"纸烟，香烟","key":"c"}],"star7":[{"en":"circuit","cn":"环形路线，巡回赛","key":"c"},{"en":"circumstance","cn":"条件,环境,状况","key":"c"},{"en":"circus","cn":"马戏团","key":"c"},{"en":"cite","cn":"提及, 举出, 列举, 引述","key":"c"},{"en":"citizen","cn":"公民；居民","key":"c"},{"en":"civil","cn":"国内的；平民（非军人）的；民用的","key":"c"},{"en":"civilian","cn":"平民，老百姓","key":"c"},{"en":"civilisation(civilization)","cn":"文明","key":"c"},{"en":"claim","cn":"vt. 宣称,断言,认领 n. 声明;宣称;断言","key":"c"},{"en":"clarify","cn":"澄清，阐明","key":"c"},{"en":"classic","cn":"一流的，典型的，有代表性的","key":"c"},{"en":"clay","cn":"黏土，陶土","key":"c"},{"en":"clerk","cn":"书记员；办事员；职员","key":"c"},{"en":"client","cn":"委托人;当事人","key":"c"},{"en":"clinic","cn":"诊所","key":"c"},{"en":"clone","cn":"克隆（无性繁殖出来的有机体群）","key":"c"},{"en":"cloth","cn":"布","key":"c"},{"en":"clue","cn":"n. 线索，迹象,提示 vt. 为…提供线索;提示","key":"c"},{"en":"collapse","cn":"vi. 倒塌，坍塌 n. 突然失败，倒闭，崩溃","key":"c"},{"en":"collar","cn":"衣领;领子","key":"c"},{"en":"column","cn":"柱,圆柱状物,报刊杂志的专栏","key":"c"},{"en":"combine","cn":"使联合；使结合","key":"c"},{"en":"comedy","cn":"喜剧","key":"c"},{"en":"comfort","cn":"安慰； 慰问","key":"c"},{"en":"comic","cn":"adj. 滑稽的, 使人发笑的, 喜剧的n. 喜剧演员","key":"c"},{"en":"commercial","cn":"贸易的，商业的","key":"c"},{"en":"commit","cn":"犯（罪，错），自杀","key":"c"},{"en":"commitment","cn":"承诺,允诺,承担","key":"c"},{"en":"communist","cn":"共产主义者 ；共产党的；共产主义的","key":"c"},{"en":"comparison","cn":"比较,对比","key":"c"}],"star8":[{"en":"compete","cn":"比赛，竞赛","key":"c"},{"en":"competence","cn":"能力,胜任,管辖权","key":"c"},{"en":"complain","cn":"抱怨;埋怨;发牢骚","key":"c"},{"en":"complex","cn":"复杂的，建筑群","key":"c"},{"en":"complicated","cn":"复杂的;难懂的","key":"c"},{"en":"component","cn":"组成部分，部件","key":"c"},{"en":"compose","cn":"组成，构成, 作曲,创作","key":"c"},{"en":"composition","cn":"作文；作曲","key":"c"},{"en":"comprehension","cn":"理解","key":"c"},{"en":"comprehensive","cn":"全部的,所有的, 详尽的,综合性的","key":"c"},{"en":"comprise","cn":"包括;包含;由…组成","key":"c"},{"en":"concept","cn":"概念","key":"c"},{"en":"conclude","cn":"完成，结束","key":"c"},{"en":"conclusion","cn":"结论；结束","key":"c"},{"en":"concrete","cn":"混凝土制的","key":"c"},{"en":"conflict","cn":"冲突，争执，争论","key":"c"},{"en":"Confucianism","cn":"儒教;孔子学说","key":"c"},{"en":"Confucius","cn":"孔子","key":"c"},{"en":"confused","cn":"糊涂的,迷惑的, 混乱的,难懂的","key":"c"},{"en":"consequence","cn":"结果， 后果","key":"c"},{"en":"conservation","cn":"保存；（自然资源的）保护，管理","key":"c"},{"en":"consist","cn":"包含，组成，构成","key":"c"},{"en":"consistent","cn":"一致的，始终如一的，连续的","key":"c"},{"en":"constant","cn":"经常的，不断的","key":"c"},{"en":"constitution","cn":"宪法，章程，身体素质","key":"c"},{"en":"construction","cn":"建造,建设,建筑物","key":"c"},{"en":"consultant","cn":"顾问","key":"c"},{"en":"consultation","cn":"咨询;商讨;磋商;商讨会","key":"c"},{"en":"consume","cn":"消耗，耗费（燃料，能量，时间等）","key":"c"},{"en":"consumption","cn":"消耗，消耗量,消费","key":"c"}],"star9":[{"en":"contemporary","cn":"属同时期的，同一时代的","key":"c"},{"en":"contest","cn":"比赛;竞赛","key":"c"},{"en":"contract","cn":"n. 合同, 契约 vt. (使)收缩,订立合同","key":"c"},{"en":"contradictory","cn":"相互矛盾,对立的","key":"c"},{"en":"contrary","cn":"相反 相反的","key":"c"},{"en":"contrast","cn":"对比;对照","key":"c"},{"en":"conventional","cn":"依照惯例的，习惯的","key":"c"},{"en":"convince","cn":"使确信;使相信;使信服;劝说(某人做某事)","key":"c"},{"en":"cooperate","cn":"合作;协作;协助;配合","key":"c"},{"en":"core","cn":"n. 核心,要点,精髓 adj. 最重要的, 核心的","key":"c"},{"en":"corporate","cn":"adj. 公司的;法人的;社团的;全体的;共同的","key":"c"},{"en":"correspond","cn":"一致；与……相当；(与人)通信，有书信往来","key":"c"},{"en":"costume","cn":"服装，装束","key":"c"},{"en":"cottage","cn":"(郊外)小屋,村舍,别墅","key":"c"},{"en":"cotton","cn":"棉花 adj. 棉花的","key":"c"},{"en":"council","cn":"地方议会;市政服务机构;委员会","key":"c"},{"en":"coverage","cn":"新闻报道;信息范围;信息质量;覆盖范围","key":"c"},{"en":"cream","cn":"奶油，乳脂","key":"c"},{"en":"creature","cn":"生物，动物","key":"c"},{"en":"crew","cn":"全体船员","key":"c"},{"en":"crime","cn":"（法律上的）罪，犯罪","key":"c"},{"en":"crisis(pl.crises)","cn":"危机;危急关头;危难时刻;病危期","key":"c"},{"en":"criterion (pl.criteria)","cn":"标准，准则，原则","key":"c"},{"en":"critical","cn":"批评的;批判性的;挑剔的;至关紧要的;严重的","key":"c"},{"en":"criticise(criticize)","cn":"批评;批判;挑剔;指责;评论;评价","key":"c"},{"en":"crop","cn":"庄稼；收成","key":"c"},{"en":"crucial","cn":"至关重要的;关键性的","key":"c"},{"en":"cruel","cn":"残忍的，残酷的；无情的","key":"c"},{"en":"cuisine","cn":"饭菜，佳肴","key":"c"},{"en":"cupboard","cn":"碗柜；橱柜","key":"c"}],"star10":[{"en":"curtain","cn":"窗帘","key":"c"},{"en":"cycle","cn":"骑自行车","key":"c"},{"en":"damage","cn":"毁坏，损害","key":"d"},{"en":"damp","cn":"潮湿（的）","key":"d"},{"en":"dare","cn":"敢，敢于","key":"d"},{"en":"database","cn":"资料库，数据库","key":"d"},{"en":"deadline","cn":"最后期限，截止日期","key":"d"},{"en":"debate","cn":"讨论，辩论","key":"d"},{"en":"debt","cn":"债务；欠款","key":"d"},{"en":"decade","cn":"十年期","key":"d"},{"en":"decent","cn":"体面的；正派的;得体的","key":"d"},{"en":"decline","cn":"减少,下降,衰退,谢绝","key":"d"},{"en":"decrease","cn":"减少，减小，降低","key":"d"},{"en":"defeat","cn":"击败；战胜","key":"d"},{"en":"defend","cn":"防守；保卫","key":"d"},{"en":"definition","cn":"释义，解释;定义;清晰度","key":"d"},{"en":"delay","cn":"拖延，延误，延迟，延期；耽搁","key":"d"},{"en":"delete","cn":"删去","key":"d"},{"en":"delicate","cn":"易损的，易碎的","key":"d"},{"en":"demand","cn":"要求","key":"d"},{"en":"demonstrate","cn":"证明;证实;论证;说明;表达","key":"d"},{"en":"dentist","cn":"牙科医生 ","key":"d"},{"en":"deny","cn":"否认;否定;拒绝","key":"d"},{"en":"department","cn":"部门；（机关的）司，处；（大学的）系","key":"d"},{"en":"departure","cn":"离开，启程","key":"d"},{"en":"depress","cn":"使抑郁;使沮丧;使消沉;使失去信心","key":"d"},{"en":"depth","cn":"深，深度","key":"d"},{"en":"deserve","cn":"（不用于进行时态）应得，应受","key":"d"},{"en":"desperate","cn":"不顾一切的;绝望的;;铤而走险的","key":"d"},{"en":"dessert","cn":"甜点","key":"d"}],"star11":[{"en":"detect","cn":"发现;查明;侦察出","key":"d"},{"en":"detective","cn":"侦探","key":"d"},{"en":"device","cn":"装置;仪器;器具;设备;炸弹","key":"d"},{"en":"devote","cn":"把…奉献, 把…专用（于）","key":"d"},{"en":"diamond","cn":"钻石，金刚石；纸牌中的方块","key":"d"},{"en":"differ","cn":"相异，有区别","key":"d"},{"en":"digest","cn":"消化, 领会","key":"d"},{"en":"dignity","cn":"庄重，庄严，尊严。尊贵，高尚","key":"d"},{"en":"dimension","cn":"量度，尺寸，面积，程度，范围","key":"d"},{"en":"directory","cn":"姓名地址录","key":"d"},{"en":"disability","cn":"残疾；无能","key":"d"},{"en":"disabled","cn":"残废的，残疾的","key":"d"},{"en":"disappointed","cn":"失望的;沮丧的;失意的","key":"d"},{"en":"discipline","cn":"n.纪律;行为准则;自制力vt. 惩罚;训练;训导;管教","key":"d"},{"en":"discount","cn":"折扣","key":"d"},{"en":"discrimination","cn":"歧视","key":"d"},{"en":"disk(disc)","cn":"磁盘","key":"d"},{"en":"dismiss","cn":"让……离开；遣散；解散；解雇","key":"d"},{"en":"display","cn":"vt. 陈列;展出;表现 n. 陈列;展览;展示;表演","key":"d"},{"en":"distant","cn":"远的，遥远的","key":"d"},{"en":"distinct","cn":"清楚的;明白的;有区别的;确定无疑的","key":"d"},{"en":"distinguish","cn":"区分，辨别，分清","key":"d"},{"en":"distribution","cn":"分配;分发;分送","key":"d"},{"en":"district","cn":"区；地区；区域","key":"d"},{"en":"disturb","cn":"扰乱；打扰","key":"d"},{"en":"dive","cn":"跳水","key":"d"},{"en":"diverse","cn":"不同的，多种多样的，形形色色的","key":"d"},{"en":"division","cn":"分开;分隔;分配;部分;除(法);分歧","key":"d"},{"en":"dizzy","cn":"头眩目晕的","key":"d"},{"en":"domain","cn":"领域; 范围; 领土势力范围","key":"d"}],"star12":[{"en":"domestic","cn":"本国的;国内的;家用的;家庭的","key":"d"},{"en":"dominate","cn":"支配;控制;左右;影响","key":"d"},{"en":"dormitory","cn":"学生宿舍（缩写式dorm）","key":"d"},{"en":"dozen","cn":"一打/十二个;十多个;许多;很多","key":"d"},{"en":"draft","cn":"草稿，草案，起草，草拟","key":"d"},{"en":"drag","cn":"拖；拽","key":"d"},{"en":"drama","cn":"戏剧文学;戏剧艺术;戏剧","key":"d"},{"en":"dramatic","cn":"突然的;令人吃惊的; 戏剧的","key":"d"},{"en":"drawer","cn":"抽屉","key":"d"},{"en":"drill","cn":"n.钻头；训练 vt. 在…上钻孔；重复训练","key":"d"},{"en":"drug","cn":"药，药物；毒品","key":"d"},{"en":"duration","cn":"持续时间;期间","key":"d"},{"en":"dust","cn":"灰尘，尘土","key":"d"},{"en":"dynamic","cn":"充满活力,精力充沛的","key":"d"},{"en":"dynasty","cn":"王朝，朝代","key":"d"},{"en":"eagle","cn":"鹰","key":"e"},{"en":"ease","cn":"减轻；缓解（难度或严重程度）","key":"e"},{"en":"ecology","cn":"生态，生态学","key":"e"},{"en":"economic","cn":"经济上的;有利可图的;可赚钱的;合算的","key":"e"},{"en":"edge","cn":"边缘","key":"e"},{"en":"educator","cn":"教育家","key":"e"},{"en":"efficient","cn":"效率高的;有能力的","key":"e"},{"en":"elderly","cn":"年纪较大的，上了年纪的","key":"e"},{"en":"election","cn":"选举，推选","key":"e"},{"en":"elegant","cn":"文雅的,漂亮的,精美的","key":"e"},{"en":"elsewhere","cn":"在别处; 去别处；到别处","key":"e"},{"en":"embarrassed","cn":"尴尬的;经济困难的","key":"e"},{"en":"emerge","cn":"出现，浮现; 露出;暴露","key":"e"},{"en":"emergency","cn":"紧急情况或状态","key":"e"},{"en":"emotion","cn":"强烈的感情;激情;情感;情绪","key":"e"}],"star13":[{"en":"emperor","cn":"皇帝","key":"e"},{"en":"emphasis","cn":"强调;重视;重读","key":"e"},{"en":"employ","cn":"雇佣","key":"e"},{"en":"encounter","cn":"遭遇;意外地遇见;与…邂逅","key":"e"},{"en":"engage","cn":"吸引住注意力/兴趣;雇用;聘用","key":"e"},{"en":"enhance","cn":"提高;增强;增进","key":"e"},{"en":"enormous","cn":"巨大的;庞大的;极大的","key":"e"},{"en":"enterprise","cn":"公司，企业/事业单位，进取心","key":"e"},{"en":"entertainment","cn":"娱乐","key":"e"},{"en":"enthusiastic","cn":"热情的，热心的","key":"e"},{"en":"entitle","cn":"使享有权利; 给…命名","key":"e"},{"en":"entry","cn":"进入","key":"e"},{"en":"envy","cn":"忌妒； 羡慕","key":"e"},{"en":"episode","cn":"人生的一段经历;小说的片段，插曲","key":"e"},{"en":"equator","cn":"赤道","key":"e"},{"en":"era","cn":"时代;年代;纪元;代","key":"e"},{"en":"essay","cn":"散文；文章；随笔","key":"e"},{"en":"essential","cn":"必不可少的;极其重要的;根本的","key":"e"},{"en":"estate","cn":"农村的大片私有土地，庄园;住宅区","key":"e"},{"en":"estimate","cn":"n.估计;估价 vt. 估价;估算","key":"e"},{"en":"evaluate","cn":"估值，评价，评估","key":"e"},{"en":"evidence","cn":"证据，证明","key":"e"},{"en":"examine","cn":"检查；诊察","key":"e"},{"en":"exceptional","cn":"杰出的;优秀的;卓越的;异常的;特别的","key":"e"},{"en":"exhibition","cn":"展览；展览会","key":"e"},{"en":"expand","cn":"扩大，增加，扩展","key":"e"},{"en":"expansion","cn":"n. 扩张;扩展;扩大;膨胀","key":"e"},{"en":"expectation","cn":"预料；期望","key":"e"},{"en":"expense","cn":"消费； 支出","key":"e"},{"en":"explode","cn":"(使)爆炸","key":"e"}],"star14":[{"en":"expose","cn":"揭露","key":"e"},{"en":"exposure","cn":"面临，遭受(危险或不快);揭露;亮相;被报道","key":"e"},{"en":"extend","cn":"使伸长;扩大;扩展;延长;扩大…的范围","key":"e"},{"en":"extension","cn":"扩大，延伸","key":"e"},{"en":"extraordinary","cn":"离奇的；使人惊奇的","key":"e"},{"en":"fabric","cn":"织物;布料","key":"f"},{"en":"facilitate","cn":"促进;促使;使便利","key":"f"},{"en":"faith","cn":"信仰；信念","key":"f"},{"en":"false","cn":"不正确的；假的","key":"f"},{"en":"fantasy","cn":"幻想，梦想","key":"f"},{"en":"fashion","cn":"流行款式;时尚，时兴;时装业","key":"f"},{"en":"fault","cn":"缺点，毛病","key":"f"},{"en":"favour(favor)","cn":"n. 恩惠；好意；帮助","key":"f"},{"en":"fee","cn":"费，费用","key":"f"},{"en":"fellow","cn":"同伴；伙伴","key":"f"},{"en":"fence","cn":"栅栏；围栏；篱笆","key":"f"},{"en":"fetch","cn":"（去）取（物）来，（去）带（人）来","key":"f"},{"en":"fibre(fiber)","cn":"纤维质","key":"f"},{"en":"fiction","cn":"小说，虚构的事","key":"f"},{"en":"finance","cn":"资金，财政，财务","key":"f"},{"en":"financial","cn":"财政的;财务的;金融的","key":"f"},{"en":"finding","cn":"调查发现;调研结果","key":"f"},{"en":"firm","cn":"n.公司;企业 adj.坚固的,坚定的","key":"f"},{"en":"fist","cn":"拳(头)","key":"f"},{"en":"flavour(flavor)","cn":"味，滋味;特色；风味","key":"f"},{"en":"flour","cn":"面粉，粉","key":"f"},{"en":"flow","cn":"流动","key":"f"},{"en":"flu","cn":"流行性感冒","key":"f"},{"en":"fluent","cn":"（外语）流利的，流畅","key":"f"},{"en":"foggy","cn":"有雾的，多雾的","key":"f"}],"star15":[{"en":"fold","cn":"折叠；合拢","key":"f"},{"en":"folk","cn":"民间的","key":"f"},{"en":"fond","cn":"喜爱的，爱好的","key":"f"},{"en":"forecast","cn":"预告","key":"f"},{"en":"forehead","cn":"前额","key":"f"},{"en":"forever","cn":"永远；永恒地","key":"f"},{"en":"forgive","cn":"原谅，宽恕","key":"f"},{"en":"format","cn":"安排，计划，设计","key":"f"},{"en":"found","cn":"成立，建立","key":"f"},{"en":"foundation","cn":"地基;房基;基础;基本原理","key":"f"},{"en":"fountain","cn":"喷泉","key":"f"},{"en":"fox","cn":"狐狸","key":"f"},{"en":"freedom","cn":"自由","key":"f"},{"en":"freeze","cn":"结冰","key":"f"},{"en":"frequency","cn":"出现率;重复率;频率","key":"f"},{"en":"friction","cn":"摩擦","key":"f"},{"en":"frog","cn":"青蛙","key":"f"},{"en":"frontier","cn":"前沿 ，边界；前线","key":"f"},{"en":"frost","cn":"霜","key":"f"},{"en":"fry","cn":"用油煎；用油炸","key":"f"},{"en":"fuel","cn":"燃料","key":"f"},{"en":"fundamental","cn":"十分重大的，根本的","key":"f"},{"en":"furniture","cn":"（总称）家具","key":"f"},{"en":"gain","cn":"赢得；挣得","key":"g"},{"en":"gallery","cn":"画廊；美术品陈列室","key":"g"},{"en":"garbage","cn":"垃圾","key":"g"},{"en":"garlic","cn":"大蒜","key":"g"},{"en":"gender","cn":"性别","key":"g"},{"en":"generate","cn":"产生;引起","key":"g"},{"en":"genius","cn":"天才;天资;天赋;天才人物","key":"g"}],"star16":[{"en":"gentle","cn":"温柔的，轻轻的","key":"g"},{"en":"genuine","cn":"真的;名副其实的;真诚的;诚实的","key":"g"},{"en":"geometry","cn":"几何学","key":"g"},{"en":"gifted","cn":"有天赋的；有才华的","key":"g"},{"en":"globe","cn":"地球仪;地球;世界","key":"g"},{"en":"goat","cn":"山羊","key":"g"},{"en":"golf","cn":"高尔夫球","key":"g"},{"en":"grab","cn":"抓住;攫取;夺得;利用","key":"g"},{"en":"gradually","cn":"逐渐地","key":"g"},{"en":"grain","cn":"谷物，谷类","key":"g"},{"en":"gramme(gram)","cn":"克(重量单位)","key":"g"},{"en":"grand","cn":"宏伟的","key":"g"},{"en":"grasp","cn":"抓住；紧握","key":"g"},{"en":"grateful","cn":"感激的，感谢的","key":"g"},{"en":"gravity","cn":"重力，地球引力","key":"g"},{"en":"greedy","cn":"贪婪的","key":"g"},{"en":"greet","cn":"问候；向……致敬","key":"g"},{"en":"grocery","cn":"食品杂货店","key":"g"},{"en":"guarantee","cn":"保证，担保","key":"g"},{"en":"guidance","cn":"引导，指导","key":"g"},{"en":"guilty","cn":"有罪,犯法的,做错事的","key":"g"},{"en":"habitat","cn":"动植物的生活环境栖或息地","key":"h"},{"en":"ham","cn":"火腿","key":"h"},{"en":"handkerchief","cn":"手帕;纸巾","key":"h"},{"en":"handle","cn":"柄，把柄 v. 处理","key":"h"},{"en":"handwriting","cn":"书法","key":"h"},{"en":"harm","cn":"伤害；损伤","key":"h"},{"en":"harmonious","cn":"友好和睦的;和谐的;协调的","key":"h"},{"en":"harmony","cn":"融洽，和睦","key":"h"},{"en":"harvest","cn":"收割，收获（物）","key":"h"}],"star17":[{"en":"hatch","cn":"鸟/鸡孵蛋","key":"h"},{"en":"hence","cn":"因此;由此","key":"h"},{"en":"herb","cn":"草药","key":"h"},{"en":"highlight","cn":"vt. 突出;强调;使醒目 n. 最好的部分","key":"h"},{"en":"hike","cn":"n. 远足;徒步旅行 vi. 去远足;做徒步旅行","key":"h"},{"en":"hire","cn":"租用","key":"h"},{"en":"historic","cn":"历史上著名(或重要)的;可名垂青史的","key":"h"},{"en":"household","cn":"n. 一家人;家庭 adj. 家喻户晓的;家庭的;一家的","key":"h"},{"en":"housing","cn":"住宅;住房供给","key":"h"},{"en":"humble","cn":"谦逊的;虚心的;卑微的","key":"h"},{"en":"hunt","cn":"寻找；狩猎，猎取","key":"h"},{"en":"hydrogen","cn":"氢","key":"h"},{"en":"ideal","cn":"完美的;理想的;最合适的","key":"i"},{"en":"identical","cn":"完全同样的;相同的;同一的","key":"i"},{"en":"identify","cn":"身份;本身;本体;特征;同一性","key":"i"},{"en":"idiom","cn":"习语，成语","key":"i"},{"en":"illegal","cn":"非法的","key":"i"},{"en":"imply","cn":"含有…的意思;暗示;暗指;说明;表明","key":"i"},{"en":"impress","cn":"留下极深的印象","key":"i"},{"en":"inch","cn":"英寸","key":"i"},{"en":"incident","cn":"事件","key":"i"},{"en":"incredible","cn":"不能相信的;难以置信的","key":"i"},{"en":"infection","cn":"传染;感染;传染病","key":"i"},{"en":"infer","cn":"推断;推论;推理;间接地提出;暗示","key":"i"},{"en":"influential","cn":"有很大影响的;有支配力的","key":"i"},{"en":"initial","cn":"开始的，最初的","key":"i"},{"en":"initiative","cn":"倡议;新方案;积极性;主动权","key":"i"},{"en":"injury","cn":"受伤处","key":"i"},{"en":"inner","cn":"里面的;内部的;接近中心的","key":"i"},{"en":"innocent","cn":"无辜的;清白的;无罪的","key":"i"}],"star18":[{"en":"innovation","cn":"创造;创新;改革;新思想;新方法","key":"i"},{"en":"input","cn":"投入;输入","key":"i"},{"en":"inquire","cn":"调查；询问；查问","key":"i"},{"en":"insight","cn":"洞察力;领悟;洞悉","key":"i"},{"en":"insist","cn":"坚持；坚决认为","key":"i"},{"en":"inspection","cn":"视察;检查;查看;审视","key":"i"},{"en":"instance","cn":"n. 例子;事例;实例 vt. 举…为例","key":"i"},{"en":"instant","cn":"瞬间；刹那","key":"i"},{"en":"institute","cn":"(研究)所, 院，学院","key":"i"},{"en":"institution","cn":"(慈善、宗教等性质的)公共机构； 学校","key":"i"},{"en":"insurance","cn":"保险","key":"i"},{"en":"integrate","cn":"使合并; 使成为一体;使加入","key":"i"},{"en":"integrity","cn":"诚实正直;完整;完好","key":"i"},{"en":"intense","cn":"十分强烈的;激烈的;尖锐的","key":"i"},{"en":"intention","cn":"打算,计划,意图","key":"i"},{"en":"interaction","cn":"相互影响,相互作用","key":"i"},{"en":"internal","cn":"内部的;里面的;体内的","key":"i"},{"en":"interpret","cn":"诠释;说明;把…理解为;领会;口译","key":"i"},{"en":"interrupt","cn":"插嘴;打扰;打岔;使暂停;使中断","key":"i"},{"en":"intervention","cn":"干涉;干预","key":"i"},{"en":"investigate","cn":"侦查(某事);调查(某人);研究;调查","key":"i"},{"en":"investment","cn":"投资;值得买的东西;有用的投资物","key":"i"},{"en":"involve","cn":"包含;需要;牵涉;牵连","key":"i"},{"en":"iron","cn":"n.铁，熨斗 vt. 熨烫","key":"i"},{"en":"item","cn":"项目;一件商品/物品;一条(新闻)","key":"i"},{"en":"jam","cn":"果酱；阻塞","key":"j"},{"en":"jaw","cn":"下巴","key":"j"},{"en":"jazz","cn":"爵士音乐，爵士舞曲","key":"j"},{"en":"joint","cn":"adj. 联合的;共同的 n. 关节;接头","key":"j"},{"en":"journalist","cn":"记者，新闻工作者","key":"j"}],"star19":[{"en":"jungle","cn":"丛林，密林","key":"j"},{"en":"justify","cn":"证明…正确;对…作出解释;为…辩解","key":"j"},{"en":"kettle","cn":"(烧水用的)水壶","key":"k"},{"en":"kindergarten","cn":"幼儿园","key":"k"},{"en":"kingdom","cn":"王国","key":"k"},{"en":"kit","cn":"配套元件;成套设备;全套装备","key":"k"},{"en":"label","cn":"n. 标签;标记 vt. 贴标签于;用标签标明","key":"l"},{"en":"labour","cn":"n.劳动","key":"l"},{"en":"lack","cn":"缺乏，缺少","key":"l"},{"en":"lamb","cn":"羔羊","key":"l"},{"en":"lamp","cn":"灯，油灯；光源","key":"l"},{"en":"landscape","cn":"风景，景色;乡村风景画","key":"l"},{"en":"laptop","cn":"n. 笔记本电脑","key":"l"},{"en":"launch","cn":"发起;首次上市，发行","key":"l"},{"en":"lawyer","cn":"律师","key":"l"},{"en":"leadership","cn":"领导; 领导班子;领导层","key":"l"},{"en":"league","cn":"联盟，社团","key":"l"},{"en":"leak","cn":"漏； 渗","key":"l"},{"en":"leather","cn":"皮革","key":"l"},{"en":"legal","cn":"与法律有关的，法律的","key":"l"},{"en":"leisure","cn":"闲暇;空闲;休闲","key":"l"},{"en":"liberation","cn":"解放","key":"l"},{"en":"liberty","cn":"自由","key":"l"},{"en":"librarian","cn":"图书管理员；（西方的）图书馆馆长","key":"l"},{"en":"license","cn":"执照，许可证","key":"l"},{"en":"limit","cn":"限制；减少","key":"l"},{"en":"link","cn":"n.连接； 联系  vt.联系，把某物连接起来","key":"l"},{"en":"liquid","cn":"液体；液体的","key":"l"},{"en":"literally","cn":"字面上;真正地，确实地","key":"l"},{"en":"literary","cn":"文学的,文学上的","key":"l"}],"star20":[{"en":"load","cn":"担子，货物","key":"l"},{"en":"loan","cn":"贷款;借款;借出;","key":"l"},{"en":"log","cn":"原木;日志;航海日志;飞行日志","key":"l"},{"en":"logical","cn":"必然的;合乎常理的;符合逻辑的","key":"l"},{"en":"loose","cn":"松散的； 宽松的","key":"l"},{"en":"lower","cn":"adj.下面的，下方的 vt. 把…放低;使…降下","key":"l"},{"en":"lunar","cn":"月球的;月亮的","key":"l"},{"en":"lung","cn":"肺；肺脏","key":"l"},{"en":"luxury","cn":"奢侈的享受;奢华;奢侈品","key":"l"},{"en":"madam","cn":"夫人,女士","key":"m"},{"en":"mail","cn":"n.邮政,邮递 vt. (美)邮寄","key":"m"},{"en":"mankind","cn":"人类;（总称）人","key":"m"},{"en":"manner","cn":"方式，态度，举止","key":"m"},{"en":"marathon","cn":"马拉松赛跑(约42公里，合26英里)","key":"m"},{"en":"massive","cn":"巨大的;大而重的;结实的","key":"m"},{"en":"mature","cn":"成熟的","key":"m"},{"en":"maximum","cn":"adj.最高的，最多的 n.最大量，最大限度","key":"m"},{"en":"means","cn":"方法，手段；财富(单复数同形)","key":"m"},{"en":"mechanic","cn":"机械师;修理工;技工","key":"m"},{"en":"membership","cn":"会员资格;成员资格","key":"m"},{"en":"memorial","cn":"纪念馆","key":"m"},{"en":"mercy","cn":"怜悯","key":"m"},{"en":"merely","cn":"仅仅，只不过","key":"m"},{"en":"microscope","cn":"显微镜","key":"m"},{"en":"mild","cn":"温和,暖和的,凉爽的","key":"m"},{"en":"millimeter","cn":"毫米","key":"m"},{"en":"million","cn":"一百万，大量","key":"m"},{"en":"mineral","cn":"矿物质，矿物","key":"m"},{"en":"minimum","cn":"adj.最小的  n.最小值，最低限度","key":"m"},{"en":"minister","cn":"部长；牧师","key":"m"}],"star21":[{"en":"minor","cn":"较小的;次要的;轻微的","key":"m"},{"en":"minority","cn":"少数；少数民族","key":"m"},{"en":"mirror","cn":"镜子","key":"m"},{"en":"missile","cn":"导弹","key":"m"},{"en":"mission","cn":"官方使命;使团","key":"m"},{"en":"mist","cn":"雾","key":"m"},{"en":"mixture","cn":"混合物","key":"m"},{"en":"mode","cn":"方式;风格;样式","key":"m"},{"en":"monitor","cn":"班长；纠察生；监视器","key":"m"},{"en":"monthly","cn":"adj. 每月的;每月一次的 adv. 每个月;每月一次","key":"m"},{"en":"mood","cn":"情绪;心情","key":"m"},{"en":"moral","cn":"adj.道德的 n.寓意,道德启示","key":"m"},{"en":"mosquito","cn":"蚊子","key":"m"},{"en":"mostly","cn":"主要地;一般地;通常","key":"m"},{"en":"motion","cn":"运动;移动","key":"m"},{"en":"motivate","cn":"成为…的动机;甘愿苦干;激励","key":"m"},{"en":"motive","cn":"动机;原因;目的","key":"m"},{"en":"motor","cn":"发动机，马达","key":"m"},{"en":"mount","cn":"逐步增加;爬上;攀登","key":"m"},{"en":"mud","cn":"泥, 泥浆","key":"m"},{"en":"multiple","cn":"数量多的;多种多样的","key":"m"},{"en":"murder","cn":"谋杀","key":"m"},{"en":"muscle","cn":"肌肉;体力;威信;影响力","key":"m"},{"en":"mushroom","cn":"蘑菇","key":"m"},{"en":"nail","cn":"钉，钉子","key":"n"},{"en":"native","cn":"本土的，本国的","key":"n"},{"en":"navy","cn":"海军","key":"n"},{"en":"needle","cn":"针","key":"n"},{"en":"negotiate","cn":"谈判，协商","key":"n"},{"en":"neighbourhood","cn":"四邻；邻近地区","key":"n"}],"star22":[{"en":"nephew","cn":"侄子，外甥","key":"n"},{"en":"nest","cn":"巢；窝","key":"n"},{"en":"net","cn":"网","key":"n"},{"en":"network","cn":"网络，网状系统","key":"n"},{"en":"nevertheless","cn":"尽管如此;不过;然而","key":"n"},{"en":"niece","cn":"侄女，甥女","key":"n"},{"en":"noble","cn":"高贵的，贵族的","key":"n"},{"en":"novel","cn":"长篇小说","key":"n"},{"en":"novelist","cn":"小说家","key":"n"},{"en":"nuclear","cn":"原子核的，原子能的，核动力的","key":"n"},{"en":"nutrition","cn":"营养，滋养","key":"n"},{"en":"objective","cn":"n. 目标;目的adj. 客观的;就事论事的","key":"o"},{"en":"obtain","cn":"获得；得到","key":"o"},{"en":"occupation","cn":"职业，工作","key":"o"},{"en":"occupy","cn":"使用;占用;使用","key":"o"},{"en":"onion","cn":"洋葱；洋葱头","key":"o"},{"en":"operator","cn":"接线员","key":"o"},{"en":"opponent","cn":"对手;竞争者;反对者","key":"o"},{"en":"oppose","cn":"反对；反抗","key":"o"},{"en":"optimistic","cn":"乐观的","key":"o"},{"en":"orbit","cn":"天体的运行轨道","key":"o"},{"en":"organ","cn":"人/动物器官","key":"o"},{"en":"organic","cn":"有机的;不使用化肥的;绿色的","key":"o"},{"en":"origin","cn":"起源，由来","key":"o"},{"en":"outcome","cn":"结果，效果","key":"o"},{"en":"outgoing","cn":"爱交际的,外向的","key":"o"},{"en":"outline","cn":"概述，略述","key":"o"},{"en":"output","cn":"产量，输出量","key":"o"},{"en":"outstanding","cn":"优秀的，杰出的","key":"o"},{"en":"overall","cn":"adj. 全面的;总体的 adv. 全部;一般来说;总体上","key":"o"}],"star23":[{"en":"overcome","cn":"克服，解决","key":"o"},{"en":"owe","cn":"欠债,欠情，归因于","key":"o"},{"en":"pace","cn":"步子；节奏","key":"p"},{"en":"pack","cn":"n.包,捆;一群猎犬/野兽 vt.打包","key":"p"},{"en":"pan","cn":"平底锅","key":"p"},{"en":"panel","cn":"(门/墙上面的)嵌板/方格板块; 衣服上的镶条/饰片","key":"p"},{"en":"panic","cn":"n.惊慌,恐慌,惶恐不安 vi.惊慌失措","key":"p"},{"en":"paragraph","cn":"文章的段落","key":"p"},{"en":"parcel","cn":"包裹","key":"p"},{"en":"parking","cn":"停车","key":"p"},{"en":"participate","cn":"参加，参与","key":"p"},{"en":"passion","cn":"激情;强烈的爱","key":"p"},{"en":"patent","cn":"专利权，专利证书","key":"p"},{"en":"patience","cn":"容忍；耐心","key":"p"},{"en":"peak","cn":"n. 顶峰;尖端;尖头","key":"p"},{"en":"pepper","cn":"胡椒粉","key":"p"},{"en":"perceive","cn":"意识到;察觉到;认为","key":"p"},{"en":"permanent","cn":"永久的，永恒的","key":"p"},{"en":"persuade","cn":"说服，劝说","key":"p"},{"en":"pessimistic","cn":"悲观的;悲观主义的","key":"p"},{"en":"phase","cn":"n. 阶段;时期 vt. 分阶段进行;逐步做","key":"p"},{"en":"phenomenon","cn":"现象","key":"p"},{"en":"philosophy","cn":"哲学;哲学体系;思想体系;人生信条","key":"p"},{"en":"photographer","cn":"摄影师","key":"p"},{"en":"phrase","cn":"短语；习惯用语","key":"p"},{"en":"physician","cn":"医师，尤指内科医生","key":"p"},{"en":"pill","cn":"药丸，药片","key":"p"},{"en":"pipe","cn":"管子，输送管","key":"p"},{"en":"plain","cn":"家常的； 普通的","key":"p"},{"en":"plastic","cn":"adj.塑料的 n.塑料","key":"p"}],"star24":[{"en":"platform","cn":"讲台,(车站的)月台","key":"p"},{"en":"pleasant","cn":"令人愉快的，舒适的","key":"p"},{"en":"plot","cn":"n.故事情节，布局，阴谋 vt.密谋","key":"p"},{"en":"plug","cn":"n.塞子 vt.（用塞子）把……塞住","key":"p"},{"en":"poet","cn":"诗人","key":"p"},{"en":"polar","cn":"极地的;南极/北极的,完全相反的","key":"p"},{"en":"polish","cn":"vt.擦亮,修改 n.擦光剂,亮光剂","key":"p"},{"en":"political","cn":"政治的","key":"p"},{"en":"politician","cn":"政治家","key":"p"},{"en":"politics","cn":"政治","key":"p"},{"en":"pond","cn":"池塘","key":"p"},{"en":"pork","cn":"猪肉","key":"p"},{"en":"pose","cn":"n.为画像/拍照等摆的姿势;装腔作势 vt.造成威胁，引起","key":"p"},{"en":"possession","cn":"所有，拥有；财产，所有物","key":"p"},{"en":"pot","cn":"锅，壶，瓶，罐","key":"p"},{"en":"potential","cn":"adj.潜在的，可能的 n.可能性，潜力","key":"p"},{"en":"pour","cn":"倾泻，不断流出","key":"p"},{"en":"practical","cn":"实际的，适用的","key":"p"},{"en":"pray","cn":"祈祷；祈求,祷告","key":"p"},{"en":"precious","cn":"宝贵的, 珍贵的","key":"p"},{"en":"precisely","cn":"准确地,精确地,确切地","key":"p"},{"en":"predict","cn":"预言，预告，预报","key":"p"},{"en":"preference","cn":"选择，趋向","key":"p"},{"en":"prejudice","cn":"偏见，成见","key":"p"},{"en":"premier","cn":"首相，总理","key":"p"},{"en":"presentation","cn":"演示，演出","key":"p"},{"en":"preserve","cn":"保护，保留，保存","key":"p"},{"en":"pretend","cn":"假装，佯装，扮作","key":"p"},{"en":"primitive","cn":"原始的，远古的","key":"p"},{"en":"principle","cn":"道德原则，法则","key":"p"}],"star25":[{"en":"prior","cn":"先前的;优先的;在前面的","key":"p"},{"en":"priority","cn":"优先权; (车辆的)优先通行权","key":"p"},{"en":"prison","cn":"监狱","key":"p"},{"en":"proceed","cn":"继续做;接着做","key":"p"},{"en":"profession","cn":"(需要有高等教育学位的)职业如医生/律师,业内人士","key":"p"},{"en":"professor","cn":"教授","key":"p"},{"en":"profile","cn":"n. 概述;简介;印象 vt. 扼要介绍;概述","key":"p"},{"en":"prohibit","cn":"禁止","key":"p"},{"en":"promote","cn":"促进,推动,促销,晋升","key":"p"},{"en":"proof","cn":"n. 证据;证明;检验 adj. 可防护的;防…的;抗…的","key":"p"},{"en":"property","cn":"所有物;财产;财物","key":"p"},{"en":"prospect","cn":"可能性;希望;设想","key":"p"},{"en":"protein","cn":"蛋白质","key":"p"},{"en":"psychology","cn":"心理学","key":"p"},{"en":"pub","cn":"酒店，酒吧","key":"p"},{"en":"purchase","cn":"购买，采购","key":"p"},{"en":"pure","cn":"纯的, 不掺杂的","key":"p"},{"en":"purse","cn":"钱包","key":"p"},{"en":"pursue","cn":"追求;致力于","key":"p"},{"en":"qualification","cn":"资格，学历","key":"q"},{"en":"qualify","cn":"取得资格/学历;使具备资格","key":"q"},{"en":"quantity","cn":"量，数","key":"q"},{"en":"quote","cn":"vt.引用;引述;举例说明 n. 引用","key":"q"},{"en":"racial","cn":"种族的","key":"r"},{"en":"radiation","cn":"放射，放射物","key":"r"},{"en":"radium","cn":"镭","key":"r"},{"en":"rainbow","cn":"虹，彩虹","key":"r"},{"en":"random","cn":"随意的,未经事先考虑的","key":"r"},{"en":"rank","cn":"n.地位，级别，军衔 vt.把… 分等级，排列","key":"r"},{"en":"rare","cn":"罕见的，稀有的","key":"r"}],"star26":[{"en":"rating","cn":"等级;级别;收视率","key":"r"},{"en":"raw","cn":"生的,未煮过的,未加工的","key":"r"},{"en":"ray","cn":"光辉，光线","key":"r"},{"en":"react","cn":"回应，过敏，起物理，化学反应","key":"r"},{"en":"realistic","cn":"现实的;实际的;实事求是的","key":"r"},{"en":"reality","cn":"现实;实际情况;事实","key":"r"},{"en":"recall","cn":"vt. 记起;回忆起;回想起 n. 记忆力;记性;回收令","key":"r"},{"en":"receipt","cn":"收据","key":"r"},{"en":"receptionist","cn":"接待员","key":"r"},{"en":"recipe","cn":"烹饪法，食谱","key":"r"},{"en":"recite","cn":"vt.背诵","key":"r"},{"en":"recognition","cn":"认出; 识别;认可;赞誉","key":"r"},{"en":"recording","cn":"录音;录像;正式的记录","key":"r"},{"en":"recreation","cn":"娱乐，消遣，游戏","key":"r"},{"en":"recycle","cn":"回收；再循环","key":"r"},{"en":"reference","cn":"提到,涉及,谈及,查询","key":"r"},{"en":"reform","cn":"改革，改进，改良","key":"r"},{"en":"refresh","cn":"使恢复精力，使凉爽，提示","key":"r"},{"en":"regardless","cn":"不顾，不加理会","key":"r"},{"en":"register","cn":"n.登记簿，花名册，注册员 vt. 登记，注册","key":"r"},{"en":"reject","cn":"拒绝","key":"r"},{"en":"relate","cn":"有关； 涉及","key":"r"},{"en":"relay","cn":"n.接力赛，接班人，轮换者 vt. 接转，转发，转播","key":"r"},{"en":"release","cn":"vt. 释放;发泄;宣泄 n. 释放;获释;发行;发布","key":"r"},{"en":"relevant","cn":"紧密相关,有意义的","key":"r"},{"en":"reliable","cn":"可信赖的，可依靠的","key":"r"},{"en":"rely","cn":"依赖，依靠","key":"r"},{"en":"remarkable","cn":"非凡的;显著的;引人注目的","key":"r"},{"en":"remote","cn":"偏远的，偏僻的","key":"r"},{"en":"rent","cn":"租金，出租，租用","key":"r"}],"star27":[{"en":"representative","cn":"代表,典型人物","key":"r"},{"en":"reputation","cn":"名声，名誉","key":"r"},{"en":"rescue","cn":"营救，援救","key":"r"},{"en":"reserve","cn":"n.储备；预定 vt.预订,预约,保留","key":"r"},{"en":"resident","cn":"居民;住户","key":"r"},{"en":"resign","cn":"辞职，放弃，勉强接受","key":"r"},{"en":"resistance","cn":"反对;抵制;抗拒;抵抗;反抗;抗力;抵抗力","key":"r"},{"en":"resolution","cn":"决议;正式决定","key":"r"},{"en":"resolve","cn":"解决问题;作出决定/决议","key":"r"},{"en":"respective","cn":"分别的;各自的","key":"r"},{"en":"responsibility","cn":"责任，负责","key":"r"},{"en":"restore","cn":"恢复;使复原;修复","key":"r"},{"en":"restrict","cn":"限制，限定(数量、范围等);束缚","key":"r"},{"en":"reward","cn":"奖赏，回报，奖励","key":"r"},{"en":"rhyme","cn":"押韵","key":"r"},{"en":"riddle","cn":"谜(语)","key":"r"},{"en":"rigid","cn":"adj. 死板的;僵硬的;固执的","key":"r"},{"en":"ripe","cn":"成熟的，熟的","key":"r"},{"en":"roast","cn":"烤（肉）","key":"r"},{"en":"rocket","cn":"火箭","key":"r"},{"en":"roof","cn":"屋顶，顶部","key":"r"},{"en":"root","cn":"根，根源，起源","key":"r"},{"en":"route","cn":"路; 路途; 路线","key":"r"},{"en":"routine","cn":"常规,正常顺序,无聊","key":"r"},{"en":"royal","cn":"皇家的，王室的，国王的，女王的","key":"r"},{"en":"rubber","cn":"橡胶； 合成橡胶","key":"r"},{"en":"rude","cn":"无理的, 粗鲁的","key":"r"},{"en":"rugby","cn":"英式橄榄球","key":"r"},{"en":"ruin","cn":"vt.（使）毁坏；（使） 毁灭 n. (复) 废墟；遗迹","key":"r"},{"en":"rural","cn":"乡村的;农村的;似农村的","key":"r"}],"star28":[{"en":"sail","cn":"n.帆，乘船航行 vi/vt. 航行，驾驶","key":"s"},{"en":"salary","cn":"薪金，薪水","key":"s"},{"en":"salesman/saleswoman","cn":"(女)男售货员","key":"s"},{"en":"salty","cn":"盐的，咸的，含盐的","key":"s"},{"en":"sample","cn":"n.样本，样品，标本，取样 vt.取样","key":"s"},{"en":"satellite","cn":"卫星","key":"s"},{"en":"saucer","cn":"茶碟，茶托，小圆盘","key":"s"},{"en":"sausage","cn":"香肠，腊肠","key":"s"},{"en":"saving","cn":"节约;储蓄金;存款","key":"s"},{"en":"saying","cn":"说，俗话，谚语","key":"s"},{"en":"scholarship","cn":"奖学金","key":"s"},{"en":"scientific","cn":"科学的","key":"s"},{"en":"scream","cn":"尖叫","key":"s"},{"en":"sculpture","cn":"雕塑，雕刻，雕刻作品，雕像","key":"s"},{"en":"secondary","cn":"次要的; 中学的","key":"s"},{"en":"secure","cn":"安心的,有把握的,牢靠的","key":"s"},{"en":"security","cn":"安全，平安","key":"s"},{"en":"seed","cn":"种子","key":"s"},{"en":"seize","cn":"抓住(时机等)","key":"s"},{"en":"sensitive","cn":"敏感的，体贴的,善解人意的","key":"s"},{"en":"servant","cn":"仆人，佣人","key":"s"},{"en":"session","cn":"一场,一节,一段时间,开庭，会议","key":"s"},{"en":"setting","cn":"环境;戏剧小说的情节背景","key":"s"},{"en":"severe","cn":"极为恶劣,十分严重的","key":"s"},{"en":"sew","cn":"缝, 缝制；缝补；缝纫","key":"s"},{"en":"shade","cn":"n.阴凉处，树荫处 vt.给…遮挡光线,画阴影","key":"s"},{"en":"shadow","cn":"影子, 阴影","key":"s"},{"en":"shark","cn":"鲨鱼","key":"s"},{"en":"shave","cn":"剃须，刮脸","key":"s"},{"en":"shelf","cn":"架子；搁板；格层；礁；陆架","key":"s"}],"star29":[{"en":"shelter","cn":"掩蔽；隐蔽处","key":"s"},{"en":"shift","cn":"vt.变换;更替 n.变换; 轮班","key":"s"},{"en":"shore","cn":"滨，岸","key":"s"},{"en":"shortage","cn":"不足;缺少;短缺","key":"s"},{"en":"sincerely","cn":"真诚地","key":"s"},{"en":"sink","cn":"vi.下沉；消沉 n. 洗涤槽；污水槽","key":"s"},{"en":"skateboard","cn":"冰鞋，滑板","key":"s"},{"en":"skip","cn":"vt/vi.蹦蹦跳跳；跳绳,不做该做的事 n.蹦跳","key":"s"},{"en":"slice","cn":"n.薄片，片 ，部分 vt.把…切片","key":"s"},{"en":"slip","cn":"n. 差错;疏漏;小纸片vi.滑倒,脱落","key":"s"},{"en":"sneeze","cn":"打喷嚏","key":"s"},{"en":"socialist","cn":"n.社会主义者 adj.社会主义的","key":"s"},{"en":"soil","cn":"土壤，土地","key":"s"},{"en":"solar","cn":"太阳的","key":"s"},{"en":"soldier","cn":"士兵，战士","key":"s"},{"en":"solid","cn":"adj.结实的,固体的 n.固体","key":"s"},{"en":"somewhat","cn":"有点;有几分;稍微","key":"s"},{"en":"sorrow","cn":"悲伤，悲痛","key":"s"},{"en":"soul","cn":"灵魂,心灵,气魄","key":"s"},{"en":"sour","cn":"酸的，馊的","key":"s"},{"en":"sow","cn":"播种","key":"s"},{"en":"specialist","cn":"医学专家,专科医生,专家,专业人员","key":"s"},{"en":"species","cn":"种,物种(单复数同形)","key":"s"},{"en":"splendid","cn":"灿烂的,辉煌的,极好的(口语)","key":"s"},{"en":"sponsor","cn":"赞助者,赞助商","key":"s"},{"en":"spot","cn":"vt. 看见,注意到 n.污点,地点,斑点","key":"s"},{"en":"spy","cn":"vt.侦探,刺探 n.密探,间谍","key":"s"},{"en":"stability","cn":"稳定性,稳固性","key":"s"},{"en":"stadium","cn":"露天体育场","key":"s"},{"en":"stare","cn":"盯,凝视","key":"s"}],"star30":[{"en":"starve","cn":"饿死","key":"s"},{"en":"statistic","cn":"统计数字,统计资料,统计学","key":"s"},{"en":"statue","cn":"雕像,雕塑","key":"s"},{"en":"steak","cn":"牛排,肉排,鱼排","key":"s"},{"en":"steam","cn":"汽,水蒸气","key":"s"},{"en":"steel","cn":"钢,钢铁","key":"s"},{"en":"stimulate","cn":"促进,激发,激励,刺激","key":"s"},{"en":"straightforward","cn":"简单的/地，坦率的/地","key":"s"},{"en":"strait","cn":"海峡","key":"s"},{"en":"stream","cn":"小河,溪流","key":"s"},{"en":"strengthen","cn":"加强,增强","key":"s"},{"en":"stretch","cn":"拉长,撑大,拉直,绷紧","key":"s"},{"en":"strike","cn":"vt.撞,碰,打击 n.罢工,袭击","key":"s"},{"en":"string","cn":"细绳,线,带","key":"s"},{"en":"structure","cn":"结构;构造;结构体","key":"s"},{"en":"subjective","cn":"主观的","key":"s"},{"en":"submit","cn":"提交,呈递,顺从,投降,表示,建议","key":"s"},{"en":"subscribe","cn":"订阅,订购,定期捐款","key":"s"},{"en":"subsequent","cn":"随后的,后来的,之后的","key":"s"},{"en":"substance","cn":"物质,实质,基本内容","key":"s"},{"en":"substantial","cn":"大量的,价值巨大的,重大的,结实的","key":"s"},{"en":"suburb","cn":"郊区,城外","key":"s"},{"en":"suit","cn":"vt.适合  n.一套(衣服)","key":"s"},{"en":"suitable","cn":"合适的,适宜的","key":"s"},{"en":"sum","cn":"n. 金额,总和,总数 vi. 归纳,总结,概括","key":"s"},{"en":"superb","cn":"adj.卓越的,质量极高的","key":"s"},{"en":"superior","cn":"adj.更胜一筹的  n. 上级,上司","key":"s"},{"en":"surgeon","cn":"n.外科医生","key":"s"},{"en":"surgery","cn":"n. 外科手术;外科学","key":"s"},{"en":"surrounding","cn":"adj.周围的,附近的  n.环境,周围的事物","key":"s"}],"star31":[{"en":"suspect","cn":"vt.怀疑,感觉有问题  n.犯罪嫌疑人","key":"s"},{"en":"suspend","cn":"vt.暂停,延缓,推迟","key":"s"},{"en":"sustain","cn":"vt. 维持生命,维持生存,使保持,使稳定持续","key":"s"},{"en":"sweep","cn":"vt.扫除,扫","key":"s"},{"en":"swing","cn":"vt.挥舞,摆动  n. 秋千","key":"s"},{"en":"switch","cn":"vi/n. 开关,转换,改变","key":"s"},{"en":"symbol","cn":"n.象征","key":"s"},{"en":"sympathy","cn":"同情","key":"s"},{"en":"symphony","cn":"n.交响乐","key":"s"},{"en":"tablet","cn":"n.药片","key":"t"},{"en":"tackle","cn":"vt. 应付,处理,解决","key":"t"},{"en":"tailor","cn":"n.裁缝","key":"t"},{"en":"tale","cn":"故事, 传说","key":"t"},{"en":"tank","cn":"n.储水容量,坦克,油罐车","key":"t"},{"en":"tax","cn":"vt.征税  n.税,税款","key":"t"},{"en":"teapot","cn":"n.茶壶","key":"t"},{"en":"telescope","cn":"望远镜","key":"t"},{"en":"temple","cn":"n.庙宇,寺院","key":"t"},{"en":"temporary","cn":"短暂的,暂时的","key":"t"},{"en":"tendency","cn":"倾向,偏好,性情","key":"t"},{"en":"tension","cn":"紧张局势,矛盾","key":"t"},{"en":"territory","cn":"领土,版图,领地","key":"t"},{"en":"theft","cn":"盗窃案","key":"t"},{"en":"theory","cn":"理论","key":"t"},{"en":"thinking","cn":"n.思索;见解;想法","key":"t"},{"en":"thorough","cn":"彻底的","key":"t"},{"en":"threat","cn":"n. 威胁;恐吓","key":"t"},{"en":"threaten","cn":"扬言要;威胁;恐吓","key":"t"},{"en":"thunder","cn":"雷声，打雷","key":"t"},{"en":"tight","cn":"紧的","key":"t"}],"star32":[{"en":"toast","cn":"烤","key":"t"},{"en":"tabacco","cn":"烟草，烟叶；土巴哥","key":"t"},{"en":"tolerate","cn":"容许，允许，忍受","key":"t"},{"en":"tone","cn":"语气;腔调;口吻;风格","key":"t"},{"en":"tournament","cn":"锦标赛，联赛","key":"t"},{"en":"towel","cn":"毛巾","key":"t"},{"en":"transform","cn":"使改变形态,使改观","key":"t"},{"en":"trap","cn":"陷阱 vt. 使陷入困境","key":"t"},{"en":"trend","cn":"趋势，倾向，动态","key":"t"},{"en":"trial","cn":"审判；试验；试用","key":"t"},{"en":"trick","cn":"诡计，把戏","key":"t"},{"en":"trunk","cn":"树干；大箱子","key":"t"},{"en":"tube","cn":"管，管状物","key":"t"},{"en":"tune","cn":"曲调，曲子","key":"t"},{"en":"twin","cn":"两次；两倍","key":"t"},{"en":"typhoon","cn":"台风","key":"t"},{"en":"ultimately","cn":"最终;最后;终归;最基本地;根本上","key":"u"},{"en":"uniform","cn":"制服","key":"u"},{"en":"universe","cn":"宇宙","key":"u"},{"en":"unusual","cn":"不平常的，异常的","key":"u"},{"en":"upset","cn":"心烦的，苦恼的 ;使心烦，使苦恼","key":"u"},{"en":"urban","cn":"城市的，都市的","key":"u"},{"en":"urge","cn":"敦促，催促，力劝","key":"u"},{"en":"urgent","cn":"紧急的，紧迫的","key":"u"},{"en":"valley","cn":"山谷, 溪谷","key":"v"},{"en":"variation","cn":"变化;变更;变异","key":"v"},{"en":"vary","cn":"大小、形状等不同; 根据情况改变; 变更","key":"v"},{"en":"vase","cn":"（花）瓶；瓶饰","key":"v"},{"en":"vast","cn":"巨大的,极大的","key":"v"},{"en":"venue","cn":"聚会地点","key":"v"}],"star33":[{"en":"version","cn":"说法;种, 类;版本或改编本;译本; 译文","key":"v"},{"en":"victim","cn":"受害者，牺牲品","key":"v"},{"en":"violence","cn":"暴力行为","key":"v"},{"en":"virtual","cn":"很接近的;事实上的;实际上的;","key":"v"},{"en":"virtue","cn":"美德,正直的品行,德行","key":"v"},{"en":"virus","cn":"病毒","key":"v"},{"en":"visible","cn":"看得见的;可见的;明显的","key":"v"},{"en":"vision","cn":"视力;视野;想象;幻象;梦幻","key":"v"},{"en":"visual","cn":"视力的，视觉的","key":"v"},{"en":"vital","cn":"必不可少的，对…极重要的","key":"v"},{"en":"vivid","cn":"生动的，逼真的，鲜明的","key":"v"},{"en":"vocabulary","cn":"词汇, 词汇表","key":"v"},{"en":"volume","cn":"体积;容积;容量","key":"v"},{"en":"vote","cn":"选举，投票","key":"v"},{"en":"wage","cn":"工资，工钱，报酬；薪水","key":"w"},{"en":"waist","cn":"腰，腰部，腰围","key":"w"},{"en":"wander","cn":"漫游,游荡,漫步,流浪","key":"w"},{"en":"ward","cn":"保卫,看护,病房,收容所","key":"w"},{"en":"warning","cn":"警报","key":"w"},{"en":"washroom","cn":"盥洗室","key":"w"},{"en":"wave","cn":"n. 波，波浪 vt. 挥手，挥动","key":"w"},{"en":"weapon","cn":"武器;兵器","key":"w"},{"en":"weed","cn":"杂草，野草","key":"w"},{"en":"weekly","cn":"每周的","key":"w"},{"en":"weep","cn":"哭泣，流泪","key":"w"},{"en":"welfare","cn":"幸福，福利","key":"w"},{"en":"wheat","cn":"小麦","key":"w"},{"en":"whisper","cn":"低语，私下说","key":"w"},{"en":"widespread","cn":"分布广的,普遍的","key":"w"},{"en":"wire","cn":"电线","key":"w"}],"star34":[{"en":"wisdom","cn":"聪明,英明的,有见识的","key":"w"},{"en":"withdraw","cn":"撤回，撤离","key":"w"},{"en":"witness","cn":"目击者，见证人","key":"w"},{"en":"wool","cn":"羊毛，羊绒","key":"w"},{"en":"worthwhile","cn":"重要的;值得花时间/钱/努力","key":"w"},{"en":"worthy","cn":"值得的;有价值的","key":"w"},{"en":"wrap","cn":"包/裹礼物等;用…包裹 n. (女用)披肩，围巾","key":"w"},{"en":"wrestle","cn":"摔跤","key":"w"},{"en":"wrinkle","cn":"皱纹","key":"w"},{"en":"wrist","cn":"手腕，腕关节","key":"w"},{"en":"zone","cn":"区域；范围","key":"z"}]};
+const LVS = Object.keys(D);
+const TOTAL_LV = LVS.length;
+
+const MODES = [
+  {id:"en-cn", label:"📖 英→中", q:"选择正确的中文释义", enFirst:true},
+  {id:"cn-en", label:"📝 中→英", q:"选择正确的英文单词", enFirst:false},
+  {id:"listen", label:"🔊 听音选", q:"听发音选择正确的中文", enFirst:true},
+  {id:"match", label:"🔗 配对", q:"将英文与中文配对", enFirst:true}
+];
+
+const S = {s:1, l:0, q:0, ord:[], ok:0, err:0, a:false, m:0, wrongList:[]};
+function $(id){return document.getElementById(id)}
+
+function renderLv(){
+  const lg=$("lg");
+  lg.innerHTML="";
+  LVS.forEach((key,i)=>{
+    const items=D[key].filter(it=>it.cn);
+    const done=JSON.parse(localStorage.getItem("vp")||"{}")[i];
+    lg.innerHTML+='<div class="level-btn'+(done?" done":"")+'" onclick="startL('+i+')"><span class="lnum">'+(i+1)+'</span><span class="lcount'+(done?" ok":"")+'">'+(done?done+"/"+items.length+" ✅":items.length+"词")+'</span></div>';
+  });
+}
+
+function backToLevels(){
+  $("ov").classList.remove("show");
+  $("gameView").style.display="none";
+  $("levelView").style.display="block";
+  renderLv();
+}
+
+function startL(idx){
+  if(idx<0||idx>=TOTAL_LV)return;
+  S.l=idx;S.q=0;S.ok=0;S.err=0;S.a=false;S.wrongList=[];
+  const lv=D[LVS[idx]];
+  const items=lv.filter(it=>it.cn);
+  S.ord=items.map((_,i)=>i);
+  S.ord=sha(S.ord);
+  $("levelView").style.display="none";
+  $("gameView").style.display="block";
+  $("lvTitle").textContent="第 "+(idx+1)+" 关 · "+items.length+" 题";
+  renderModes();
+  showQ();
+}
+
+function renderModes(){
+  const c=$("modeTabs");
+  c.innerHTML="";
+  MODES.forEach((m,i)=>{
+    const b=document.createElement("button");
+    b.className="mode-tab"+(i===S.m?" active":"");
+    b.textContent=m.label;
+    b.onclick=()=>{S.m=i;document.querySelectorAll(".mode-tab").forEach(t=>t.classList.remove("active"));b.classList.add("active");showQ()};
+    c.appendChild(b);
+  });
+}
+
+function playAudio(word){
+  try{
+    if(window._aud){try{window._aud.pause();}catch(e){}}
+    const url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(word)+'&type=1';
+    window._aud=new Audio(url);
+    const p=window._aud.play();
+    if(p)p.catch(e=>console.warn('playAudio failed:',word,e));
+  }catch(e){console.warn('playAudio error:',word,e);}
+}
+
+function showQ(){
+  S.a=false;$("ht").style.display="none";$("hb").textContent="💡 提示";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  if(!items.length){backToLevels();return}
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  if(mode.id==="match"){showMatchQ();return}
+  const field=mode.enFirst?"en":"cn";
+  $("qArea").style.display="block";$("matchArea").style.display="none";
+  if(mode.id==="listen"){
+    $("qw").innerHTML='🔊';
+  }else{
+    $("qw").textContent=field==="en"?it.en:it.cn;
+  }
+  window._cw=it.en;$("qw").onclick=()=>{try{playAudio(window._cw)}catch(e){}};
+  if(mode.id==="listen")setTimeout(()=>playAudio(it.en),300);
+  $("qt").textContent=mode.q+"（"+(S.q+1)+"/"+S.ord.length+"）";
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  buildOpts(it,mode);
+}
+
+function buildOpts(it,mode){
+  const lv=D[LVS[S.l]];const items=lv.filter(x=>x.cn);
+  const correct=mode.enFirst?it.cn:it.en;
+  const optField=mode.enFirst?"cn":"en";
+  let pool=[];
+  if(mode.id==="listen"){
+    const others=mode.enFirst?items.map(x=>x.cn):items.map(x=>x.en);
+    pool=others.filter(x=>x!==correct);
+  }else if(optField==="cn"){
+    pool=items.map(x=>x.cn).filter(x=>x!==correct);
+  }else{
+    pool=items.map(x=>x.en).filter(x=>x!==correct);
+  }
+  if(pool.length<3){
+    const allItems=Object.values(D).flat().filter(x=>x.cn);
+    const exclude=new Set([correct,...pool]);
+    const extra=optField==="cn"?allItems.map(x=>x.cn):allItems.map(x=>x.en);
+    pool=pool.concat(extra.filter(x=>!exclude.has(x)));
+  }
+  const others=sha(pool).slice(0,3);
+  const opts=sha([correct,...others]);
+  let h="";
+  opts.forEach(o=>{
+        h+='<button class="option" data-v="'+encodeURIComponent(String(o))+'" onclick="check(this)">'+o+'</button>';
+  });
+  $("oa").innerHTML=h;
+}
+
+let _correct="";
+function check(btn){
+  if(S.a)return;S.a=true;
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  var chosen="";try{chosen=decodeURIComponent(btn.dataset.v)}catch(ex){chosen=btn.dataset.v}
+  _correct=mode.id==="cn-en"?it.en:it.cn;
+  const isOk=chosen===_correct;
+  if(isOk){btn.classList.add("correct");S.ok++;playOK()}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(b=>{if(b.textContent===_correct)b.classList.add("correct")});
+    S.err++;S.wrongList.push(it);playErr()
+  }
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  if(S.q+1<S.ord.length)setTimeout(nQ,500);else setTimeout(showRes,600);
+}
+
+// ====== Match Mode ======
+let M={sel:null,pairs:0,total:0};
+function showMatchQ(){
+  $("qArea").style.display="none";$("matchArea").style.display="flex";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const enOrder=sha([...items.keys()]);
+  const cnOrder=sha([...items.keys()]);
+  M={sel:null,pairs:0,total:items.length};
+  let enHtml='<div class="match-group-label">📖 英文</div>';
+  let cnHtml='<div class="match-group-label">📝 中文</div>';
+  enOrder.forEach((origIdx,i)=>{
+    enHtml+='<div class="match-item" data-idx="'+origIdx+'" data-pair="en" onclick="matchClick(this,'+origIdx+')">'+items[origIdx].en+'</div>';
+  });
+  cnOrder.forEach((origIdx,i)=>{
+    cnHtml+='<div class="match-item" data-idx="'+origIdx+'" data-pair="cn" onclick="matchClick(this,'+origIdx+')">'+items[origIdx].cn+'</div>';
+  });
+  $("matchArea").innerHTML='<div class="match-col" id="mcEn">'+enHtml+'</div><div class="match-col" id="mcCn">'+cnHtml+'</div>';
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  $("qt").textContent="将英文与中文配对（全部 "+items.length+" 词）";
+}
+
+function matchClick(el,idx){
+  const pair=el.getAttribute('data-pair');
+  if(el.classList.contains("matched"))return;
+  if(!M.sel){el.classList.add("selected");M.sel={el,idx,pair};return;}
+  if(M.sel.el===el){el.classList.remove("selected");M.sel=null;return;}
+  if(M.sel.pair===pair){M.sel.el.classList.remove("selected");el.classList.add("selected");M.sel={el,idx,pair};return;}
+  const first=M.sel;
+  if(first.idx===idx){
+    first.el.classList.remove("selected");
+    first.el.classList.add("matched");
+    el.classList.add("matched");
+    M.sel=null;M.pairs++;S.ok++;playOK();
+    $("so").textContent=S.ok;
+    if(M.pairs>=M.total)setTimeout(goNext,600);
+    return;
+  }
+  first.el.classList.add("wrong-flash");
+  el.classList.add("wrong-flash");
+  S.err++;playErr();
+  // Determine EN/CN for wrong list
+  var enText = first.pair==="en"?first.el.textContent:el.textContent;
+  var cnText = first.pair==="cn"?first.el.textContent:el.textContent;
+  S.wrongList.push({en:enText,cn:cnText});
+  M.sel=null;
+  $("se").textContent=S.err;
+  setTimeout(()=>{
+    document.querySelectorAll(".wrong-flash").forEach(function(e){
+      e.classList.remove("wrong-flash");
+      e.classList.remove("selected");
+    });
+  },500);
+}
+
+function goNext(){S.q++;showRes();}
+
+function sha(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function nQ(){S.q++;showQ();}
+
+function sh(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];const mode=MODES[S.m];
+  $("ht").textContent="英文："+it.en;
+  $("ht").style.display="block";$("hb").textContent="已提示 ✓";
+  try{playAudio(it.en)}catch(e){}
+}
+
+function playOK(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sine";o.frequency.value=880;g.gain.setValueAtTime(.25,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.35)}catch(e){}
+}
+function playErr(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sawtooth";o.frequency.value=220;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.25);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.25)}catch(e){}
+}
+
+function showRes(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const tot=items.length;const acc=tot>0?Math.round(S.ok/tot*100):0;
+  const stars=acc>=80?"★★★":acc>=60?"★★":"★";
+  const msgs=["继续加油！","做得不错！","太棒了！"];
+  $("rt").textContent=acc>=80?msgs[2]:acc>=60?msgs[1]:msgs[0];
+  $("rs").textContent=stars;$("rsc").textContent=S.ok+"/"+tot+" 正确";
+  $("rac").textContent="正确率 "+acc+"%";
+  const prog=JSON.parse(localStorage.getItem("vp")||"{}");
+  if(!prog[S.l]||prog[S.l]<S.ok)prog[S.l]=S.ok;
+  localStorage.setItem("vp",JSON.stringify(prog));
+  let wh="";
+  if(S.wrongList.length>0){
+    wh='<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#f87171;font-size:.9em">❌ 错误单词列表：</span><button onclick="copyWL()" style="background:#252545;border:1px solid #3a3a5a;color:#94a3b8;padding:4px 14px;border-radius:6px;font-size:.82em;cursor:pointer">📋 复制</button></div>';
+    wh+='<div style="max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:12px;text-align:left">';
+    S.wrongList.forEach(it=>{wh+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em"><span style="color:#e2e8f0">'+esc(it.en)+'</span><span style="color:#94a3b8">'+esc(it.cn)+'</span></div>'});
+    wh+='</div></div>';
+  }
+  $("rmg").innerHTML=wh;$("ov").classList.add("show");
+}
+
+function retry(){$("ov").classList.remove("show");startL(S.l);}
+function copyWL(){
+  const t=S.wrongList.map(it=>it.en+" - "+it.cn).join("\n");
+  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)}).catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)});
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ====== Click word to pronounce ======
+// Handled by $("qw").onclick in showQ()
+// ====== Init ======
+renderLv();
+
+</script>
+
+</body>
+</html>
