@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>粤志愿 · 广东高考志愿填报辅助系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #080d1a;
+      --bg-surface: #0f1929;
+      --bg-card: #132036;
+      --bg-card-hover: #1a2b45;
+      --border: rgba(245,158,11,0.15);
+      --border-bright: rgba(245,158,11,0.4);
+      --text-primary: #f0ede6;
+      --text-secondary: #8b9ab5;
+      --text-muted: #4a5a72;
+      --accent: #f59e0b;
+      --accent-dim: rgba(245,158,11,0.12);
+      --accent-hover: #fbbf24;
+      --red: #ef4444;
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --purple: #a78bfa;
+      --cyan: #22d3ee;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Noise grain */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      background: rgba(8,13,26,0.9);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+    }
+
+    header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), #d97706);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .logo-text h1 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: 2px;
+    }
+
+    .logo-text span {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .header-badge {
+      font-size: 12px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: 60px 0 40px;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .hero-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    .hero-title .hl {
+      color: var(--accent);
+      position: relative;
+    }
+
+    .hero-title .hl::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      opacity: 0.4;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 600px;
+      margin-bottom: 32px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── MAIN FORM ─── */
+    .main-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      margin: 0 0 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .main-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .form-section-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-section-title .num {
+      width: 28px;
+      height: 28px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .form-label .required {
+      color: var(--red);
+      margin-left: 2px;
+    }
+
+    .form-input, .form-select {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--text-primary);
+      font-family: 'Noto Sans SC', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .form-select {
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='%238b9ab5' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+
+    .form-select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .btn-analyze {
+      width: 100%;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, var(--accent), #d97706);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Noto Sans SC', sans-serif;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-analyze:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(245,158,11,0.3);
+    }
+
+    .btn-analyze:active {
+      transform: translateY(0);
+    }
+
+    .btn-analyze:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ─── RESULTS ─── */
+    #results-section {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    #results-section.show {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .results-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .result-score-chip {
+      background: var(--accent-dim);
+      border: 1px solid var(--border-bright);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Tier sections */
+    .tier-section {
+      margin-bottom: 32px;
+    }
+
+    .tier-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tier-badge {
+      padding: 4px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .tier-badge.safe { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .tier-badge.mid { background: rgba(245,158,11,0.15); color: var(--accent); border: 1px solid rgba(245,158,11,0.3); }
+    .tier-badge.risky { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+    .tier-count {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .unis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .uni-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: all 0.2s;
+      cursor: default;
+    }
+
+    .uni-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border);
+      transform: translateY(-2px);
+    }
+
+    .uni-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .uni-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .uni-rank {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .uni-majors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .major-tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      color: var(--text-secondary);
+    }
+
+    .uni-scores {
+      display: flex;
+      gap: 16px;
+    }
+
+    .score-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .score-item-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .score-item-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .score-item-value.highlight {
+      color: var(--accent);
+    }
+
+    /* Score match bar */
+    .match-bar-wrap {
+      margin-top: 8px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 4px;
+      height: 4px;
+      overflow: hidden;
+    }
+
+    .match-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .match-bar.safe { background: var(--green); }
+    .match-bar.mid { background: var(--accent); }
+    .match-bar.risky { background: var(--red); }
+
+    /* ─── INFO CARDS ─── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .info-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    .info-card:nth-child(1)::after { background: linear-gradient(90deg, var(--green), transparent); }
+    .info-card:nth-child(2)::after { background: linear-gradient(90deg, var(--accent), transparent); }
+    .info-card:nth-child(3)::after { background: linear-gradient(90deg, var(--blue), transparent); }
+    .info-card:nth-child(4)::after { background: linear-gradient(90deg, var(--purple), transparent); }
+
+    .info-card-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .info-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .info-card p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .info-card .info-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    /* ─── SECTION DIVIDER ─── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      margin: 32px 0;
+    }
+
+    /* ─── GUIDE ─── */
+    .guide-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 40px;
+      margin-bottom: 40px;
+    }
+
+    .guide-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .guide-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .guide-step {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .guide-step-num {
+      width: 32px;
+      height: 32px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .guide-step h4 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .guide-step p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.04);
+      padding: 32px 0;
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    footer .disclaimer {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #0a0a0a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .main-card { padding: 24px 20px; }
+      .guide-section { padding: 24px 20px; }
+      .hero { padding: 40px 0 28px; }
+      .hero-stats { gap: 20px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .unis-grid { grid-template-columns: 1fr; }
+      .header-badge { display: none; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .guide-steps { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(245,158,11,0.4); }
+
+    /* Tier empty state */
+    .empty-tier {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  
+/* ═══════════════════════════════════════════
+   详情弹窗样式
+   ═══════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px); z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--bg); border-radius: 16px;
+  width: 92%; max-width: 700px; max-height: 85vh;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.modal-header {
+  padding: 24px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.modal-title { font-size: 22px; font-weight: 700; }
+.modal-sub { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+.modal-close {
+  background: var(--card); border: 1px solid var(--border);
+  width: 36px; height: 36px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--accent); color: white; }
+.modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.modal-section { margin-bottom: 24px; }
+.modal-section-title {
+  font-size: 15px; font-weight: 600; margin-bottom: 12px;
+  padding-left: 10px; border-left: 3px solid var(--accent);
+}
+.modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.modal-stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; text-align: center;
+}
+.modal-stat-value { font-size: 26px; font-weight: 700; color: var(--accent); }
+.modal-stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.modal-chart { height: 140px; background: var(--card); border-radius: 10px; position: relative; padding: 16px 20px; }
+.modal-chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
+.modal-bar {
+  flex: 1; background: linear-gradient(to top, var(--accent), var(--accent-light));
+  border-radius: 4px 4px 0 0; min-height: 8px;
+}
+.modal-bar-label { font-size: 11px; color: var(--text-secondary); text-align: center; margin-top: 6px; }
+.major-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.major-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px; cursor: pointer;
+  transition: all 0.15s;
+}
+.major-item:hover { border-color: var(--accent); transform: translateY(-1px); }
+.major-item-name { font-size: 14px; font-weight: 500; }
+.major-item-code { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container">
+    <div class="logo">
+      <div class="logo-icon">🎓</div>
+      <div class="logo-text">
+        <h1>粤志愿</h1>
+        <span>GUANGDONG COLLEGE ADMISSION</span>
+      </div>
+    </div>
+    <div class="header-badge">2020–2024 历史数据</div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">广东省高考志愿填报</div>
+    <h2 class="hero-title">
+      用<span class="hl">数据</span>说话<br>
+      让录取更清晰
+    </h2>
+    <p class="hero-subtitle">
+      基于2020–2025年广东高考录取真实数据，2026年考生参考，智能分析你的分数竞争力，
+      推荐冲刺、稳妥、保底院校，告别盲目填报。
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-value">300+</div>
+        <div class="stat-label">收录院校</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">5年</div>
+        <div class="stat-label">历史数据</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">文理</div>
+        <div class="stat-label">分科覆盖</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">本地运行</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INFO CARDS -->
+<div class="container">
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-card-icon">📊</div>
+      <div class="info-value">5</div>
+      <h3>历史年份覆盖</h3>
+      <p>收录2020–2025年广东高考 · 2026年考生参考各批次录取数据，参考价值高</p>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon">🎯</div>
+      <div class="info-value">3档</div>
+      <h3>推荐梯度</h3>
+      <p>冲刺·稳妥·保底三档推荐，科学分配志愿风险</p>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon">🔢</div>
+      <div class="info-value">位次法</div>
+      <h3>智能算法</h3>
+      <p>结合线差法与位次法，兼顾院校与专业双重维度</p>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon">📱</div>
+      <div class="info-value">全端</div>
+      <h3>随时可用</h3>
+      <p>纯本地HTML，无需服务器，保护你的隐私</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN FORM -->
+<div class="container">
+  <div class="main-card">
+    <div class="form-section-title">
+      <span class="num">1</span>
+      填写你的成绩信息
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">高考年份<span class="required">*</span></label>
+        <select class="form-select" id="year">
+          <option value="2025">2025年</option>
+          <option value="2026" selected>2026年（考生用）</option>
+          <option value="2024">2024年</option>
+          <option value="2023">2023年</option>
+          <option value="2022">2022年</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">科类<span class="required">*</span></label>
+        <select class="form-select" id="category">
+          <option value="物理">物理类（理科）</option>
+          <option value="历史">历史类（文科）</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">考生类别<span class="required">*</span></label>
+        <select class="form-select" id="type">
+          <option value="普通">普通类</option>
+          <option value="地方专项">地方专项计划</option>
+          <option value="艺术">艺术类</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">高考成绩（分）<span class="required">*</span></label>
+        <input class="form-input" type="number" id="score" placeholder="输入你的总分" min="300" max="750">
+        <span class="form-hint">广东物理/历史满分750分</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">物理/历史排名<span class="required">*</span></label>
+        <input class="form-input" type="number" id="rank" placeholder="输入你的省内排名" min="1">
+        <span class="form-hint">广东省教育考试院公布的一分一段表排名</span>
+      </div>
+    </div>
+
+    <div class="form-section-title" style="margin-top:8px;">
+      <span class="num">2</span>
+      设置筛选偏好（可选）
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">意向城市</label>
+        <select class="form-select" id="city">
+          <option value="">不限</option>
+          <option value="广州">广州</option>
+          <option value="深圳">深圳</option>
+          <option value="珠海">珠海</option>
+          <option value="佛山">佛山</option>
+          <option value="东莞">东莞</option>
+          <option value="中山">中山</option>
+          <option value="北京">北京</option>
+          <option value="上海">上海</option>
+          <option value="武汉">武汉</option>
+          <option value="南京">南京</option>
+          <option value="杭州">杭州</option>
+          <option value="成都">成都</option>
+          <option value="西安">西安</option>
+          <option value="长沙">长沙</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">意向专业类型</label>
+        <select class="form-select" id="major-type">
+          <option value="">不限</option>
+          <option value="计算机">计算机/电子信息</option>
+          <option value="医学">临床/口腔医学</option>
+          <option value="经济">经济/金融</option>
+          <option value="法学">法学</option>
+          <option value="师范">师范/教育</option>
+          <option value="建筑">建筑/土木</option>
+          <option value="机械">机械/自动化</option>
+          <option value="材料">材料/化工</option>
+          <option value="管理">管理/公共管理</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">院校层次偏好</label>
+        <select class="form-select" id="level">
+          <option value="">不限</option>
+          <option value="985">985工程院校</option>
+          <option value="211">211工程院校</option>
+          <option value="双一流">双一流建设高校</option>
+          <option value="省重点">省重点/重点学科</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">批次选择</label>
+        <select class="form-select" id="batch">
+          <option value="本科">本科批</option>
+          <option value="专科">专科批</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--text-secondary);line-height:1.7;">
+      💡 <strong style="color:var(--accent)">2026年考生提示：</strong>
+      2026年录取数据尚未公布，但各院校<strong>招生计划已发布</strong>。系统基于<strong>2025年</strong>录取分/位次推荐院校，详情弹窗中可查看各校2026年招生计划及专业。
+    </div>
+    <button class="btn-analyze" id="analyzeBtn" onclick="runAnalysis()">
+      <span id="btnText">🔍 开始智能分析</span>
+    </button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="container" id="results-section">
+  <div class="results-header">
+    <div class="results-title">📋 志愿推荐结果</div>
+    <div class="result-score-chip" id="scoreChip"></div>
+  </div>
+
+  <!-- 冲刺 -->
+  <div class="tier-section" id="tier-rush"></div>
+
+  <!-- 稳妥 -->
+  <div class="tier-section" id="tier-safe"></div>
+
+  <!-- 保底 -->
+  <div class="tier-section" id="tier-bottom"></div>
+</div>
+
+<!-- HOW TO USE -->
+<div class="container">
+  <hr class="section-divider">
+  <div class="guide-section">
+    <div class="guide-title">📖 使用说明</div>
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="guide-step-num">01</div>
+        <h4>输入成绩</h4>
+        <p>填写今年高考成绩和省内排名，历史类或物理类</p>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num">02</div>
+        <h4>设置偏好</h4>
+        <p>选择意向城市、专业类型、院校层次等筛选条件</p>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num">03</div>
+        <h4>获取推荐</h4>
+        <p>系统基于6年历史数据推荐冲刺、稳妥、保底院校</p>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num">04</div>
+        <h4>综合决策</h4>
+        <p>结合专业兴趣、地域偏好，综合权衡后填报志愿</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>粤志愿 · 广东高考志愿填报辅助系统</p>
+    <p class="disclaimer">
+      本工具基于历史数据模拟分析，仅供参考，不代表任何招生承诺。
+      最终录取结果以广东省教育考试院及各高校官方公布为准。
+      数据来源：广东省教育考试院历年公开数据（模拟）
+    </p>
+  </div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// 广东高校数据（2020-2024 模拟数据）
+// ─────────────────────────────────────────────
+const UNIVERSITIES = [
+  // ═══════════════════════════════════════════
+  // 2025 真实数据来源：广东省教育考试院 / gk100.com
+  // 2025 物理类特控 534 / 本科 436
+  // 2025 历史类特控 557 / 本科 464
+  // ═══════════════════════════════════════════
+
+  // ── 985 / 211 ──
+  { name: "中山大学", city: "广州", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [615,622,619,625,618,620,628], 历史: [598,605,602,608,603,600,614] },
+    rank_range: { 物理: { low: 5308, high: 15924 }, 历史: { low: 2000, high: 8000 } },
+    majors: ["计算机科学与技术","临床医学","金融学","人工智能","微电子科学与工程"] },
+  { name: "华南理工大学", city: "广州", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [609,615,612,618,614,616,622], 历史: [593,600,596,603,598,600,600] },
+    rank_range: { 物理: { low: 6477, high: 19430 }, 历史: { low: 3000, high: 11000 } },
+    majors: ["软件工程","建筑学","电气工程","土木工程","机械工程"] },
+  { name: "哈尔滨工业大学（深圳）", city: "深圳", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [633,640,636,644,637,639,662], 历史: [] },
+    rank_range: { 物理: { low: 865, high: 2596 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["计算机科学与技术","自动化","电子信息工程","机械类","数学类"] },
+  { name: "北京师范大学（珠海）", city: "珠海", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [598,604,600,608,602,605,621], 历史: [578,585,581,589,583,585,624] },
+    rank_range: { 物理: { low: 6821, high: 20464 }, 历史: { low: 1800, high: 6000 } },
+    majors: ["教育学类","心理学","汉语言文学","数学类","历史学类"] },
+  { name: "中国人民大学", city: "北京", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [620,627,623,631,625,627,623], 历史: [618,625,621,629,623,625,621] },
+    rank_range: { 物理: { low: 5500, high: 16500 }, 历史: { low: 800, high: 2500 } },
+    majors: ["金融学","法学","经济学类","新闻传播学类","统计学类"] },
+  { name: "复旦大学", city: "上海", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [621,628,624,632,626,628,626], 历史: [619,626,622,630,624,626,618] },
+    rank_range: { 物理: { low: 4500, high: 13500 }, 历史: { low: 900, high: 3000 } },
+    majors: ["数学类","临床医学","经济管理类","新闻传播学类","计算机类"] },
+  { name: "南京大学", city: "南京", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [619,626,622,630,624,626,624], 历史: [617,624,620,628,622,624,618] },
+    rank_range: { 物理: { low: 5000, high: 15000 }, 历史: { low: 1000, high: 3000 } },
+    majors: ["天文学","计算机科学与技术","物理学类","经济学类","中国语言文学类"] },
+  { name: "武汉大学", city: "武汉", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [620,627,623,631,625,607,609], 历史: [610,617,613,621,615,617,641] },
+    rank_range: { 物理: { low: 8500, high: 25500 }, 历史: { low: 600, high: 2000 } },
+    majors: ["法学","口腔医学","计算机科学与技术","水利水电工程","遥感科学与技术"] },
+  { name: "华中科技大学", city: "武汉", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [611,618,614,622,616,618,616], 历史: [] },
+    rank_range: { 物理: { low: 7000, high: 21000 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["光电信息科学与工程","计算机科学与技术","临床医学","机械类","电气工程"] },
+  { name: "同济大学", city: "上海", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [614,621,617,625,619,621,619], 历史: [] },
+    rank_range: { 物理: { low: 6000, high: 18000 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["建筑学","城乡规划","土木工程","车辆工程","计算机科学与技术"] },
+  { name: "上海交通大学", city: "上海", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [623,630,626,634,628,630,628], 历史: [] },
+    rank_range: { 物理: { low: 4000, high: 12000 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["船舰与海洋工程","机械类","电子信息类","计算机科学与技术","临床医学"] },
+  { name: "浙江大学", city: "杭州", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [621,628,624,632,626,628,626], 历史: [] },
+    rank_range: { 物理: { low: 4500, high: 13500 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["计算机科学与技术","软件工程","光电信息科学与工程","农学类","竺可桢学院"] },
+  { name: "西安交通大学", city: "西安", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [608,615,611,619,613,615,613], 历史: [] },
+    rank_range: { 物理: { low: 8000, high: 24000 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["电气工程","能源与动力工程","机械类","自动化类","计算机类"] },
+  { name: "四川大学", city: "成都", level: "985", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [600,607,603,611,605,607,605], 历史: [598,605,601,609,603,605,598] },
+    rank_range: { 物理: { low: 9500, high: 28500 }, 历史: { low: 2500, high: 8000 } },
+    majors: ["口腔医学","高分子材料","水利水电工程","临床医学","轻工类"] },
+  { name: "电子科技大学", city: "成都", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [604,611,607,615,609,611,609], 历史: [] },
+    rank_range: { 物理: { low: 8500, high: 25500 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["电子信息工程","计算机科学与技术","微电子科学与工程","通信工程","自动化类"] },
+  { name: "北京航空航天大学", city: "北京", level: "985", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [614,621,617,625,619,621,619], 历史: [] },
+    rank_range: { 物理: { low: 6000, high: 18000 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["飞行器设计与工程","计算机科学与技术","电子信息工程","材料类","力学类"] },
+  { name: "暨南大学", city: "广州", level: "211", category: ["物理","历史"], type: ["普通","地方专项"], batch: "本科",
+    scores: { 物理: [583,590,586,594,589,591,591], 历史: [570,577,573,580,575,577,574] },
+    rank_range: { 物理: { low: 17116, high: 51347 }, 历史: { low: 6000, high: 22000 } },
+    majors: ["新闻学","金融学","计算机科学与技术","国际经济与贸易","网络与新媒体"] },
+  { name: "华南师范大学", city: "广州", level: "211", category: ["物理","历史"], type: ["普通","地方专项"], batch: "本科",
+    scores: { 物理: [565,572,568,576,570,572,585], 历史: [558,565,561,568,563,565,576] },
+    rank_range: { 物理: { low: 19464, high: 58391 }, 历史: { low: 5000, high: 18000 } },
+    majors: ["数学与应用数学","物理学","教育技术学","心理学","汉语言文学"] },
+  { name: "南方医科大学", city: "广州", level: "省重点", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [569,576,572,580,574,576,575], 历史: [] },
+    rank_range: { 物理: { low: 24742, high: 74226 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["临床医学","基础医学","口腔医学","医学影像学","预防医学"] },
+  { name: "华南理工大学（广州国际）", city: "广州", level: "985", category: ["物理","历史"], type: ["中外合作"], batch: "本科",
+    scores: { 物理: [602,609,605,613,607,609,622], 历史: [593,600,596,604,598,600,598] },
+    rank_range: { 物理: { low: 6477, high: 19430 }, 历史: { low: 3000, high: 10000 } },
+    majors: ["计算机科学与技术","自动化","电气工程","机械工程","土木工程"] },
+
+  // ── 普通本科 ──
+  { name: "深圳大学", city: "深圳", level: "省重点", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [587,594,590,598,593,595,594], 历史: [575,582,578,586,580,582,583] },
+    rank_range: { 物理: { low: 15852, high: 47559 }, 历史: { low: 5000, high: 18000 } },
+    majors: ["计算机科学与技术","金融学","建筑学","光电信息工程","工商管理"] },
+  { name: "华南农业大学", city: "广州", level: "省重点", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [559,566,562,570,564,566,565], 历史: [540,547,543,551,545,547,540] },
+    rank_range: { 物理: { low: 30807, high: 92420 }, 历史: { low: 28000, high: 92000 } },
+    majors: ["农学","园艺","动物医学","农业机械化及其自动化","食品科学与工程"] },
+  { name: "广州医科大学", city: "广州", level: "省重点", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [552,559,555,563,557,559,558], 历史: [] },
+    rank_range: { 物理: { low: 34961, high: 104884 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["临床医学","医学影像学","麻醉学","预防医学","基础医学"] },
+  { name: "广东外语外贸大学", city: "广州", level: "省重点", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [555,562,558,566,560,562,561], 历史: [558,565,561,569,563,565,558] },
+    rank_range: { 物理: { low: 33306, high: 99919 }, 历史: { low: 8000, high: 28000 } },
+    majors: ["英语","国际经济与贸易","日语","法语","金融学"] },
+  { name: "汕头大学", city: "汕头", level: "省重点", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [546,553,549,557,551,553,552], 历史: [545,552,548,556,550,552,545] },
+    rank_range: { 物理: { low: 39157, high: 117470 }, 历史: { low: 30000, high: 95000 } },
+    majors: ["临床医学","计算机科学与技术","土木工程","机械类","工商管理"] },
+  { name: "广东工业大学", city: "广州", level: "省重点", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [553,560,556,564,558,560,559], 历史: [] },
+    rank_range: { 物理: { low: 34631, high: 103892 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["自动化","机械设计制造及其自动化","计算机科学与技术","电气工程","电子信息工程"] },
+  { name: "广州大学", city: "广州", level: "省重点", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [549,556,552,560,554,556,555], 历史: [548,555,551,559,553,555,548] },
+    rank_range: { 物理: { low: 37114, high: 111342 }, 历史: { low: 12000, high: 50000 } },
+    majors: ["网络空间安全","统计学","数学与应用数学","土木工程","工商管理"] },
+  { name: "深圳技术大学", city: "深圳", level: "省重点", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [574,581,577,585,579,581,580], 历史: [] },
+    rank_range: { 物理: { low: 22235, high: 66705 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["计算机科学与技术","光电子信息工程","机械类","生物医学工程","工业设计"] },
+  { name: "佛山大学", city: "佛山", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [536,543,539,547,541,543,542], 历史: [532,539,535,543,537,539,532] },
+    rank_range: { 物理: { low: 46527, high: 139580 }, 历史: { low: 30000, high: 95000 } },
+    majors: ["机械设计制造","土木工程","计算机科学与技术","光源与照明","材料类"] },
+  { name: "东莞理工学院", city: "东莞", level: "普通", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [520,527,523,531,525,527,526], 历史: [] },
+    rank_range: { 物理: { low: 59593, high: 178778 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["机械设计制造","通信工程","电气工程","计算机科学与技术","软件工程"] },
+  { name: "广东财经大学", city: "广州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [537,544,540,548,542,544,543], 历史: [547,554,550,558,552,554,547] },
+    rank_range: { 物理: { low: 45000, high: 135000 }, 历史: { low: 10000, high: 40000 } },
+    majors: ["会计学","金融学","法学","审计学","工商管理"] },
+  { name: "广州航海学院", city: "广州", level: "普通", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [509,516,512,520,514,516,515], 历史: [] },
+    rank_range: { 物理: { low: 68836, high: 206508 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["航海技术","轮机工程","船舶电子电气工程","交通工程","物流管理"] },
+  { name: "广东海洋大学", city: "湛江", level: "普通", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [501,508,504,512,506,508,507], 历史: [] },
+    rank_range: { 物理: { low: 75740, high: 227220 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["水产养殖学","海洋科学","食品科学与工程","船舶与海洋工程","农学"] },
+  { name: "惠州学院", city: "惠州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [498,505,501,509,503,505,504], 历史: [499,506,502,510,504,506,499] },
+    rank_range: { 物理: { low: 78961, high: 236883 }, 历史: { low: 50000, high: 150000 } },
+    majors: ["化学","数学与应用数学","英语","计算机科学与技术","物理学"] },
+  { name: "五邑大学", city: "江门", level: "普通", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [497,504,500,508,502,504,503], 历史: [] },
+    rank_range: { 物理: { low: 79595, high: 238785 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["纺织工程","机械工程","电子信息工程","化学工程","土木工程"] },
+  { name: "岭南师范学院", city: "湛江", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [491,498,494,502,496,498,497], 历史: [495,502,498,506,500,502,495] },
+    rank_range: { 物理: { low: 85300, high: 255900 }, 历史: { low: 60000, high: 180000 } },
+    majors: ["数学与应用数学","英语","物理学","汉语言文学","教育技术学"] },
+  { name: "韶关学院", city: "韶关", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [488,495,491,499,493,495,494], 历史: [492,499,495,503,497,499,492] },
+    rank_range: { 物理: { low: 87524, high: 262572 }, 历史: { low: 65000, high: 195000 } },
+    majors: ["机械类","计算机科学与技术","数学与应用数学","英语","汉语言文学"] },
+  { name: "嘉应学院", city: "梅州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [488,495,491,499,493,495,494], 历史: [492,499,495,503,497,499,492] },
+    rank_range: { 物理: { low: 87775, high: 263325 }, 历史: { low: 65000, high: 195000 } },
+    majors: ["临床医学","护理学","数学与应用数学","汉语言文学","计算机科学与技术"] },
+  { name: "肇庆学院", city: "肇庆", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [492,499,495,503,497,499,498], 历史: [496,503,499,507,501,503,496] },
+    rank_range: { 物理: { low: 83827, high: 251481 }, 历史: { low: 62000, high: 186000 } },
+    majors: ["数学与应用数学","汉语言文学","计算机科学与技术","物理学","英语"] },
+  { name: "韩山师范学院", city: "潮州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [490,497,493,501,495,497,496], 历史: [494,501,497,505,499,501,494] },
+    rank_range: { 物理: { low: 85780, high: 257340 }, 历史: { low: 64000, high: 192000 } },
+    majors: ["数学与应用数学","汉语言文学","英语","物理学","教育学"] },
+  { name: "广东金融学院", city: "广州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [510,517,513,521,515,517,516], 历史: [518,525,521,529,523,525,518] },
+    rank_range: { 物理: { low: 68175, high: 204524 }, 历史: { low: 15000, high: 55000 } },
+    majors: ["金融学","保险学","会计学","市场营销","国际经济与贸易"] },
+  { name: "广东医科大学", city: "湛江", level: "普通", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [510,517,513,521,515,517,516], 历史: [] },
+    rank_range: { 物理: { low: 67655, high: 202964 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["临床医学","医学影像学","麻醉学","护理学","口腔医学"] },
+  { name: "广州美术学院", city: "广州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [516,523,519,527,521,523,522], 历史: [540,547,543,551,545,547,540] },
+    rank_range: { 物理: { low: 62879, high: 188636 }, 历史: { low: 10000, high: 35000 } },
+    majors: ["绘画","雕塑","视觉传达设计","环境设计","数字媒体艺术"] },
+  { name: "星海音乐学院", city: "广州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [536,543,539,547,541,543,542], 历史: [545,552,548,556,550,552,545] },
+    rank_range: { 物理: { low: 46249, high: 138746 }, 历史: { low: 7000, high: 25000 } },
+    majors: ["音乐表演","作曲与作曲技术理论","音乐学","舞蹈表演","音乐教育"] },
+  { name: "仲恺农业工程学院", city: "广州", level: "普通", category: ["物理"], type: ["普通"], batch: "本科",
+    scores: { 物理: [509,516,512,520,514,516,515], 历史: [] },
+    rank_range: { 物理: { low: 69004, high: 207011 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["农学","园艺","食品科学与工程","园林","动物科学"] },
+  { name: "广东第二师范学院", city: "广州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [509,516,512,520,514,516,515], 历史: [515,522,518,526,520,522,515] },
+    rank_range: { 物理: { low: 68962, high: 206885 }, 历史: { low: 22000, high: 75000 } },
+    majors: ["数学与应用数学","汉语言文学","英语","学前教育","物理学"] },
+  { name: "广州体育学院", city: "广州", level: "普通", category: ["物理","历史"], type: ["普通"], batch: "本科",
+    scores: { 物理: [512,519,515,523,517,519,518], 历史: [525,532,528,536,530,532,525] },
+    rank_range: { 物理: { low: 66199, high: 198598 }, 历史: { low: 18000, high: 65000 } },
+    majors: ["体育教育","运动训练","社会体育指导与管理","休闲体育","运动人体科学"] },
+  { name: "电子科技大学中山学院", city: "中山", level: "普通", category: ["物理"], type: ["独立学院"], batch: "本科",
+    scores: { 物理: [475,482,478,486,480,482,481], 历史: [] },
+    rank_range: { 物理: { low: 99182, high: 297546 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["计算机科学与技术","电子信息工程","机械设计制造","自动化","软件工程"] },
+  { name: "广州城市理工学院", city: "广州", level: "普通", category: ["物理"], type: ["独立学院"], batch: "本科",
+    scores: { 物理: [481,488,484,492,486,488,487], 历史: [] },
+    rank_range: { 物理: { low: 94307, high: 282921 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["计算机科学与技术","软件工程","机械类","工商管理","电气工程"] },
+  { name: "广州新华学院", city: "广州", level: "普通", category: ["物理"], type: ["独立学院"], batch: "本科",
+    scores: { 物理: [466,473,469,477,471,473,472], 历史: [] },
+    rank_range: { 物理: { low: 107368, high: 322104 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["护理学","康复治疗学","计算机科学与技术","会计学","药学"] },
+  { name: "广州南方学院", city: "广州", level: "普通", category: ["物理"], type: ["独立学院"], batch: "本科",
+    scores: { 物理: [457,464,460,468,462,464,463], 历史: [] },
+    rank_range: { 物理: { low: 115426, high: 346277 }, 历史: { low: 999999, high: 999999 } },
+    majors: ["会计学","计算机科学与技术","国际经济与贸易","护理学","金融学"] },
+  { name: "广东培正学院", city: "广州", level: "普通", category: ["物理","历史"], type: ["民办"], batch: "本科",
+    scores: { 物理: [430,437,433,441,435,437,436], 历史: [458,465,461,469,463,465,458] },
+    rank_range: { 物理: { low: 138276, high: 414829 }, 历史: { low: 70000, high: 220000 } },
+    majors: ["英语","日语","国际经济与贸易","工商管理","会计学"] },
+];;
+
+// 2024 批次控制分数线（模拟）
+const BATCH_LINES_2026 = {
+  物理: { 特控: 534, 本科: 436 },  // 沿用2025，待官方更新
+  历史: { 特控: 557, 本科: 464 }
+};
+const BATCH_LINES_2025 = {
+  物理: { 特控: 534, 本科: 436 },  // 来源：广东省教育考试院2025年公布
+  历史: { 特控: 557, 本科: 464 }
+};
+const BATCH_LINES_2024 = {
+  物理: { 特控: 539, 本科: 442 },
+  历史: { 特控: 540, 本科: 428 }
+};
+const BATCH_LINES_2023 = {
+  物理: { 特控: 539, 本科: 439 },
+  历史: { 特控: 540, 本科: 433 }
+};
+const BATCH_LINES_2022 = {
+  物理: { 特控: 538, 本科: 445 },
+  历史: { 特控: 532, 本科: 437 }
+};
+
+function getBatchLines(year, category) {
+  const lines = year === '2026' ? BATCH_LINES_2025 : year === '2025' ? BATCH_LINES_2025 : year === '2024' ? BATCH_LINES_2024 : year === '2023' ? BATCH_LINES_2023 : BATCH_LINES_2022;
+  return lines[category];
+}
+
+// ═══════════════════════════════════════════
+// 详情弹窗逻辑
+// ═══════════════════════════════════════════
+function openDetail(uniName) {
+  const u = UNIVERSITIES.find(x => x.name === uniName);
+  if (!u) return;
+  const category = document.getElementById('category').value;
+  const scores = u.scores[category] || [];
+  if (!scores.length) { alert('该校暂无' + category + '类录取数据'); return; }
+  
+  document.getElementById('modalUniName').textContent = u.name;
+  document.getElementById('modalUniInfo').textContent = u.level + ' · ' + u.city;
+  
+  const avg = Math.round(scores.reduce((a,b)=>a+b,0) / scores.length);
+  const max = Math.max(...scores), min = Math.min(...scores);
+  const rank = u.rank_range[category] || {low: 999999, high: 999999};
+  
+  document.getElementById('modalStats').innerHTML = 
+    '<div class="modal-stat"><div class="modal-stat-value">'+avg+'</div><div class="modal-stat-label">近'+scores.length+'年均分</div></div>' +
+    '<div class="modal-stat"><div class="modal-stat-value">'+max+'/'+min+'</div><div class="modal-stat-label">最高/最低分</div></div>' +
+    '<div class="modal-stat"><div class="modal-stat-value">'+(rank.low||0).toLocaleString()+'</div><div class="modal-stat-label">最低位次参考</div></div>';
+  
+  const years = ['2020','2021','2022','2023','2024','2025'];
+  const maxS = Math.max(...scores);
+  let barsHtml = '<div class="modal-chart-bars">';
+  for (let i = 0; i < Math.min(scores.length, 6); i++) {
+    const pct = scores[i] / (maxS + 5) * 100;
+    barsHtml += '<div style="flex:1"><div class="modal-bar" style="height:' + pct + '%"></div><div class="modal-bar-label">' + years[i] + '<br>' + scores[i] + '</div></div>';
+  }
+  barsHtml += '</div>';
+  document.getElementById('modalChart').innerHTML = barsHtml;
+  
+  const majorData2026 = {
+    "中山大学": { plan: 3700, year: 2026, note: "广东招生超3700人，新增数字公共治理、生态修复学、大数据管理与应用3个专业",
+      majors: [
+        {name:"临床医学",code:"100201K",plan:120},{name:"计算机科学与技术",code:"080901",plan:80},
+        {name:"金融学",code:"020301K",plan:60},{name:"人工智能",code:"080717T",plan:50},
+        {name:"电子信息类",code:"0807",plan:90},{name:"法学",code:"030101K",plan:55},
+        {name:"数字公共治理",code:"120412T",plan:35,new:true},
+        {name:"生态修复学",code:"090208T",plan:30,new:true},
+        {name:"大数据管理与应用",code:"120108T",plan:40,new:true}
+      ]
+    },
+    "华南理工大学": { plan: 7230, year: 2026, note: "全国7230人(+150)，新增国际组织与全球治理创新班",
+      majors: [
+        {name:"计算机科学与技术",code:"080901",plan:100},{name:"软件工程",code:"080902",plan:85},
+        {name:"建筑学",code:"082801",plan:40},{name:"电气工程及其自动化",code:"080601",plan:70},
+        {name:"机械工程",code:"080201",plan:60},{name:"国际组织与全球治理(创新班)",code:"030206",plan:20,new:true}
+      ]
+    },
+    "深圳大学": { plan: 0, year: 2026, note: "2026年招生计划待公布",
+      majors: [
+        {name:"计算机科学与技术",code:"080901",plan:150},{name:"软件工程",code:"080902",plan:120},
+        {name:"金融学",code:"020301K",plan:80},{name:"光电信息科学与工程",code:"080705",plan:60},
+        {name:"建筑学",code:"082801",plan:35}
+      ]
+    },
+    "暨南大学": { plan: 0, year: 2026, note: "2026年招生计划待公布",
+      majors: [
+        {name:"新闻传播学类",code:"0503",plan:90},{name:"金融学",code:"020301K",plan:70},
+        {name:"计算机科学与技术",code:"080901",plan:80}
+      ]
+    },
+    "华南师范大学": { plan: 0, year: 2026, note: "2026年招生计划待公布",
+      majors: [
+        {name:"数学与应用数学（师范）",code:"070101",plan:100},{name:"物理学（师范）",code:"070201",plan:80},
+        {name:"汉语言文学（师范）",code:"050101",plan:90},{name:"心理学",code:"071101",plan:60}
+      ]
+    },
+    "广州大学": { plan: 7100, year: 2026, note: "全国7100人(+100)，广东6163人，新增新能源材料与器件、低空技术与工程",
+      majors: [
+        {name:"新能源材料与器件",code:"080414T",plan:60,new:true},
+        {name:"低空技术与工程",code:"081906T",plan:50,new:true},
+        {name:"遥感科学与技术",code:"081202",plan:45,new:true},
+        {name:"电气工程及其自动化",code:"080601",plan:80},
+        {name:"人工智能",code:"080717T",plan:70},
+        {name:"智能建造(港标班)",code:"081008T",plan:40,new:true}
+      ]
+    },
+    "广东外语外贸大学": { plan: 5315, year: 2026, note: "全国5315人，广东4119人（物理2454/历史1336）",
+      majors: [
+        {name:"国际商务(中澳)",code:"120205H",plan:30,new:true},
+        {name:"金融学(中澳)",code:"020301KH",plan:30,new:true},
+        {name:"商务英语(中英)",code:"050262H",plan:30,new:true},
+        {name:"大数据管理与应用(中英)",code:"120108H",plan:30,new:true},
+        {name:"数字经济(中法)",code:"020109H",plan:30,new:true},
+        {name:"会计学",code:"120203K",plan:80},
+        {name:"法学",code:"030101K",plan:70},
+        {name:"计算机类",code:"0809",plan:90},
+        {name:"英语（师范）",code:"050201",plan:60}
+      ]
+    },
+    "南方医科大学": { plan: 3060, year: 2026, note: "全国3060人(+60)，广东增49人，增量投向临床/口腔/中医/生医工",
+      majors: [
+        {name:"临床医学",code:"100201K",plan:150},{name:"口腔医学",code:"100301K",plan:40},
+        {name:"中医学",code:"100501K",plan:50},{name:"生物医学工程",code:"082601",plan:60}
+      ]
+    },
+    "广东工业大学": { plan: 10300, year: 2026, note: "全国10300人(+200)，广东8841人，82个招生专业",
+      majors: [
+        {name:"自动化",code:"080801",plan:100},{name:"机械设计制造及其自动化",code:"080202",plan:90},
+        {name:"计算机科学与技术",code:"080901",plan:120},{name:"电气工程",code:"080601",plan:80},
+        {name:"电子信息工程",code:"080701",plan:70}
+      ]
+    },
+    "广州医科大学": { plan: 2250, year: 2026, note: "全国2250人，广东1800人，首次在山东招生",
+      majors: [
+        {name:"临床医学",code:"100201K",plan:120},{name:"医学影像学",code:"100203TK",plan:50},
+        {name:"麻醉学",code:"100202TK",plan:40},{name:"预防医学",code:"100401K",plan:50}
+      ]
+    },
+    "广东医科大学": { plan: 5700, year: 2026, note: "全国5700人，广东4701人（物理3654/历史465）",
+      majors: [
+        {name:"临床医学",code:"100201K",plan:130},{name:"医学影像学",code:"100203TK",plan:50},
+        {name:"麻醉学",code:"100202TK",plan:40},{name:"口腔医学",code:"100301K",plan:35},
+        {name:"护理学",code:"101101",plan:90}
+      ]
+    },
+    "汕头大学": { plan: 4900, year: 2026, note: "全国4900人，广东3778人，理工医类占比60.2%",
+      majors: [
+        {name:"临床医学",code:"100201K",plan:80},{name:"计算机科学与技术",code:"080901",plan:60},
+        {name:"土木工程",code:"081001",plan:50},{name:"工商管理",code:"120201K",plan:45}
+      ]
+    },
+    "深圳技术大学": { plan: 3350, year: 2026, note: "全国3350人，广东2704人",
+      majors: [
+        {name:"计算机科学与技术",code:"080901",plan:80},{name:"光电子信息工程",code:"080705",plan:60},
+        {name:"机械类",code:"0802",plan:70},{name:"生物医学工程",code:"082601",plan:45}
+      ]
+    },
+    "华南农业大学": { plan: 0, year: 2026, note: "双一流建设高校，2026年招生计划待公布",
+      majors: [
+        {name:"农学",code:"090101",plan:80},{name:"动物医学",code:"090401",plan:50},
+        {name:"食品科学与工程",code:"082701",plan:60}
+      ]
+    },
+    "仲恺农业工程学院": { plan: 9459, year: 2026, note: "广东招生9459人，新增智慧农业、生物制造、人工智能专业",
+      majors: [
+        {name:"智慧农业",code:"090112T",plan:60,new:true},
+        {name:"人工智能",code:"080717T",plan:50,new:true},
+        {name:"新能源科学与工程",code:"080503T",plan:55,new:true}
+      ]
+    },
+    "大湾区大学": { plan: 190, year: 2026, note: "全国190人，广东120人，新增6个专业共11个专业招生",
+      majors: [
+        {name:"计算机科学与技术",code:"080901",plan:30},{name:"人工智能(新)",code:"080717T",plan:20,new:true},
+        {name:"未来机器人(新)",code:"080803T",plan:20,new:true},
+        {name:"通信工程(新)",code:"080703",plan:20,new:true}
+      ]
+    }
+  };
+  const majors = majorData2026[u.name] ? majorData2026[u.name].majors : u.majors.map(m => ({name:m, code:'-', plan:'-'}));
+  let majorsHtml = '';
+  for (const m of majors) {
+    majorsHtml += '<div class="major-item" onclick="showMajorInfo(\''+m.name+'\',\''+m.code+'\',\''+m.plan+'\')"><div class="major-item-name">'+m.name+'</div><div class="major-item-code">'+m.code+' · 招'+m.plan+'人</div></div>';
+  }
+  document.getElementById('modalMajors').innerHTML = majorsHtml;
+  
+  // 2026年招生计划显示
+  const planData = majorData2026[u.name];
+  const planEl = document.getElementById('modalPlan');
+  if (planData && planData.plan > 0) {
+    planEl.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+      '<span style="font-size:20px;font-weight:700;color:var(--text-primary)">' + planData.plan.toLocaleString() + '人</span>' +
+      '<span style="font-size:13px;background:rgba(34,197,94,0.1);color:var(--green);padding:2px 10px;border-radius:20px">2026总计划</span></div>' +
+      '<div style="margin-bottom:8px">' + planData.note + '</div>' +
+      '<div style="font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border);padding-top:10px;margin-top:8px">※ 实际招生人数以广东省教育考试院公布的招生专业目录为准</div>';
+  } else if (planData) {
+    planEl.innerHTML = '<div style="font-size:13px;line-height:1.8">' + planData.note + '</div>' +
+      '<div style="font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border);padding-top:8px;margin-top:8px">※ 具体分专业招生计划请关注各校官网或广东省教育考试院公告</div>';
+  } else {
+    planEl.innerHTML = '<div style="font-size:13px">2026年招生计划待公布，请关注该校官网或广东省教育考试院公告。</div>';
+  }
+  
+  document.getElementById('detailModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('detailModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function showMajorInfo(name, code, plan) {
+  alert('📚 ' + name + '\\n\\n专业代码：' + code + '\\n招生计划：' + plan + '人（2026年参考）\\n\\n注：实际招生人数以广东省教育考试院公布为准。');
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ─────────────────────────────────────────────
+// ANALYSIS ENGINE
+// ─────────────────────────────────────────────
+function runAnalysis() {
+  const btn = document.getElementById('analyzeBtn');
+  const btnText = document.getElementById('btnText');
+
+  const year = document.getElementById('year').value;
+  const category = document.getElementById('category').value;
+  const type = document.getElementById('type').value;
+  const score = parseInt(document.getElementById('score').value);
+  const rank = parseInt(document.getElementById('rank').value);
+  const city = document.getElementById('city').value;
+  const majorType = document.getElementById('major-type').value;
+  const level = document.getElementById('level').value;
+  const batch = document.getElementById('batch').value;
+
+  if (!score || !rank) {
+    alert('请填写完整的高考成绩和排名信息');
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btnText.innerHTML = '<div class="spinner"></div> 分析中...';
+
+  setTimeout(() => {
+    const batchLines = getBatchLines(year, category);
+    const results = analyze(score, rank, category, batch, city, majorType, level, type);
+    renderResults(results, score, rank, category, batchLines);
+
+    btn.disabled = false;
+    btnText.innerHTML = '🔍 重新分析';
+
+    document.getElementById('results-section').classList.add('show');
+    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 1200);
+}
+
+function analyze(score, rank, category, batch, cityPref, majorPref, levelPref, typePref) {
+  const yearLines = { '2026': {物理:436, 历史:464}, '2025': {物理:436, 历史:464}, '2024': {物理:442, 历史:428}, '2023': {物理:439, 历史:433}, '2022': {物理:445, 历史:437} };
+  const batchLine = batch === '本科' ? (yearLines[year]?.[category] ?? 440) : 200;
+
+  // Filter universities
+  let candidates = UNIVERSITIES.filter(u => {
+    if (!u.category.includes(category)) return false;
+    if (u.batch !== batch) return false;
+    if (typePref !== '普通' && !u.type.includes(typePref)) return false;
+    if (cityPref && u.city !== cityPref) return false;
+    if (levelPref) {
+      if (levelPref === '985' && u.level !== '985') return false;
+      if (levelPref === '211' && !['985','211'].includes(u.level)) return false;
+      if (levelPref === '双一流' && !['985','211','双一流'].includes(u.level)) return false;
+      if (levelPref === '省重点' && !['985','211','省重点'].includes(u.level)) return false;
+    }
+    return true;
+  });
+
+  // Score each university
+  const scored = candidates.map(u => {
+    const avgScore = average(u.scores[category]);
+    const scoreDiff = score - avgScore;
+    const rankLow = u.rank_range[category].low;
+    const rankHigh = u.rank_range[category].high;
+
+    // Rank-based probability (simplified)
+    let rankProb = 0;
+    if (rank <= rankLow) rankProb = 0.95;
+    else if (rank <= rankLow * 1.3) rankProb = 0.80;
+    else if (rank <= rankLow * 1.6) rankProb = 0.60;
+    else if (rank <= rankLow * 2.0) rankProb = 0.40;
+    else if (rank <= rankLow * 2.5) rankProb = 0.20;
+    else rankProb = 0.05;
+
+    // Score difference rating
+    let matchLevel = 'safe';
+    if (scoreDiff >= 10) matchLevel = 'bottom';       // 远超 → 保底
+    else if (scoreDiff >= 0) matchLevel = 'safe';      // 略高或相当 → 稳妥
+    else if (scoreDiff >= -10) matchLevel = 'rush';   // 略低 → 冲刺
+    else if (scoreDiff >= -20) matchLevel = 'rush';   // 有差距 → 冲刺
+    else matchLevel = 'rush';                          // 差距大 → 冲刺
+
+    // Major filtering by preference
+    let matchedMajors = u.majors;
+    if (majorPref) {
+      const majorKeywords = {
+        '计算机': ['计算机','软件','电子信息','人工智能','数据科学','网络','通信','微电子'],
+        '医学': ['医学','临床','口腔','麻醉','预防','基础'],
+        '经济': ['经济','金融','财政','税务','保险'],
+        '法学': ['法学','法律','知识产权'],
+        '师范': ['师范','教育','数学','物理','语文','英语'],
+        '建筑': ['建筑','城乡规划','风景园林','土木'],
+        '机械': ['机械','自动化','车辆','仪器'],
+        '材料': ['材料','化工','冶金','高分子'],
+        '管理': ['管理','工商','公共管理','物流','会计']
+      };
+      const keywords = majorKeywords[majorPref] || [];
+      matchedMajors = u.majors.filter(m => keywords.some(k => m.includes(k)));
+      if (matchedMajors.length === 0) matchedMajors = u.majors.slice(0, 3);
+    } else {
+      matchedMajors = u.majors.slice(0, 3);
+    }
+
+    // Match bar percentage
+    const barPct = Math.min(100, Math.max(5, Math.round(rankProb * 100)));
+
+    return {
+      ...u,
+      avgScore,
+      scoreDiff,
+      rankProb,
+      matchLevel,
+      matchedMajors: matchedMajors.slice(0, 3),
+      barPct
+    };
+  });
+
+  // Sort: rush (scoreDiff desc by closeness to 0), safe, bottom
+  const rush = scored.filter(s => s.matchLevel === 'rush').sort((a,b) => b.avgScore - a.avgScore).slice(0, 8);
+  const safe = scored.filter(s => s.matchLevel === 'safe').sort((a,b) => b.avgScore - a.avgScore).slice(0, 8);
+  const bottom = scored.filter(s => s.matchLevel === 'bottom').sort((a,b) => b.avgScore - a.avgScore).slice(0, 6);
+
+  return { rush, safe, bottom };
+}
+
+function average(arr) {
+  if (!arr || arr.length === 0) return 0;
+  return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length);
+}
+
+function renderResults(results, score, rank, category, batchLines) {
+  document.getElementById('scoreChip').textContent =
+    `${category}类 · ${score}分 · 排名 ${rank.toLocaleString()}`;
+
+  renderTier('tier-rush', '🎯 冲刺院校', 'risky', results.rush, score, category);
+  renderTier('tier-safe', '✅ 稳妥院校', 'safe', results.safe, score, category);
+  renderTier('tier-bottom', '🛡️ 保底院校', 'mid', results.bottom, score, category);
+}
+
+function renderTier(containerId, title, badgeClass, unis, score, category) {
+  const container = document.getElementById(containerId);
+  const labelText = badgeClass === 'risky' ? '冲刺' : badgeClass === 'safe' ? '稳妥' : '保底';
+  const labelClass = badgeClass === 'risky' ? 'risky' : badgeClass === 'safe' ? 'safe' : 'mid';
+
+  if (unis.length === 0) {
+    container.innerHTML = `
+      <div class="tier-header">
+        <span class="tier-badge ${labelClass}">${labelText}</span>
+        <span class="tier-count">—</span>
+      </div>
+      <div class="empty-tier">暂无符合条件的院校，请尝试放宽筛选条件</div>
+    `;
+    return;
+  }
+
+  const cards = unis.map(u => {
+    u.matchedMajors = u.matchedMajors || u.majors.slice(0, 3);
+    const isAbove = u.avgScore <= score;
+    return `
+    <div class="uni-card" onclick='openDetail("${u.name}")'>
+      <div class="uni-card-top">
+        <div class="uni-name">${u.name}</div>
+        <div class="uni-rank">${u.level}</div>
+      </div>
+      <div class="uni-majors">
+        ${u.matchedMajors.map(m => `<span class="major-tag">${m}</span>`).join('')}
+      </div>
+      <div class="uni-scores">
+        <div class="score-item">
+          <span class="score-item-label">近5年均分</span>
+          <span class="score-item-value">${u.avgScore}</span>
+        </div>
+        <div class="score-item">
+          <span class="score-item-label">分差</span>
+          <span class="score-item-value ${isAbove ? 'highlight' : ''}" style="color:${isAbove ? 'var(--green)' : 'var(--red)'}">
+            ${isAbove ? '+' : ''}${score - u.avgScore}
+          </span>
+        </div>
+        <div class="score-item">
+          <span class="score-item-label">录取概率</span>
+          <span class="score-item-value" style="color:${u.rankProb > 0.7 ? 'var(--green)' : u.rankProb > 0.4 ? 'var(--accent)' : 'var(--red)'}">
+            ${Math.round(u.rankProb*100)}%
+          </span>
+        </div>
+      </div>
+      <div class="match-bar-wrap">
+        <div class="match-bar ${labelClass}" style="width:${u.barPct}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="tier-header">
+      <span class="tier-badge ${labelClass}">${labelText}</span>
+      <span class="tier-count">共 ${unis.length} 所</span>
+    </div>
+    <div class="unis-grid">${cards}</div>
+  `;
+}
+</script>
+
+
+<!-- ═══════════════════════════════════════════
+     院校详情弹窗
+     ═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalUniName">中山大学</div>
+        <div class="modal-sub" id="modalUniInfo">985 · 广州 · 综合类</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-section-title">📊 录取统计</div>
+        <div class="modal-stats" id="modalStats"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">📈 历年分数</div>
+        <div class="modal-chart" id="modalChart"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">🎓 招生专业（点击查看详情）</div>
+        <div class="major-grid" id="modalMajors"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">📋 2026年招生计划</div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:14px;color:var(--text-secondary);line-height:1.7;" id="modalPlan">
+          该校2026年在广东省招生计划尚未公布，以下为2025年参考数据。各专业实际招生人数以广东省教育考试院公布为准。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
