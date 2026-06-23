@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>wyxbx3u6 · 词汇闯关</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0f23;color:#e8e8f0;min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#7dd3fc;margin-bottom:4px;letter-spacing:2px;word-break:break-word}
+.subtitle{text-align:center;color:#64748b;font-size:.82em;margin-bottom:20px;word-break:break-word}
+.card{background:#1e1e3a;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.4);margin-bottom:16px}
+.level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:16px}
+.level-btn{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.8em}
+.level-btn:hover{border-color:#7dd3fc;background:#1a2a3a}
+.level-btn.done{border-color:#4ade80;background:#052016}
+.level-btn .lnum{font-size:1.1em;font-weight:700;display:block;color:#e2e8f0}
+.level-btn .lcount{font-size:.7em;color:#64748b;display:block;margin-top:2px}
+.level-btn .lcount.ok{color:#4ade80}
+.question{text-align:center;margin-bottom:20px}
+.qword{font-size:1.6em;font-weight:700;color:#7dd3fc;letter-spacing:1px;word-break:break-word;cursor:pointer}
+.qword:hover{opacity:0.8}
+.qtype{font-size:.8em;color:#64748b;margin-top:4px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.option{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .2s;font-size:.95em;color:#cbd5e1;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.option:hover{border-color:#7dd3fc;background:#1a2a3a}
+.option.correct{border-color:#4ade80;background:#052016;color:#4ade80}
+.option.wrong{border-color:#f87171;background:#2a0a0a;color:#f87171}
+.option:disabled{cursor:default}
+.progress-bar{height:6px;background:#2a2a4a;border-radius:3px;margin-top:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#4ade80);border-radius:3px;transition:width .4s ease}
+.stats{display:flex;justify-content:center;gap:32px;margin-top:16px;color:#94a3b8;font-size:.85em;flex-wrap:wrap}
+.stats span{color:#e2e8f0}
+.btn{background:#2563eb;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-size:.95em;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.btn-ghost:hover{border-color:#7dd3fc;color:#7dd3fc}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 20px;border-radius:8px;border:2px solid #3a3a5a;background:transparent;color:#94a3b8;cursor:pointer;font-size:.9em;transition:all .2s}
+.mode-tab.active{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc}
+.hint-btn{background:transparent;border:1px solid #3a3a5a;border-radius:6px;color:#64748b;padding:6px 14px;font-size:.8em;cursor:pointer;margin-top:12px}
+.hint-btn:hover{border-color:#7dd3fc;color:#7dd3fc}
+.hint-text{color:#fbbf24;font-size:.85em;margin-top:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#1e1e3a;border-radius:16px;padding:32px;max-width:460px;text-align:center;width:90%;max-height:90vh;overflow-y:auto}
+.modal h2{color:#7dd3fc;margin-bottom:16px;font-size:1.4em}
+.modal .score-big{font-size:2.4em;font-weight:700;color:#fbbf24;margin:12px 0}
+.modal .acc{color:#4ade80;font-size:1.1em}
+.modal .pb{color:#7dd3fc;font-size:.9em;margin-top:4px}
+.modal .timer{color:#fbbf24;font-size:1em;margin-top:8px;font-weight:600}
+.modal .msg{margin-top:12px;color:#94a3b8;font-size:.85em}
+.match-area{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:20px}
+.match-col{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.match-item{padding:10px 16px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#e8e8f0;cursor:pointer;transition:all .2s;text-align:center;font-size:.9em;user-select:none;min-width:100px;word-break:break-word}
+.match-item:hover{border-color:#7dd3fc}
+.match-item.selected{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc;box-shadow:0 0 8px rgba(125,211,252,.3)}
+.match-item.matched{border-color:#4ade80;background:#052016;color:#4ade80;cursor:default;opacity:.7}
+.match-item.wrong-flash{border-color:#f87171;background:#2a0a0a;color:#f87171;animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.timer-display{font-size:1.4em;font-weight:700;color:#fbbf24;font-variant-numeric:tabular-nums;min-width:80px;text-align:center}
+.pb-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0f0f23;padding:4px 14px;border-radius:20px;font-size:.85em;font-weight:700;display:inline-block;margin-top:8px}
+.pb-badge.new{animation:pbPulse 1s ease 2}
+@keyframes pbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@media(max-width:600px){
+  .options-grid{grid-template-columns:1fr}
+  .level-grid{grid-template-columns:repeat(auto-fill,minmax(65px,1fr))}
+  .qword{font-size:1.3em}
+  .match-area{gap:12px}
+  .match-col{min-width:90px}
+  .timer-display{font-size:1.1em}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>wyxbx3u6 · 词汇闯关</h1>
+<p class="subtitle">wyxbx3u6 词汇练习</p>
+
+<div id="levelView" class="card">
+  <div style="text-align:center;color:#94a3b8;font-size:.85em;margin-bottom:8px">📚 选择关卡开始闯关</div>
+  <div class="level-grid" id="lg"></div>
+</div>
+
+<div id="gameView" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-ghost" onclick="backToLevels()" style="font-size:.8em;padding:6px 14px">← 返回关卡</button>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <span id="lvTitle" style="color:#7dd3fc;font-size:.9em"></span>
+      <div class="timer-display" id="timerDisplay">0:00</div>
+    </div>
+  </div>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div id="qArea">
+    <div class="question">
+      <div class="qword" id="qw"></div>
+      <div class="qtype" id="qt"></div>
+    </div>
+    <div class="options-grid" id="oa"></div>
+    <div style="text-align:center">
+      <button class="hint-btn" id="hb" onclick="showHint()">💡 提示</button>
+    </div>
+    <div class="hint-text" id="ht" style="display:none"></div>
+  </div>
+  <div id="matchArea" class="match-area" style="display:none"></div>
+  <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+  <div class="stats">
+    <div>✅ 正确 <span id="so">0</span></div>
+    <div>❌ 错误 <span id="se">0</span></div>
+    <div>⏱️ 用时 <span id="statsTime">0:00</span></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2 id="rt"></h2>
+    <div class="score-big" id="rs"></div>
+    <div class="acc" id="rsc"></div>
+    <div class="pb" id="rp"></div>
+    <div class="timer" id="rtime"></div>
+    <div class="msg" id="rmg"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="retry()">🔄 重玩本关</button>
+      <button class="btn btn-ghost" onclick="backToLevels()">📚 返回关卡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAME_DATA = {"star1": [{"en": "weekly", "cn": "一周一次的，每周的"}, {"en": "inspector", "cn": "检查员，巡视员"}, {"en": "insist", "cn": "坚称，坚决认为"}, {"en": "secrecy", "cn": "保密，秘密状态"}, {"en": "shaving", "cn": "刮胡子"}, {"en": "flush", "cn": "（使）发红"}, {"en": "plum", "cn": "李子；梅子"}, {"en": "faintly", "cn": "微弱地，模糊地"}, {"en": "dispose", "cn": "排列，布置"}, {"en": "sparkle", "cn": "闪耀，闪光"}, {"en": "prospect", "cn": "开阔的景观，景色"}, {"en": "redden", "cn": "使)变红"}, {"en": "glare", "cn": "刺眼的强光"}, {"en": "flake", "cn": "小薄片"}, {"en": "bend", "cn": "变弯曲"}, {"en": "weathercock", "cn": "公鸡形)风标"}, {"en": "church", "cn": "教堂"}, {"en": "rhyme", "cn": "儿歌，童谣"}, {"en": "alabaster", "cn": "雪花石膏"}, {"en": "goose", "cn": "鹅"}, {"en": "feather", "cn": "羽毛"}, {"en": "innocent", "cn": "天真无邪的"}, {"en": "enhance", "cn": "改进；增强"}, {"en": "bloom", "cn": "开花"}, {"en": "charm", "cn": "魅力，魔力"}, {"en": "bleak", "cn": "阴冷的;阴郁的"}, {"en": "fade", "cn": "逐渐消失；褪色"}, {"en": "orchard", "cn": "果园"}, {"en": "cluster", "cn": "串，丛，簇"}, {"en": "wheat", "cn": "小麦"}, {"en": "pile", "cn": "堆放，摞起"}, {"en": "gentle", "cn": "轻柔的；温和的"}, {"en": "sweep", "cn": "吹过，掠过"}, {"en": "tinge", "cn": "着淡色于……"}, {"en": "wagon", "cn": "四轮运货车"}, {"en": "reap", "cn": "收割(庄稼)"}, {"en": "ban", "cn": "禁止，取缔"}, {"en": "puzzled", "cn": "困惑的，无法理解的"}, {"en": "backyard", "cn": "后院"}, {"en": "moribund", "cn": "垂死的，奄奄一息的"}, {"en": "tremble", "cn": "颤抖，发抖"}, {"en": "throb", "cn": "生机勃勃；热闹"}, {"en": "chorus", "cn": "合唱曲"}, {"en": "robin", "cn": "知更鸟"}, {"en": "catbird", "cn": "猫鹊"}, {"en": "dove", "cn": "鸽子"}, {"en": "jay", "cn": "松鸭"}, {"en": "wren", "cn": "鹪鹩(一种褐色小鸟)"}, {"en": "marsh", "cn": "沼泽，湿地"}, {"en": "fable", "cn": "寓言"}, {"en": "alert", "cn": "提醒，使（某人）意识到"}, {"en": "knowingly", "cn": "故意地"}, {"en": "gypsy moth", "cn": "舞毒蛾"}, {"en": "dozen  number", "cn": "一打；许多"}, {"en": "thorough", "cn": "仔细的，缜密的"}, {"en": "precise", "cn": "精确的；一丝不苟的"}, {"en": "launch", "cn": "推出，发起"}, {"en": "posthumous", "cn": "死后获得的"}, {"en": "marine", "cn": "海洋的"}, {"en": "reputation", "cn": "名誉，名望"}, {"en": "elegance", "cn": "优美 ；简洁"}, {"en": "passionate", "cn": "具有强烈信念的"}]};
+const LEVEL_KEYS = Object.keys(GAME_DATA);
+const TOTAL_LEVELS = LEVEL_KEYS.length;
+const MATCH_LIMIT = 10;  // 配对模式每轮最多10个词
+
+const MODES = [
+  {id:"en-cn", label:"📖 英→中", q:"选择正确的中文释义", enFirst:true},
+  {id:"cn-en", label:"📝 中→英", q:"选择正确的英文单词", enFirst:false},
+  {id:"listen", label:"🔊 听音选", q:"听发音选择正确的中文", enFirst:true},
+  {id:"match", label:"🔗 配对", q:"将英文与中文配对", enFirst:true}
+];
+
+const S = {
+  level:0, qIdx:0, order:[], ok:0, err:0, answered:false,
+  mode:0, wrongList:[],
+  timerInterval:null, startTime:0, elapsed:0
+};
+
+function $(id){return document.getElementById(id)}
+
+function startTimer(){
+  stopTimer();
+  S.startTime = Date.now();
+  S.elapsed = 0;
+  S.timerInterval = setInterval(updateTimer, 200);
+}
+
+function stopTimer(){
+  if(S.timerInterval){clearInterval(S.timerInterval);S.timerInterval=null;}
+}
+
+function updateTimer(){
+  S.elapsed = Date.now() - S.startTime;
+  const secs = Math.floor(S.elapsed/1000);
+  const mins = Math.floor(secs/60);
+  const s = secs % 60;
+  const tstr = mins+":"+(s<10?"0":"")+s;
+  $("timerDisplay").textContent = tstr;
+  $("statsTime").textContent = tstr;
+}
+
+function formatTime(ms){
+  const secs = Math.floor(ms/1000);
+  const mins = Math.floor(secs/60);
+  const s = secs % 60;
+  return mins+"分"+(s<10?"0":"")+s+"秒";
+}
+
+function getPB(levelIdx, modeIdx){
+  return parseInt(localStorage.getItem("pb_"+levelIdx+"_"+modeIdx)||"0");
+}
+
+function savePB(levelIdx, modeIdx, elapsed){
+  const key = "pb_"+levelIdx+"_"+modeIdx;
+  const prev = getPB(levelIdx, modeIdx);
+  if(prev===0 || elapsed < prev){
+    localStorage.setItem(key, String(elapsed));
+    return true;
+  }
+  return false;
+}
+
+function getPBStr(levelIdx, modeIdx){
+  const ms = getPB(levelIdx, modeIdx);
+  if(ms===0)return null;
+  return formatTime(ms);
+}
+
+function renderLevels(){
+  const lg = $("lg");
+  lg.innerHTML = "";
+  LEVEL_KEYS.forEach((key,i)=>{
+    const items = GAME_DATA[key].filter(it=>it.cn);
+    const done = JSON.parse(localStorage.getItem("vp")||"{}")[i];
+    const pb = getPBStr(i, S.mode);
+    let badge = "";
+    if(pb) badge = '<span style="font-size:.6em;color:#7dd3fc;display:block">PB:'+pb+'</span>';
+    lg.innerHTML += '<div class="level-btn'+(done?" done":"")+'" onclick="startLevel('+i+')">'+
+      '<span class="lnum">'+(i+1)+'</span>'+
+      '<span class="lcount'+(done?" ok":"")+'">'+(done?done+"/"+items.length+" ✅":items.length+"词")+'</span>'+
+      badge + '</div>';
+  });
+}
+
+function backToLevels(){
+  stopTimer();
+  $("ov").classList.remove("show");
+  $("gameView").style.display="none";
+  $("levelView").style.display="block";
+  renderLevels();
+}
+
+function startLevel(idx){
+  if(idx<0||idx>=TOTAL_LEVELS)return;
+  S.level=idx;S.qIdx=0;S.ok=0;S.err=0;S.answered=false;S.wrongList=[];
+  const lv = GAME_DATA[LEVEL_KEYS[idx]];
+  const items = lv.filter(it=>it.cn);
+  S.order = shuffle([...Array(items.length).keys()]);
+  $("levelView").style.display="none";
+  $("gameView").style.display="block";
+  $("lvTitle").textContent = "第 "+(idx+1)+" 关 · "+items.length+" 题";
+  renderModes();
+  startTimer();
+  showQuestion();
+}
+
+function renderModes(){
+  const c = $("modeTabs");
+  c.innerHTML = "";
+  MODES.forEach((m,i)=>{
+    const b = document.createElement("button");
+    b.className = "mode-tab"+(i===S.mode?" active":"");
+    b.textContent = m.label;
+    b.onclick = ()=>{
+      S.mode=i;
+      document.querySelectorAll(".mode-tab").forEach(t=>t.classList.remove("active"));
+      b.classList.add("active");
+      S.qIdx=0;S.ok=0;S.err=0;S.wrongList=[];
+      startTimer();
+      showQuestion();
+    };
+    c.appendChild(b);
+  });
+}
+
+function playAudio(word){
+  try{
+    if(window._aud){try{window._aud.pause();}catch(e){}}
+    const url="https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(word)+"&type=1";
+    window._aud=new Audio(url);
+    window._aud.play().catch(e=>{});
+  }catch(e){}
+}
+
+function showQuestion(){
+  S.answered=false;
+  $("ht").style.display="none";
+  $("hb").textContent="💡 提示";
+  const lv = GAME_DATA[LEVEL_KEYS[S.level]];
+  const items = lv.filter(it=>it.cn);
+  if(!items.length){backToLevels();return;}
+  const qi = S.order[S.qIdx];
+  const it = items[qi];
+  const mode = MODES[S.mode];
+  if(mode.id==="match"){showMatch();return;}
+  const field = mode.enFirst?"en":"cn";
+  $("qArea").style.display="block";
+  $("matchArea").style.display="none";
+  if(mode.id==="listen"){
+    $("qw").innerHTML="🔊";
+  }else{
+    $("qw").textContent = field==="en"?it.en:it.cn;
+  }
+  window._cw = it.en;
+  $("qw").onclick = ()=>{try{playAudio(window._cw)}catch(e){}};
+  if(mode.id==="listen")setTimeout(()=>playAudio(it.en),300);
+  $("qt").textContent = mode.q+"（"+(S.qIdx+1)+"/"+S.order.length+"）";
+  $("pf").style.width = (S.qIdx/S.order.length*100)+"%";
+  $("so").textContent=S.ok;
+  $("se").textContent=S.err;
+  buildOptions(it,mode);
+}
+
+function buildOptions(it,mode){
+  const lv = GAME_DATA[LEVEL_KEYS[S.level]];
+  const items = lv.filter(x=>x.cn);
+  const correct = mode.enFirst?it.cn:it.en;
+  const optField = mode.enFirst?"cn":"en";
+  let pool = items.map(x=>optField==="cn"?x.cn:x.en).filter(x=>x!==correct);
+  if(pool.length<3){
+    const allItems = Object.values(GAME_DATA).flat().filter(x=>x.cn);
+    const exclude = new Set([correct,...pool]);
+    pool = pool.concat((optField==="cn"?allItems.map(x=>x.cn):allItems.map(x=>x.en)).filter(x=>!exclude.has(x)));
+  }
+  const others = shuffle(pool.slice(0,99)).slice(0,3);
+  const opts = shuffle([correct,...others]);
+  let h = "";
+  opts.forEach(o=>{h += '<button class="option" data-v="'+escAttr(o)+'" onclick="checkAnswer(this)">'+escHtml(o)+'</button>';});
+  $("oa").innerHTML = h;
+}
+
+function checkAnswer(btn){
+  if(S.answered)return;
+  S.answered=true;
+  const lv = GAME_DATA[LEVEL_KEYS[S.level]];
+  const items = lv.filter(it=>it.cn);
+  const qi = S.order[S.qIdx];
+  const it = items[qi];
+  const mode = MODES[S.mode];
+  const chosen = decodeAttr(btn.dataset.v);
+  const correct = mode.id==="cn-en"?it.en:it.cn;
+  const isOk = chosen===correct;
+  if(isOk){btn.classList.add("correct");S.ok++;playOK();}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(b=>{if(decodeAttr(b.dataset.v)===correct)b.classList.add("correct")});
+    S.err++;S.wrongList.push(it);playErr();
+  }
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  if(S.qIdx+1<S.order.length)setTimeout(nextQ,700);
+  else setTimeout(showResult,900);
+}
+
+// ===== 配对模式（每轮最多10个）=====
+let M = {sel:null, pairs:0, total:0, round:0, pool:[], roundPairs:0, roundTotal:0, roundOk:0, roundErr:0, wrongList:[]};
+
+function showMatch(){
+  const lv = GAME_DATA[LEVEL_KEYS[S.level]];
+  const items = lv.filter(it=>it.cn);
+  
+  // 如果当前轮已完成且还有剩余，开始下一轮
+  if(M.round > 0 && M.roundPairs >= M.roundTotal){
+    // 上一轮结束，显示提示后开始下一轮
+    if(M.roundPairs >= M.roundTotal && M.pool.length > 0){
+      // 还有剩余，进入下一轮
+    }else if(M.pool.length === 0){
+      // 全部完成
+      stopTimer();
+      setTimeout(showResult,500);
+      return;
+    }
+  }
+  
+  // 初始化或开始新的一轮
+  if(M.round === 0 || (M.roundPairs >= M.roundTotal && M.pool.length === 0)){
+    // 第一轮初始化
+    M.pool = shuffle([...Array(items.length).keys()]);
+    M.round = 1;
+    M.roundOk = 0;
+    M.roundErr = 0;
+    M.wrongList = [];
+  }
+  
+  // 如果当前轮完成但还有剩余，开始下一轮
+  if(M.roundPairs >= M.roundTotal && M.pool.length > 0){
+    M.round++;
+    M.roundPairs = 0;
+  }
+  
+  // 计算本轮词汇（最多10个）
+  const batchSize = Math.min(MATCH_LIMIT, M.pool.length);
+  const roundItems = [];
+  const roundEnOrder = [];
+  const roundCnOrder = [];
+  
+  for(let i=0; i<batchSize; i++){
+    const idx = M.pool.pop();
+    roundItems.push(items[idx]);
+    roundEnOrder.push(i);
+    roundCnOrder.push(i);
+  }
+  
+  M.roundTotal = roundItems.length;
+  M.roundPairs = 0;
+  M.roundItems = roundItems;
+  
+  $("qArea").style.display="none";
+  $("matchArea").style.display="flex";
+  
+  // 计算总进度
+  const totalDone = items.length - M.pool.length - M.roundTotal;
+  const totalProgress = (totalDone / items.length) * 100;
+  $("pf").style.width = totalProgress + "%";
+  $("so").textContent = S.ok;
+  $("se").textContent = S.err;
+  
+  const enOrder = shuffle(roundEnOrder);
+  const cnOrder = shuffle(roundCnOrder);
+  
+  let enHtml = '<div style="color:#7dd3fc;font-size:.85em;margin-bottom:8px;text-align:center">📖 英文（第'+M.round+'轮，还剩'+M.pool.length+'词）</div>';
+  let cnHtml = '<div style="color:#7dd3fc;font-size:.85em;margin-bottom:8px;text-align:center">📝 中文</div>';
+  
+  enOrder.forEach((origIdx)=>{
+    enHtml += '<div class="match-item" onclick="matchClick(this,'+origIdx+',true)">'+escHtml(roundItems[origIdx].en)+'</div>';
+  });
+  cnOrder.forEach((origIdx)=>{
+    cnHtml += '<div class="match-item" onclick="matchClick(this,'+origIdx+',false)">'+escHtml(roundItems[origIdx].cn)+'</div>';
+  });
+  
+  $("matchArea").innerHTML = '<div class="match-col" id="mcEn">'+enHtml+'</div><div class="match-col" id="mcCn">'+cnHtml+'</div>';
+  $("qt").textContent = "将英文与中文配对（第"+M.round+"轮 · "+roundItems.length+"词）";
+  
+  // 保存当前轮的配对状态
+  M.sel = null;
+}
+
+function matchClick(el, idx, isEn){
+  if(el.classList.contains("matched"))return;
+  
+  if(!M.sel){
+    el.classList.add("selected");
+    M.sel = {el, idx, isEn};
+    return;
+  }
+  
+  if(M.sel.el === el){
+    el.classList.remove("selected");
+    M.sel = null;
+    return;
+  }
+  
+  if(M.sel.isEn === isEn){
+    M.sel.el.classList.remove("selected");
+    el.classList.add("selected");
+    M.sel = {el, idx, isEn};
+    return;
+  }
+  
+  const first = M.sel;
+  const firstIt = M.roundItems[first.idx];
+  const secondIt = M.roundItems[idx];
+  
+  // 检查是否配对正确
+  const isCorrect = firstIt.en === secondIt.en;
+  
+  if(isCorrect){
+    first.el.classList.remove("selected");
+    first.el.classList.add("matched");
+    el.classList.add("matched");
+    M.sel = null;
+    M.roundPairs++;
+    M.roundOk++;
+    S.ok++;
+    playOK();
+    $("so").textContent = S.ok;
+    
+    // 检查本轮是否完成
+    if(M.roundPairs >= M.roundTotal){
+      // 本轮完成
+      if(M.pool.length === 0){
+        // 全部完成
+        stopTimer();
+        setTimeout(showResult, 800);
+      } else {
+        // 开始下一轮
+        setTimeout(()=>{showMatch();}, 800);
+      }
+    }
+    return;
+  }
+  
+  // 配错
+  first.el.classList.add("wrong-flash");
+  el.classList.add("wrong-flash");
+  M.roundErr++;
+  S.err++;
+  S.wrongList.push(firstIt);
+  playErr();
+  M.sel = null;
+  $("se").textContent = S.err;
+  
+  setTimeout(()=>{
+    document.querySelectorAll(".wrong-flash").forEach(e=>{
+      e.classList.remove("wrong-flash");
+      e.classList.remove("selected");
+    });
+  },500);
+}
+
+function nextQ(){S.qIdx++;showQuestion();}
+
+function showHint(){
+  const lv = GAME_DATA[LEVEL_KEYS[S.level]];
+  const items = lv.filter(it=>it.cn);
+  const qi = S.order[S.qIdx];
+  const it = items[qi];
+  $("ht").textContent = "英文："+it.en;
+  $("ht").style.display="block";
+  $("hb").textContent = "已提示 ✓";
+  try{playAudio(it.en)}catch(e){}
+}
+
+function playOK(){
+  try{
+    const a=new (window.AudioContext||window.webkitAudioContext)();
+    const o=a.createOscillator();const g=a.createGain();
+    o.type="sine";o.frequency.value=880;
+    g.gain.setValueAtTime(.25,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);
+    o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.35);
+  }catch(e){}
+}
+function playErr(){
+  try{
+    const a=new (window.AudioContext||window.webkitAudioContext)();
+    const o=a.createOscillator();const g=a.createGain();
+    o.type="sawtooth";o.frequency.value=220;
+    g.gain.setValueAtTime(.2,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.25);
+    o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.25);
+  }catch(e){}
+}
+
+function showResult(){
+  stopTimer();
+  const lv = GAME_DATA[LEVEL_KEYS[S.level]];
+  const items = lv.filter(it=>it.cn);
+  const tot = items.length;
+  const acc = tot>0?Math.round(S.ok/tot*100):0;
+  const stars = acc>=80?"★★★":acc>=60?"★★":"★";
+  const msgs = ["继续加油！","做得不错！","太棒了！"];
+  const msg = acc>=80?msgs[2]:acc>=60?msgs[1]:msgs[0];
+
+  $("rt").textContent = msg;
+  $("rs").textContent = stars;
+  $("rsc").textContent = S.ok+"/"+tot+" 正确（正确率 "+acc+"%）";
+  $("rtime").textContent = "⏱️ 用时："+formatTime(S.elapsed);
+
+  const isNewPB = savePB(S.level, S.mode, S.elapsed);
+  const pbStr = getPBStr(S.level, S.mode);
+  if(isNewPB){
+    $("rp").innerHTML = '<span class="pb-badge new">🎉 新纪录！ '+formatTime(S.elapsed)+'</span>';
+  }else if(pbStr){
+    $("rp").innerHTML = '最佳纪录：'+pbStr+' <span style="font-size:.8em;color:#64748b">（继续加油打破纪录吧）</span>';
+  }else{
+    $("rp").innerHTML = "";
+  }
+
+  const prog = JSON.parse(localStorage.getItem("vp")||"{}");
+  if(!prog[S.level]||prog[S.level]<S.ok)prog[S.level]=S.ok;
+  localStorage.setItem("vp",JSON.stringify(prog));
+
+  let wh = "";
+  if(S.wrongList.length>0){
+    wh='<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#f87171;font-size:.9em">❌ 错误单词列表（'+S.wrongList.length+'个）：</span><button onclick="copyWrongList()" style="background:#252545;border:1px solid #3a3a5a;color:#94a3b8;padding:6px 16px;border-radius:6px;font-size:.82em;cursor:pointer">📋 一键复制</button></div>';
+    wh+='<div style="max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:12px;text-align:left">';
+    S.wrongList.forEach(it=>{
+      wh+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em"><span style="color:#e2e8f0">'+escHtml(it.en)+'</span><span style="color:#94a3b8">'+escHtml(it.cn)+'</span></div>';
+    });
+    wh+='</div></div>';
+  }
+  $("rmg").innerHTML = wh;
+  $("ov").classList.add("show");
+}
+
+function copyWrongList(){
+  if(S.wrongList.length===0)return;
+  const text = S.wrongList.map(it=>it.en+" - "+it.cn).join("\n");
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector("#rmg button");
+    if(btn){
+      btn.textContent = "✅ 已复制！";
+      btn.style.borderColor = "#4ade80";
+      btn.style.color = "#4ade80";
+      setTimeout(()=>{btn.textContent = "📋 一键复制";btn.style.borderColor = "#3a3a5a";btn.style.color = "#94a3b8";},2000);
+    }
+  }).catch(err=>{
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try{document.execCommand("copy");alert("✅ 已复制！");}catch(e){alert("❌ 复制失败");}
+    document.body.removeChild(ta);
+  });
+}
+
+function retry(){
+  M = {sel:null, pairs:0, total:0, round:0, pool:[], roundPairs:0, roundTotal:0, roundOk:0, roundErr:0, wrongList:[]};
+  $("ov").classList.remove("show");
+  startLevel(S.level);
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function escAttr(s){return encodeURIComponent(String(s));}
+function decodeAttr(s){return decodeURIComponent(s);}
+
+renderLevels();
+</script>
+</body>
+</html>
