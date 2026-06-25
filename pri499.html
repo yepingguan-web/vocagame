@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>词汇闯关 · 中英配对</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0f23;color:#e8e8f0;min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#7dd3fc;margin-bottom:4px;letter-spacing:2px;word-break:break-word}
+.subtitle{text-align:center;color:#64748b;font-size:.82em;margin-bottom:20px;word-break:break-word}
+.card{background:#1e1e3a;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.4);margin-bottom:16px}
+.level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:16px}
+.level-btn{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.8em}
+.level-btn:hover{border-color:#7dd3fc;background:#1a2a3a}
+.level-btn.done{border-color:#4ade80;background:#052016}
+.level-btn .lnum{font-size:1.1em;font-weight:700;display:block;color:#e2e8f0}
+.level-btn .lcount{font-size:.7em;color:#64748b;display:block;margin-top:2px}
+.level-btn .lcount.ok{color:#4ade80}
+.question{text-align:center;margin-bottom:20px}
+.qword{font-size:1.6em;font-weight:700;color:#7dd3fc;letter-spacing:1px;word-break:break-word}
+.qtype{font-size:.8em;color:#64748b;margin-top:4px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.option{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .2s;font-size:.95em;color:#cbd5e1;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.option:hover{border-color:#7dd3fc;background:#1a2a3a}
+.option.correct{border-color:#4ade80;background:#052016;color:#4ade80}
+.option.wrong{border-color:#f87171;background:#2a0a0a;color:#f87171}
+.option:disabled{cursor:default}
+.progress-bar{height:6px;background:#2a2a4a;border-radius:3px;margin-top:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#4ade80);border-radius:3px;transition:width .4s ease}
+.stats{display:flex;justify-content:center;gap:32px;margin-top:16px;color:#94a3b8;font-size:.85em}
+.stats span{color:#e2e8f0}
+.btn{background:#2563eb;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-size:.95em;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.btn-ghost:hover{border-color:#7dd3fc;color:#7dd3fc}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 20px;border-radius:8px;border:2px solid #3a3a5a;background:transparent;color:#94a3b8;cursor:pointer;font-size:.9em;transition:all .2s}
+.mode-tab.active{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc}
+.hint-btn{background:transparent;border:1px solid #3a3a5a;border-radius:6px;color:#64748b;padding:6px 14px;font-size:.8em;cursor:pointer;margin-top:12px}
+.hint-btn:hover{border-color:#7dd3fc;color:#7dd3fc}
+.hint-text{color:#fbbf24;font-size:.85em;margin-top:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#1e1e3a;border-radius:16px;padding:32px;max-width:420px;text-align:center;width:90%;max-height:90vh;overflow-y:auto}
+.modal h2{color:#7dd3fc;margin-bottom:16px;font-size:1.4em}
+.modal .score-big{font-size:3em;font-weight:700;color:#fbbf24;margin:16px 0}
+.modal .acc{color:#4ade80;font-size:1.1em}
+.modal .msg{margin-top:12px;color:#94a3b8;font-size:.85em}
+.match-area{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:20px}
+.match-col{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.match-item{padding:10px 16px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#e8e8f0;cursor:pointer;transition:all .2s;text-align:center;font-size:.9em;user-select:none;min-width:100px;word-break:break-word}
+.match-item:hover{border-color:#7dd3fc}
+.match-item.selected{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc;box-shadow:0 0 8px rgba(125,211,252,.3)}
+.match-item.matched{border-color:#4ade80;background:#052016;color:#4ade80;cursor:default;opacity:.7}
+.match-item.wrong-flash{border-color:#f87171;background:#2a0a0a;color:#f87171;animation:shake .4s}
+.match-group-label{color:#94a3b8;font-size:.85em;text-align:center;margin:12px 0 4px;padding:4px 16px;background:#2a2a4a;border-radius:6px;display:inline-block}
+.match-progress{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.match-dot{width:14px;height:14px;border-radius:50%;background:#3a3a5a;transition:all .3s}
+.match-dot.cur{background:#7dd3fc;transform:scale(1.2)}
+.match-dot.ok{background:#4ade80}
+.match-dot.err{background:#f87171}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:600px){
+  .options-grid{grid-template-columns:1fr}
+  .level-grid{grid-template-columns:repeat(auto-fill,minmax:65px,1fr)}
+  .qword{font-size:1.3em}
+  .match-area{gap:12px}
+  .match-col{min-width:90px}
+}
+
+.timer-display{font-size:1.3em;font-weight:700;color:#fbbf24;font-variant-numeric:tabular-nums;min-width:80px;text-align:center;padding:4px 0}
+.pb-badge{font-size:.85em;color:#a78bfa;margin-left:12px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1 id="gTitle">词汇闯关 · 中英配对</h1>
+<p class="subtitle" id="gSub">小学499课标词汇</p>
+
+<div id="levelView" class="card">
+  <div style="text-align:center;color:#94a3b8;font-size:.85em;margin-bottom:8px">📚 选择关卡开始闯关</div>
+  <div class="level-grid" id="lg"></div>
+</div>
+
+<div id="gameView" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-ghost" onclick="backToLevels()" style="font-size:.8em;padding:6px 14px">← 返回关卡</button>
+    <span id="lvTitle" style="color:#7dd3fc;font-size:.9em">第 1 关</span>
+    <div class="timer-display" id="timerDisplay">0:00</div>
+    <div class="pb-badge" id="pbBadge"></div>
+  </div>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div id="qArea">
+    <div class="question">
+      <div class="qword" id="qw"></div>
+      <div class="qtype" id="qt"></div>
+    </div>
+    <div class="options-grid" id="oa"></div>
+    <div style="text-align:center">
+      <button class="hint-btn" id="hb" onclick="sh()">💡 提示</button>
+    </div>
+    <div class="hint-text" id="ht" style="display:none"></div>
+  </div>
+  <div id="matchArea" class="match-area" style="display:none"></div>
+  <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+  <div class="stats">
+    <div>✅ 正确 <span id="so">0</span></div>
+    <div>❌ 错误 <span id="se">0</span></div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2 id="rt"></h2>
+    <div class="score-big" id="rs"></div>
+    <div class="acc" id="rsc"></div>
+    <div class="acc" id="rac" style="margin-top:4px"></div>
+    <div class="msg" id="rmg"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="retry()">🔄 重玩本关</button>
+      <button class="btn btn-ghost" onclick="backToLevels()">📚 返回关卡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== Game Data ======
+const D = {"star1":[{"en":"absolutely","cn":"完全地，全部地，绝对地","key":"a"},{"en":"accident","cn":"事故，意外的事","key":"a"},{"en":"account","cn":"账目;描述","key":"a"},{"en":"ache","cn":"痛，疼痛","key":"a"},{"en":"achievement","cn":"成就,成绩,功绩","key":"a"},{"en":"acquire","cn":"获得，得到","key":"a"},{"en":"actually","cn":"实际地； 现实地","key":"a"},{"en":"adapt","cn":"使适应，适合，改编","key":"a"},{"en":"addict","cn":"n.吸毒成瘾的人;瘾君子;对…入迷的人vt. 使沉溺;使上瘾","key":"a"},{"en":"addition","cn":"增加;（算数用语）加","key":"a"},{"en":"admire","cn":"钦佩；羡慕","key":"a"},{"en":"admit","cn":"承认，准许（入场，入学，入会）","key":"a"},{"en":"adult","cn":"成年人","key":"a"},{"en":"advance","cn":"促进；前进;行进","key":"a"},{"en":"adventure","cn":"冒险； 奇遇","key":"a"},{"en":"affair","cn":"事，事情","key":"a"},{"en":"agriculture","cn":"农业，农学","key":"a"},{"en":"ahead","cn":"在前，向前","key":"a"},{"en":"aid","cn":"援助；救护；辅助器具","key":"a"},{"en":"aim","cn":"目的；目标 v. 计划，打算；瞄准；针对","key":"a"}],"star2":[{"en":"alarm","cn":"警报","key":"a"},{"en":"a.m.","cn":"午前，上午","key":"a"},{"en":"amazing","cn":"惊奇,惊叹的;震惊的","key":"a"},{"en":"amount","cn":"金额，数量，总计","key":"a"},{"en":"announce","cn":"宣布，宣告","key":"a"},{"en":"annual","cn":"每年的，年度的，一年一次的","key":"a"},{"en":"anxious","cn":"忧虑的，焦急的","key":"a"},{"en":"apartment","cn":"（美）楼中单元房，一套房间；房间","key":"a"},{"en":"apologise/apologize","cn":"道歉;谢罪","key":"a"},{"en":"application","cn":"申请,申请表","key":"a"},{"en":"apply","cn":"申请","key":"a"},{"en":"approach","cn":"靠近，接近，建议，要求","key":"a"},{"en":"argue","cn":"争辩， 争论","key":"a"},{"en":"arrangement","cn":"安排，布置","key":"a"},{"en":"aspect","cn":"方面，外观，外表","key":"a"},{"en":"assume","cn":"假定，假设","key":"a"},{"en":"athlete","cn":"运动员","key":"a"},{"en":"Atlantic","cn":"大西洋的","key":"a"},{"en":"attach","cn":"把…固定，重视","key":"a"},{"en":"attack","cn":"攻击，袭击","key":"a"}],"star3":[{"en":"attempt","cn":"试图，尝试","key":"a"},{"en":"attitude","cn":"n.态度，看法","key":"a"},{"en":"attract","cn":"吸引，引起","key":"a"},{"en":"audience","cn":"观众，听众","key":"a"},{"en":"author","cn":"作者，作家","key":"a"},{"en":"authority","cn":"权力,权威,威信,官方","key":"a"},{"en":"average","cn":"平均；普通的 n.平均数","key":"a"},{"en":"award","cn":"奖品，奖励","key":"a"},{"en":"aware","cn":"知道，意识到，发觉","key":"a"},{"en":"awkward","cn":"令人尴尬,使人难堪的","key":"a"},{"en":"badminton","cn":"羽毛球","key":"b"},{"en":"balance","cn":"平衡","key":"b"},{"en":"ballet","cn":"芭蕾舞","key":"b"},{"en":"band","cn":"乐队","key":"b"},{"en":"bar","cn":"方块,棒 n.买酒柜台/酒吧；（卖东西的）柜台","key":"b"},{"en":"base","cn":"根据地，基地（棒球）垒","key":"b"},{"en":"basis","cn":"原因，缘由，要素","key":"b"},{"en":"battery","cn":"电池","key":"b"},{"en":"battle","cn":"战斗；战役","key":"b"},{"en":"beer","cn":"啤酒","key":"b"}],"star4":[{"en":"behaviour/behavior","cn":"行为，举止","key":"b"},{"en":"belong","cn":"属，附属","key":"b"},{"en":"belt","cn":"腰带;皮带;传送带;传动带;地带;地区","key":"b"},{"en":"beneath","cn":"在…下方（面）","key":"b"},{"en":"benefit","cn":"优势,益处,使…受益","key":"b"},{"en":"beyond","cn":"(表示位置) 在…的那边","key":"b"},{"en":"bite","cn":"咬；叮","key":"b"},{"en":"blog","cn":"n. 博客 vt.写博客","key":"b"},{"en":"bone","cn":"骨头，骨质（复数bones骨骼；骨骸）","key":"b"},{"en":"boot","cn":"长统靴；靴","key":"b"},{"en":"boxing","cn":"拳击（运动）","key":"b"},{"en":"branch","cn":"树枝；分枝；分公司，分店；支部","key":"b"},{"en":"breathe","cn":"呼吸","key":"b"},{"en":"brief","cn":"简洁的","key":"b"},{"en":"broad","cn":"宽的，宽大的","key":"b"},{"en":"brochure","cn":"n.资料（或广告）手册","key":"b"},{"en":"butter","cn":"黄油，奶油","key":"b"},{"en":"button","cn":"纽扣；（电铃等的）按钮 vt. 扣（纽扣）","key":"b"},{"en":"café","cn":"咖啡馆； 餐馆","key":"c"},{"en":"calm","cn":"adj.镇静的,沉着的 vt.使镇静,使平静","key":"c"}],"star5":[{"en":"campus","cn":"(大学、学院的)校园，校区","key":"c"},{"en":"capable","cn":"有能力;有才能;能力强的;足以胜任的","key":"c"},{"en":"carbon","cn":"碳","key":"c"},{"en":"case","cn":"情况；病例；案件；真相n. 箱；盒；容器","key":"c"},{"en":"cash","cn":"n.现金，现钞 vt. 兑现","key":"c"},{"en":"cattle","cn":"牛（总称），家畜","key":"c"},{"en":"chain","cn":"链； 链条","key":"c"},{"en":"challenge","cn":"挑战(性)","key":"c"},{"en":"champion","cn":"冠军，优胜者","key":"c"},{"en":"chapter","cn":"章","key":"c"},{"en":"character","cn":"（汉）字.字体；品格","key":"c"},{"en":"charge","cn":"vt.要求收费；索价；将(电池)充电 n. 费用；价钱","key":"c"},{"en":"charity","cn":"慈善机构,慈善,施舍;仁爱;宽容;宽厚","key":"c"},{"en":"chat","cn":"聊天，闲谈","key":"c"},{"en":"chief","cn":"主要,首要的 n.领导，头","key":"c"},{"en":"china","cn":"瓷;瓷料;瓷制品;瓷器","key":"c"},{"en":"clap","cn":"拍手；鼓掌","key":"c"},{"en":"click","cn":"点击（计算机用语）","key":"c"},{"en":"climate","cn":"气候","key":"c"},{"en":"collection","cn":"收藏品，收集物","key":"c"}],"star6":[{"en":"comment","cn":"n. 议论,评论,批评 vt. 表达意见","key":"c"},{"en":"committee","cn":"委员会","key":"c"},{"en":"company","cn":"公司","key":"c"},{"en":"concentrate","cn":"集中意力;聚精会神;使…集中; 使浓缩","key":"c"},{"en":"concern","cn":"涉及，关心","key":"c"},{"en":"conduct","cn":"vt.组织;安排;实施 n. 人的行为/举止","key":"c"},{"en":"conference","cn":"(正式的)会议；讨论","key":"c"},{"en":"confidence","cn":"信心,信任,自信心,肯定","key":"c"},{"en":"confirm","cn":"证实，证明，确认","key":"c"},{"en":"congratulation","cn":"祝贺，庆贺","key":"c"},{"en":"contact","cn":"n.联系，触摸,接触 vt. 联系，联络","key":"c"},{"en":"contain","cn":"包含；包括；能容纳","key":"c"},{"en":"content","cn":"甘愿的,满意的 n.内容","key":"c"},{"en":"context","cn":"背景，上下文, 语境","key":"c"},{"en":"continent","cn":"大陆，大洲；陆地","key":"c"},{"en":"contribution","cn":"贡献","key":"c"},{"en":"convenient","cn":"便利的，方便的","key":"c"},{"en":"county","cn":"郡;县","key":"c"},{"en":"court","cn":"法庭；法院","key":"c"},{"en":"crash","cn":"碰撞，撞击","key":"c"}],"star7":[{"en":"creative","cn":"创造性的;创作的;有创造力的","key":"c"},{"en":"credit","cn":"信用；信赖；信誉","key":"c"},{"en":"crowd","cn":"n.人群 vi.挤满，塞满","key":"c"},{"en":"cure","cn":"治疗；医好","key":"c"},{"en":"curious","cn":"好奇的；奇异的","key":"c"},{"en":"current","cn":"当前的;现在的;流通的;","key":"c"},{"en":"custom","cn":"习惯，习俗，风俗习惯","key":"c"},{"en":"data","cn":"资料，数据","key":"d"},{"en":"death","cn":"死","key":"d"},{"en":"declare","cn":"声明；断言","key":"d"},{"en":"decorate","cn":"装饰…，修饰…","key":"d"},{"en":"deer","cn":"鹿","key":"d"},{"en":"defence/defense","cn":"防御；防务","key":"d"},{"en":"definitely","cn":"肯定;确切地;明确地;清楚地","key":"d"},{"en":"deliver","cn":"投递（信件，邮包等）","key":"d"},{"en":"description","cn":"描述，描写","key":"d"},{"en":"desert","cn":"n.沙漠 vt. 舍弃； 遗弃","key":"d"},{"en":"design","cn":"vt.设计，策划  n. 图案，图样，样式","key":"d"},{"en":"desire","cn":"要求；期望","key":"d"},{"en":"despite","cn":"即使;尽管;尽管(自己)不愿意","key":"d"}],"star8":[{"en":"destination","cn":"目的地，终点","key":"d"},{"en":"destroy","cn":"破坏，毁坏","key":"d"},{"en":"detail","cn":"n. 细微之处; 全部细节 vt. 详细列举;详述","key":"d"},{"en":"determine","cn":"决定；决心","key":"d"},{"en":"diagram","cn":"图表，图样","key":"d"},{"en":"diet","cn":"饮食","key":"d"},{"en":"digital","cn":"数字的，数码的","key":"d"},{"en":"dinosaur","cn":"恐龙","key":"d"},{"en":"disappear","cn":"消失","key":"d"},{"en":"disaster","cn":"灾难；祸患","key":"d"},{"en":"disease","cn":"病，疾病","key":"d"},{"en":"distance","cn":"距离","key":"d"},{"en":"document","cn":"文件；文献","key":"d"},{"en":"dolphin","cn":"海豚","key":"d"},{"en":"donate","cn":"捐赠，赠送;献(血);捐献(器官)","key":"d"},{"en":"download","cn":"下载","key":"d"},{"en":"downstairs","cn":"在楼下；到楼下","key":"d"},{"en":"downtown","cn":"adv.在市中心，往市中心 n. 商业区;市中心","key":"d"},{"en":"dragon","cn":"传说中的龙;悍妇;母夜叉","key":"d"},{"en":"drought","cn":"久旱;旱灾","key":"d"}],"star9":[{"en":"due to","cn":"由于，因为","key":"d"},{"en":"duty","cn":"责任，义务","key":"d"},{"en":"eager","cn":"渴望的，热切的","key":"e"},{"en":"earn","cn":"挣得，赚得","key":"e"},{"en":"editor","cn":"编辑（者）","key":"e"},{"en":"effect","cn":"效果；作用","key":"e"},{"en":"effort","cn":"努力，艰难的尝试","key":"e"},{"en":"electricity","cn":"电；电流","key":"e"},{"en":"element","cn":"要素;基本部分;典型部分","key":"e"},{"en":"enable","cn":"使能够;使成为可能;使实现","key":"e"},{"en":"energetic","cn":"精力旺盛的","key":"e"},{"en":"energy","cn":"精力，能量","key":"e"},{"en":"engine","cn":"发动机，引擎","key":"e"},{"en":"ensure","cn":"保证;担保;确保","key":"e"},{"en":"entirely","cn":"adv. 全部地;完整地;完全地","key":"e"},{"en":"entrance","cn":"入口；入场；进入的权利;入学许可","key":"e"},{"en":"envelope","cn":"信封","key":"e"},{"en":"equal","cn":"adj.平等的 vt.等于，使等于","key":"e"},{"en":"equipment","cn":"装备，设备","key":"e"},{"en":"error","cn":"错误；差错","key":"e"}],"star10":[{"en":"erupt","cn":"（火山）爆发，喷发","key":"e"},{"en":"escape","cn":"逃跑；逃脱","key":"e"},{"en":"establish","cn":"建立;创立;设立","key":"e"},{"en":"eve","cn":"(指宗教节假日的)前夜，前夕","key":"e"},{"en":"event","cn":"事件，大事","key":"e"},{"en":"eventually","cn":"最终地","key":"e"},{"en":"exchange","cn":"交换，掉换；交流","key":"e"},{"en":"exist","cn":"存在","key":"e"},{"en":"exit","cn":"出口，太平门","key":"e"},{"en":"experiment","cn":"实验","key":"e"},{"en":"expert","cn":"专家，能手","key":"e"},{"en":"explore","cn":"探险","key":"e"},{"en":"export","cn":"出口，输出","key":"e"},{"en":"extent","cn":"程度;限度;大小;面积;范围","key":"e"},{"en":"external","cn":"adj. 外部的;外来的; n. 外部;外面;外观;外部情况","key":"e"},{"en":"extinction","cn":"(植物、动物的)灭绝，绝种，消亡","key":"e"},{"en":"extra","cn":"额外的，外加的","key":"e"},{"en":"extremely","cn":"极其，非常","key":"e"},{"en":"facility","cn":"设施;设备;(机器等的)特别装置","key":"f"},{"en":"factor","cn":"因素;要素;因子","key":"f"}],"star11":[{"en":"failure","cn":"失败","key":"f"},{"en":"familiar","cn":"熟悉的","key":"f"},{"en":"fancy","cn":"花式；装饰的；奇特的","key":"f"},{"en":"feature","cn":"n. 特色;特点;专题节目vt. 以…为特色;由…主演","key":"f"},{"en":"female","cn":"女的；女性的；雌性的","key":"f"},{"en":"figure","cn":"n.数字；图形；身型；人物像 vt.认为，判断; 想像","key":"f"},{"en":"file","cn":"公文柜；档案(计算机)文档","key":"f"},{"en":"flash","cn":"闪；闪光； 转瞬间","key":"f"},{"en":"flat","cn":"adj. 平的 n. 楼中一套房间； 公寓(常用复数)","key":"f"},{"en":"flexible","cn":"灵活的，可变动的","key":"f"},{"en":"flight","cn":"航班;楼梯的一段","key":"f"},{"en":"flood","cn":"n.洪水 vt. 淹没，使泛滥","key":"f"},{"en":"focus","cn":"vt.集中（注意力，精力）于  n.焦点，中心点","key":"f"},{"en":"formal","cn":"正规的;庄重的;正式的","key":"f"},{"en":"former","cn":"以前的，从前的；（两者之中的）前者","key":"f"},{"en":"fotunately","cn":"幸运地;交好运地","key":"f"},{"en":"forward","cn":"将来.今后.向前，前进","key":"f"},{"en":"frank","cn":"adj. 坦率的;直率的","key":"f"},{"en":"frequently","cn":"adv. 经常地；频繁地","key":"f"},{"en":"frightened","cn":"惊吓的;受惊的;害怕的","key":"f"}],"star12":[{"en":"function","cn":"作用,功能,运转","key":"f"},{"en":"fund","cn":"n. 基金;专款;资金;现款 vt. 为…提供资金","key":"f"},{"en":"further","cn":"adv.较远，更远 adj. 更多的;更进一步的","key":"f"},{"en":"gap","cn":"缺口;间断;分歧;隔阂;差距","key":"g"},{"en":"gas","cn":"煤气","key":"g"},{"en":"gather","cn":"聚集；采集","key":"g"},{"en":"genenration","cn":"代，一代","key":"g"},{"en":"generous","cn":"慷慨大方的","key":"g"},{"en":"global","cn":"全球的;全世界的;整体的","key":"g"},{"en":"goal","cn":"（足球）球门，目标","key":"g"},{"en":"goods","cn":"商品，货物","key":"g"},{"en":"graduate","cn":"毕业","key":"g"},{"en":"greenhouse","cn":"温室;暖房","key":"g"},{"en":"guideline","cn":"指导方针;指导原则;行动准则","key":"g"},{"en":"guy","cn":"小伙子;家伙;伙计们;兄弟","key":"g"},{"en":"gym","cn":"体操；体育馆；健身房","key":"g"},{"en":"gymnastics","cn":"体操","key":"g"},{"en":"hesitate","cn":"(对某事)犹豫，迟疑不决;顾虑;疑虑","key":"h"},{"en":"honey","cn":"蜂蜜","key":"h"},{"en":"honour/honor","cn":"n.荣誉，光荣  vt. 尊敬，给予荣誉","key":"h"}],"star13":[{"en":"horrible","cn":"令人恐惧；恐怖的","key":"h"},{"en":"host","cn":"n.主人；节目主持人 vt. 主持;主办","key":"h"},{"en":"hug","cn":"拥抱","key":"h"},{"en":"hurricane","cn":"飓风，十二级风","key":"h"},{"en":"identity","cn":"确认;鉴定;发现;显示","key":"i"},{"en":"ignore","cn":"忽视，对…不理会","key":"i"},{"en":"illustrate","cn":"给(书等)做图表;(用示例/图画等)说明","key":"i"},{"en":"image","cn":"形象;印象;声誉","key":"i"},{"en":"immediately","cn":"立即","key":"i"},{"en":"impact","cn":"n. 巨大影响;强大作用 vt.影响…，对 …有作用","key":"i"},{"en":"import","cn":"进口，输入","key":"i"},{"en":"impression","cn":"印象，感觉","key":"i"},{"en":"improve","cn":"改进，更新","key":"i"},{"en":"income","cn":"收入，所得","key":"i"},{"en":"indeed","cn":"真正地","key":"i"},{"en":"independent","cn":"独立的,有主见的","key":"i"},{"en":"indicate","cn":"表明，象征，暗示","key":"i"},{"en":"individual","cn":"adj. 单独的;个别的;一个人的 n. 个人","key":"i"},{"en":"insect","cn":"昆虫","key":"i"},{"en":"inspire","cn":"鼓舞； 激励","key":"i"}],"star14":[{"en":"intelligent","cn":"聪明的，智慧的","key":"i"},{"en":"intend","cn":"想要，打算","key":"i"},{"en":"issue","cn":"重要议题;争论的问题","key":"i"},{"en":"jeans","cn":"牛仔裤","key":"j"},{"en":"jog","cn":"慢跑","key":"j"},{"en":"journal","cn":"报纸;刊物;杂志","key":"j"},{"en":"joy","cn":"欢乐，高兴，乐趣","key":"j"},{"en":"judge","cn":"n.裁判；审判员；法官vt. 判断，断定","key":"j"},{"en":"junior","cn":"初级的；年少的","key":"j"},{"en":"justice","cn":"正义；公正；司法","key":"j"},{"en":"kangaroo","cn":"大袋鼠","key":"k"},{"en":"lantern","cn":"灯笼；提灯","key":"l"},{"en":"lap","cn":"(人坐时)膝部.(跑道的)一圈","key":"l"},{"en":"lecture","cn":"讲课，演讲","key":"l"},{"en":"length","cn":"长，长度，段，节","key":"l"},{"en":"likely","cn":"可能的，预料的，有希望的","key":"l"},{"en":"limited","cn":"adj. 有限的;受…限制的","key":"l"},{"en":"literature","cn":"文学","key":"l"},{"en":"living","cn":"adj. 活着的 n. 生计","key":"l"},{"en":"location","cn":"地方;地点;位置","key":"l"}],"star15":[{"en":"loss","cn":"丧失；损耗","key":"l"},{"en":"maintain","cn":"维持;保持;维修;保养","key":"m"},{"en":"major","cn":"较大的；主要的","key":"m"},{"en":"majority","cn":"大多数","key":"m"},{"en":"male","cn":"男（性）的；雄的","key":"m"},{"en":"march","cn":"游行，行进","key":"m"},{"en":"marriage","cn":"结婚，婚姻","key":"m"},{"en":"mass","cn":"众多;大量;（复）群众","key":"m"},{"en":"master","cn":"精通，掌握","key":"m"},{"en":"material","cn":"材料，原料","key":"m"},{"en":"measure","cn":"vt.测量，判定 n.措施，方法","key":"m"},{"en":"medal","cn":"奖牌","key":"m"},{"en":"medium(pl.media)","cn":"n.媒体,手段 adj.中号的,中等的","key":"m"},{"en":"memory","cn":"回忆，记忆","key":"m"},{"en":"mental","cn":"精神的；脑力的","key":"m"},{"en":"merry","cn":"高兴的，愉快的","key":"m"},{"en":"metal","cn":"n.金属 adj. 金属制成的","key":"m"},{"en":"midnight","cn":"午夜","key":"m"},{"en":"military","cn":"adj. 军事的;军队的;武装的","key":"m"},{"en":"moment","cn":"片刻，瞬间","key":"m"}],"star16":[{"en":"moreover","cn":"adv. 此外;而且","key":"m"},{"en":"movement","cn":"运动，活动","key":"m"},{"en":"narrow","cn":"狭窄的","key":"n"},{"en":"nation","cn":"民族，国家","key":"n"},{"en":"nationality","cn":"国籍","key":"n"},{"en":"nearby","cn":"附近的","key":"n"},{"en":"neat","cn":"整洁的；灵巧的","key":"n"},{"en":"negative","cn":"消极的;负面的;否定的","key":"n"},{"en":"normal","cn":"adj.正常的,典型的  n.常态，通常标准","key":"n"},{"en":"nowadays","cn":"当今，现在","key":"n"},{"en":"nowhere","cn":"任何地方都不,无处","key":"n"},{"en":"nut","cn":"坚果,果仁(胡桃,栗子等)","key":"n"},{"en":"observe","cn":"观察，监视，观测","key":"o"},{"en":"obviously","cn":"显然地","key":"o"},{"en":"occasion","cn":"场合；特别的事情","key":"o"},{"en":"occur","cn":"发生","key":"o"},{"en":"ocean","cn":"海洋","key":"o"},{"en":"odd","cn":"奇怪的;怪异的;反常的","key":"o"},{"en":"official","cn":"n.官员,高级职员 adj.官方,政府的","key":"o"},{"en":"onto","cn":"到…的上面","key":"o"}],"star17":[{"en":"opera","cn":"歌剧,戏剧","key":"o"},{"en":"operation","cn":"手术，操作","key":"o"},{"en":"opinion","cn":"看法，见解","key":"o"},{"en":"opportunity","cn":"机会;时机","key":"o"},{"en":"option","cn":"可选择的事物;选择权;选择的自由","key":"o"},{"en":"ordinary","cn":"普通的，平常的","key":"o"},{"en":"organisation/organization","cn":"组织，机构","key":"o"},{"en":"original","cn":"原来的;起初的;最早的;首创的;独创的","key":"o"},{"en":"otherwise","cn":"要不然,否则,除此之外","key":"o"},{"en":"ought to","cn":"应该，应当","key":"o"},{"en":"oversea","cn":"adj. 外国的;海外的 adv. 在国外;在海外","key":"o"},{"en":"oxygen","cn":"氧；氧气","key":"o"},{"en":"package","cn":"一包，一袋，一盒","key":"p"},{"en":"particular","cn":"特殊的，个别的","key":"p"},{"en":"partner","cn":"搭档，合作者","key":"p"},{"en":"passive","cn":"被动的","key":"p"},{"en":"path","cn":"小道，小径","key":"p"},{"en":"pattern","cn":"式样","key":"p"},{"en":"per","cn":"每，每一","key":"p"},{"en":"percent","cn":"百分之……","key":"p"}],"star18":[{"en":"percentage","cn":"百分率","key":"p"},{"en":"performance","cn":"演出，表演","key":"p"},{"en":"permit","cn":"vt.许可,允许;执照 n.许可证","key":"p"},{"en":"personality","cn":"个性;人格;气质","key":"p"},{"en":"petrol","cn":"石油","key":"p"},{"en":"piano","cn":"钢琴","key":"p"},{"en":"plate","cn":"n.盘子,碟子 vt.为…… 电镀，为……加设护板","key":"p"},{"en":"plus","cn":"加，加上","key":"p"},{"en":"p.m.","cn":"下午,午后","key":"p"},{"en":"poetry","cn":"诗集;诗歌;诗作","key":"p"},{"en":"poison","cn":"n.毒药,毒物 vt.下毒，毒死，败坏","key":"p"},{"en":"pole","cn":"柱子，杆，电线杆，地极","key":"p"},{"en":"policy","cn":"政策，方针，原则","key":"p"},{"en":"port","cn":"港口，码头","key":"p"},{"en":"position","cn":"位置","key":"p"},{"en":"positive","cn":"adj. 积极乐观的;自信的;积极的","key":"p"},{"en":"poster","cn":"(贴在公共场所的大型)招贴；广告(画)","key":"p"},{"en":"postpone","cn":"推迟，延期","key":"p"},{"en":"power","cn":"n.控制力，统治，电力 vt.驱动，快速前进","key":"p"},{"en":"prefer","cn":"宁愿（选择）,更喜欢","key":"p"}],"star19":[{"en":"press","cn":"vt.压,按 n.新闻界,出版社","key":"p"},{"en":"pressure","cn":"压迫,压力,压强","key":"p"},{"en":"prevent","cn":"防止, 预防","key":"p"},{"en":"previous","cn":"先前的;以往的;稍前的","key":"p"},{"en":"procedure","cn":"程序,手续,待遇","key":"p"},{"en":"process","cn":"n.过程,进程 vt.加工,处理","key":"p"},{"en":"professional","cn":"adj. 职业的; 精通业务的 n. 专业人士;专家","key":"p"},{"en":"profit","cn":"利润，收益","key":"p"},{"en":"proposal","cn":"提议;建议;求婚","key":"p"},{"en":"protest","cn":"n. 抗议;抗议书(或行动);反对 vt. (公开)反对;抗议","key":"p"},{"en":"prove","cn":"证明","key":"p"},{"en":"province","cn":"省","key":"p"},{"en":"publish","cn":"出版，发行","key":"p"},{"en":"pudding","cn":"布丁; 餐末的甜点","key":"p"},{"en":"quality","cn":"质量，性质","key":"q"},{"en":"quit","cn":"离任，离校，戒掉","key":"q"},{"en":"range","cn":"n.范围，界限，区间 vi.在…范围内变化，排列，排序","key":"r"},{"en":"rate","cn":"n.比率，进度，速度 vt.评估，评价","key":"r"},{"en":"rather","cn":"相当，宁可","key":"r"},{"en":"reaction","cn":"反应;回应","key":"r"}],"star20":[{"en":"recognise/recognize","cn":"vt.认出","key":"r"},{"en":"recommend","cn":"推荐","key":"r"},{"en":"recover","cn":"痊愈；恢复","key":"r"},{"en":"reduce","cn":"减少，缩减","key":"r"},{"en":"refer","cn":"谈到,提到,涉及,有关","key":"r"},{"en":"reflect","cn":"反映，显示，表明，表达","key":"r"},{"en":"regard","cn":"把……看作","key":"r"},{"en":"region","cn":"地区;区域;行政区","key":"r"},{"en":"regular","cn":"规则的，经常","key":"r"},{"en":"relief","cn":"轻松,解脱,缓和,救济","key":"r"},{"en":"remind","cn":"提醒，使记起","key":"r"},{"en":"remove","cn":"移动，拿走，脱掉（衣服等）","key":"r"},{"en":"replace","cn":"取代","key":"r"},{"en":"represent","cn":"代表","key":"r"},{"en":"republic","cn":"共和国","key":"r"},{"en":"request","cn":"请求，要求","key":"r"},{"en":"resource","cn":"资源;财力; 资料","key":"r"},{"en":"respect","cn":"尊敬，尊重","key":"r"},{"en":"respond","cn":"回答,回应,作出反应","key":"r"},{"en":"response","cn":"回答;答复;反应","key":"r"}],"star21":[{"en":"responsible","cn":"有责任的; 应受责备的; 成为起因的","key":"r"},{"en":"retire","cn":"退休","key":"r"},{"en":"reveal","cn":"揭示;显示;露出;展示","key":"r"},{"en":"revise","cn":"修订;复习","key":"r"},{"en":"roll","cn":"vt/vi滚动, 翻滚 n. 面包圈，小圆面包；卷状物","key":"r"},{"en":"romantic","cn":"浪漫的; 多情的; ;富有情调的","key":"r"},{"en":"satisfaction","cn":"满意","key":"s"},{"en":"scare","cn":"使害怕，使恐惧","key":"s"},{"en":"scene","cn":"戏剧/电影等的一场，场景，布景","key":"s"},{"en":"schedule","cn":"n. 工作计划，日程安排vt. 安排时间，预定","key":"s"},{"en":"section","cn":"段，部分，部门","key":"s"},{"en":"seek","cn":"寻找，寻求，谋求，争取","key":"s"},{"en":"select","cn":"选择，挑选，选拔","key":"s"},{"en":"senior","cn":"adj.年长的,资深的,高年级的 n. 上级，长辈，高年级生","key":"s"},{"en":"series","cn":"一系列; 系列节目","key":"s"},{"en":"settle","cn":"解决，安排，使定居，定居","key":"s"},{"en":"sex","cn":"性，性别","key":"s"},{"en":"shallow","cn":"浅的,不深的,肤浅的","key":"s"},{"en":"sharp","cn":"锋利的，尖的","key":"s"},{"en":"sheet","cn":"床单;被单;;薄片，薄板","key":"s"}],"star22":[{"en":"shock","cn":"n.震惊;惊愕;令人震惊的事 vt.使震惊,使惊愕","key":"s"},{"en":"shoot","cn":"vt/vi.射击，射中，发射,打猎 n. 嫩枝；苗；芽","key":"s"},{"en":"sight","cn":"情景，风景；视力","key":"s"},{"en":"signal","cn":"信号，暗号","key":"s"},{"en":"significant","cn":"有重大意义的;显著的; 别有含义的","key":"s"},{"en":"site","cn":"地点，位置;现场;发生地; 网站","key":"s"},{"en":"ski","cn":"滑雪,滑雪运动","key":"s"},{"en":"skin","cn":"皮，皮肤；兽皮","key":"s"},{"en":"slide","cn":"n.幻灯片,滑道 vi/vt.滑行,滑动,逐渐降低","key":"s"},{"en":"slightly","cn":"略微;稍微","key":"s"},{"en":"slim","cn":"苗条的，纤细的","key":"s"},{"en":"smog","cn":"烟雾(= smoke + fog)","key":"s"},{"en":"snack","cn":"小吃","key":"s"},{"en":"soccer","cn":"英式足球","key":"s"},{"en":"software","cn":"软件","key":"s"},{"en":"solution","cn":"解决办法;处理手段;答案","key":"s"},{"en":"somehow","cn":"不知为什么;不知怎么地","key":"s"},{"en":"sort","cn":"vt.把…分类,拣选 n. 种类,类别","key":"s"},{"en":"source","cn":"来源,根源,原因","key":"s"},{"en":"specific","cn":"明确的,具体的,独特的","key":"s"}],"star23":[{"en":"staff","cn":"全体职工/雇员","key":"s"},{"en":"stage","cn":"舞台,阶段","key":"s"},{"en":"stair","cn":"楼梯","key":"s"},{"en":"strategy","cn":"策略;规划","key":"s"},{"en":"strength","cn":"力量,力气","key":"s"},{"en":"stress","cn":"vt. 强调,重读 n.精神压力,心理负担","key":"s"},{"en":"struggle","cn":"奋斗,努力,斗争","key":"s"},{"en":"studio","cn":"工作室,演播室","key":"s"},{"en":"stuff","cn":"vt. 填满,装满,塞满 n.东西,物品,原料","key":"s"},{"en":"style","cn":"方式,作风,款式","key":"s"},{"en":"subway","cn":"地铁交通,地下人行道","key":"s"},{"en":"suffer","cn":"受苦,遭受","key":"s"},{"en":"sufficient","cn":"adj. 足够的,充足的","key":"s"},{"en":"summary","cn":"n.摘要,概要","key":"s"},{"en":"super","cn":"adj.顶好的,超级的","key":"s"},{"en":"supply","cn":"vt.供给,供应","key":"s"},{"en":"surf","cn":"vt.冲浪; 漫游，浏览","key":"s"},{"en":"surround","cn":"围绕,包围,环绕","key":"s"},{"en":"survive","cn":"vt.生存,存活,幸免于难","key":"s"},{"en":"sweat","cn":"vi 流汗 n.汗,汗水","key":"s"}],"star24":[{"en":"system","cn":"n.体系,系统","key":"s"},{"en":"talent","cn":"n.天才,天赋","key":"t"},{"en":"target","cn":"vt. 把…作为攻击目标   n.目标","key":"t"},{"en":"tear","cn":"n.眼泪；vt. 扯破,撕开,扯掉","key":"t"},{"en":"technique","cn":"n.技术,技巧,方法","key":"t"},{"en":"teenager","cn":"13～19岁的青少年,十几岁的少年","key":"t"},{"en":"tend","cn":"vi.往往会,常常就,倾向,趋于","key":"t"},{"en":"theme","cn":"主题","key":"t"},{"en":"therefore","cn":"因此，所以","key":"t"},{"en":"throughout","cn":"遍及，贯穿","key":"t"},{"en":"thus","cn":"这样；因而","key":"t"},{"en":"tip","cn":"顶端，尖端；告诫； 提示 (给)小费","key":"t"},{"en":"tissue","cn":"（人，动植物的）组织，纸巾","key":"t"},{"en":"title","cn":"标题，题目","key":"t"},{"en":"topic","cn":"题目，话题","key":"t"},{"en":"tough","cn":"坚硬的；结实的；棘手的，难解的","key":"t"},{"en":"track","cn":"轨道；田径","key":"t"},{"en":"tradition","cn":"传统，风俗","key":"t"},{"en":"transport","cn":"运输","key":"t"},{"en":"treatment","cn":"治疗,疗法","key":"t"}],"star25":[{"en":"turkey","cn":"火鸡","key":"t"},{"en":"type","cn":"打字","key":"t"},{"en":"typical","cn":"典型的，有代表性的，特有的","key":"t"},{"en":"unique","cn":"惟一的,独一无二的","key":"u"},{"en":"update","cn":"使现代化;更新 n. 现代化;更新的信息","key":"u"},{"en":"upper","cn":"较高的，较上的","key":"u"},{"en":"variety","cn":"种种，种类","key":"v"},{"en":"various","cn":"各种各样的，不同的","key":"v"},{"en":"vehicle","cn":"交通工具，车辆","key":"v"},{"en":"view","cn":"看法,见解;风景,景色","key":"v"},{"en":"volcano","cn":"火山","key":"v"},{"en":"volunteer","cn":"义工，自愿者，无偿做","key":"v"},{"en":"wedding","cn":"婚礼,结婚","key":"w"},{"en":"whale","cn":"鲸","key":"w"},{"en":"Wi-Fi","cn":"无线局域网;无线网络;无线上网","key":"w"},{"en":"wine","cn":"酒","key":"w"},{"en":"within","cn":"在……里面","key":"w"},{"en":"yoghurt","cn":"酸奶","key":"y"},{"en":"youth","cn":"青春；青年","key":"y"}]};
+const LVS = Object.keys(D);
+const TOTAL_LV = LVS.length;
+
+const MODES = [
+  {id:"en-cn", label:"📖 英→中", q:"选择正确的中文释义", enFirst:true},
+  {id:"cn-en", label:"📝 中→英", q:"选择正确的英文单词", enFirst:false},
+  {id:"listen", label:"🔊 听音选", q:"听发音选择正确的中文", enFirst:true},
+  {id:"match", label:"🔗 配对", q:"将英文与中文配对", enFirst:true}
+];
+
+const S = {s:1, l:0, q:0, ord:[], ok:0, err:0, a:false, m:0, wrongList:[], timerInterval:null, startTime:0, elapsed:0};
+
+// ===== 计时 =====
+function startTimer(){
+  stopTimer();
+  S.startTime=Date.now();
+  S.timerInterval=setInterval(updateTimer,200);
+}
+function stopTimer(){
+  if(S.timerInterval){clearInterval(S.timerInterval);S.timerInterval=null;}
+}
+function updateTimer(){
+  if(!S.startTime)return;
+  const el=Math.floor((Date.now()-S.startTime)/1000);
+  S.elapsed=el;
+  const m=Math.floor(el/60),s=el%60;
+  const td=document.getElementById("timerDisplay");
+  if(td)td.textContent=m+":"+(s<10?"0":"")+s;
+}
+function fmtTime(ms){
+  const s=Math.floor(ms/1000),m=Math.floor(s/60);
+  return m+":"+(s%60<10?"0":"")+(s%60);
+}
+// ===== PB =====
+function getPB(lv,md){return parseInt(localStorage.getItem("pb_"+lv+"_"+md)||"0");}
+function setPB(lv,md,ms){
+  const k="pb_"+lv+"_"+md;
+  const prev=getPB(lv,md);
+  if(prev===0||ms<prev){localStorage.setItem(k,ms);return true;}
+  return false;
+}
+function getPBStr(lv,md){
+  const t=getPB(lv,md);
+  return t>0?"PB: "+fmtTime(t):"";
+}
+function $(id){return document.getElementById(id)}
+
+function renderLv(){
+  const lg=$("lg");
+  lg.innerHTML="";
+  LVS.forEach((key,i)=>{
+    const items=D[key].filter(it=>it.cn);
+    const done=JSON.parse(localStorage.getItem("vp")||"{}")[i];
+    lg.innerHTML+='<div class="level-btn'+(done?" done":"")+'" onclick="startL('+i+')"><span class="lnum">'+(i+1)+'</span><span class="lcount'+(done?" ok":"")+'">'+(done?done+"/"+items.length+" ✅":items.length+"词")+'</span></div>';
+  });
+}
+
+function backToLevels(){
+  $("ov").classList.remove("show");
+  $("gameView").style.display="none";
+  $("levelView").style.display="block";
+  renderLv();
+}
+
+function startL(idx){
+  if(idx<0||idx>=TOTAL_LV)return;
+  S.l=idx;S.q=0;S.ok=0;S.err=0;S.a=false;S.wrongList=[];S.matchRound=0;
+  const lv=D[LVS[idx]];
+  const items=lv.filter(it=>it.cn);
+  S.ord=items.map((_,i)=>i);
+  S.ord=sha(S.ord);
+  $("levelView").style.display="none";
+  $("gameView").style.display="block";
+  $("lvTitle").textContent="第 "+(idx+1)+" 关 · "+items.length+" 题";
+  renderModes();
+  startTimer();
+  showQ();
+}
+
+function renderModes(){
+  const c=$("modeTabs");
+  c.innerHTML="";
+  MODES.forEach((m,i)=>{
+    const b=document.createElement("button");
+    b.className="mode-tab"+(i===S.m?" active":"");
+    b.textContent=m.label;
+    b.onclick=()=>{S.m=i;document.querySelectorAll(".mode-tab").forEach(t=>t.classList.remove("active"));b.classList.add("active");showQ()};
+    c.appendChild(b);
+  });
+}
+
+function playAudio(word){
+  try{
+    if(window._aud){try{window._aud.pause();}catch(e){}}
+    const url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(word)+'&type=1';
+    window._aud=new Audio(url);
+    const p=window._aud.play();
+    if(p)p.catch(e=>console.warn('playAudio failed:',word,e));
+  }catch(e){console.warn('playAudio error:',word,e);}
+}
+
+function showQ(){
+  S.a=false;$("ht").style.display="none";$("hb").textContent="💡 提示";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  if(!items.length){backToLevels();return}
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  if(mode.id==="match"){showMatchQ();return}
+  const field=mode.enFirst?"en":"cn";
+  $("qArea").style.display="block";$("matchArea").style.display="none";
+  if(mode.id==="listen"){
+    $("qw").innerHTML='🔊';
+  }else{
+    $("qw").textContent=field==="en"?it.en:it.cn;
+  }
+  window._cw=it.en;$("qw").onclick=()=>{try{playAudio(window._cw)}catch(e){}};
+  if(mode.id==="listen")setTimeout(()=>playAudio(it.en),300);
+  $("qt").textContent=mode.q+"（"+(S.q+1)+"/"+S.ord.length+"）";
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  buildOpts(it,mode);
+}
+
+function buildOpts(it,mode){
+  const lv=D[LVS[S.l]];const items=lv.filter(x=>x.cn);
+  const correct=mode.enFirst?it.cn:it.en;
+  const optField=mode.enFirst?"cn":"en";
+  let pool=[];
+  if(mode.id==="listen"){
+    const others=mode.enFirst?items.map(x=>x.cn):items.map(x=>x.en);
+    pool=others.filter(x=>x!==correct);
+  }else if(optField==="cn"){
+    pool=items.map(x=>x.cn).filter(x=>x!==correct);
+  }else{
+    pool=items.map(x=>x.en).filter(x=>x!==correct);
+  }
+  if(pool.length<3){
+    const allItems=Object.values(D).flat().filter(x=>x.cn);
+    const exclude=new Set([correct,...pool]);
+    const extra=optField==="cn"?allItems.map(x=>x.cn):allItems.map(x=>x.en);
+    pool=pool.concat(extra.filter(x=>!exclude.has(x)));
+  }
+  const others=sha(pool).slice(0,3);
+  const opts=sha([correct,...others]);
+  let h="";
+  opts.forEach(o=>{
+        h+='<button class="option" data-v="'+encodeURIComponent(String(o))+'" onclick="check(this)">'+o+'</button>';
+  });
+  $("oa").innerHTML=h;
+}
+
+let _correct="";
+function check(btn){
+  if(S.a)return;S.a=true;
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  var chosen="";try{chosen=decodeURIComponent(btn.dataset.v)}catch(ex){chosen=btn.dataset.v}
+  _correct=mode.id==="cn-en"?it.en:it.cn;
+  const isOk=chosen===_correct;
+  if(isOk){btn.classList.add("correct");S.ok++;playOK()}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(b=>{if(b.textContent===_correct)b.classList.add("correct")});
+    S.err++;S.wrongList.push(it);playErr()
+  }
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  if(S.q+1<S.ord.length)setTimeout(nQ,500);else setTimeout(showRes,600);
+}
+
+// ====== Match Mode ======
+let M={sel:null,pairs:0,total:0};
+function showMatchQ(){
+  $("qArea").style.display="none";$("matchArea").style.display="flex";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const maxPerRound=10;
+  const totalItems=items.length;
+  const startIdx=S.matchRound*maxPerRound||0;
+  const endIdx=Math.min(startIdx+maxPerRound,totalItems);
+  const roundItems=items.slice(startIdx,endIdx);
+  const roundOrder=sha([...Array(roundItems.length).keys()]);
+  const enOrder=roundOrder.slice();
+  const cnOrder=sha([...roundOrder]);
+  M={sel:null,pairs:0,total:roundItems.length,roundItems,roundIdx:S.matchRound||0};
+  let enHtml='<div class="match-group-label">📖 英文</div>';
+  let cnHtml='<div class="match-group-label">📝 中文</div>';
+  enOrder.forEach((ri,i)=>{
+    enHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="en" onclick="matchClick(this,'+ri+')">'+roundItems[ri].en+'</div>';
+  });
+  cnOrder.forEach((ri,i)=>{
+    cnHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="cn" onclick="matchClick(this,'+ri+')">'+roundItems[ri].cn+'</div>';
+  });
+  $("matchArea").innerHTML='<div class="match-col" id="mcEn">'+enHtml+'</div><div class="match-col" id="mcCn">'+cnHtml+'</div>';
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  const roundNum=Math.floor(startIdx/maxPerRound)+1;
+  const totalRounds=Math.ceil(totalItems/maxPerRound);
+  $("qt").textContent="配对 "+(startIdx+1)+"-"+endIdx+"/"+totalItems+" (第 "+roundNum+"/"+totalRounds+" 轮)";
+}
+function matchClick(el,idx){
+  const pair=el.getAttribute('data-pair');
+  if(el.classList.contains("matched"))return;
+  if(!M.sel){el.classList.add("selected");M.sel={el,idx,pair};return;}
+  if(M.sel.el===el){el.classList.remove("selected");M.sel=null;return;}
+  if(M.sel.pair===pair){M.sel.el.classList.remove("selected");el.classList.add("selected");M.sel={el,idx,pair};return;}
+  const first=M.sel;
+  if(first.idx===idx){
+    first.el.classList.remove("selected");
+    first.el.classList.add("matched");
+    el.classList.add("matched");
+    M.sel=null;M.pairs++;S.ok++;playOK();
+    $("so").textContent=S.ok;
+    if(M.pairs>=M.total){
+    const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+    const maxPerRound=10;
+    const nextRound=(S.matchRound||0)+1;
+    const nextStart=nextRound*maxPerRound;
+    if(nextStart<items.length){
+      S.matchRound=nextRound;
+      setTimeout(showMatchQ,600);
+    }else{
+      setTimeout(goNext,600);
+    }
+  }
+    return;
+  }
+  first.el.classList.add("wrong-flash");
+  el.classList.add("wrong-flash");
+  S.err++;playErr();
+  // Determine EN/CN for wrong list
+  var enText = first.pair==="en"?first.el.textContent:el.textContent;
+  var cnText = first.pair==="cn"?first.el.textContent:el.textContent;
+  S.wrongList.push({en:enText,cn:cnText});
+  M.sel=null;
+  $("se").textContent=S.err;
+  setTimeout(()=>{
+    document.querySelectorAll(".wrong-flash").forEach(function(e){
+      e.classList.remove("wrong-flash");
+      e.classList.remove("selected");
+    });
+  },500);
+}
+
+function goNext(){S.q++;showRes();}
+
+function sha(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function nQ(){S.q++;showQ();}
+
+function sh(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];const mode=MODES[S.m];
+  $("ht").textContent="英文："+it.en;
+  $("ht").style.display="block";$("hb").textContent="已提示 ✓";
+  try{playAudio(it.en)}catch(e){}
+}
+
+function playOK(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sine";o.frequency.value=880;g.gain.setValueAtTime(.25,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.35)}catch(e){}
+}
+function playErr(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sawtooth";o.frequency.value=220;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.25);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.25)}catch(e){}
+}
+
+function showRes(){
+  stopTimer();
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const tot=items.length;const acc=tot>0?Math.round(S.ok/tot*100):0;
+  const stars=acc>=80?"★★★":acc>=60?"★★":"★";
+  const msgs=["继续加油！","做得不错！","太棒了！"];
+  $("rt").textContent=acc>=80?msgs[2]:acc>=60?msgs[1]:msgs[0];
+  $("rs").textContent=stars;$("rsc").textContent=S.ok+"/"+tot+" 正确";
+  const elapsedMs=S.elapsed?S.elapsed*1000:0;
+  $("rac").textContent="正确率 "+acc+"%  · 用时 "+fmtTime(elapsedMs);
+  const prog=JSON.parse(localStorage.getItem("vp")||"{}");
+  if(!prog[S.l]||prog[S.l]<S.ok)prog[S.l]=S.ok;
+  localStorage.setItem("vp",JSON.stringify(prog));
+  if(S.elapsed>0){
+    const pbKey="pb_"+S.l+"_"+S.m;
+    const prev=parseInt(localStorage.getItem(pbKey)||"0");
+    if(prev===0||S.elapsed<prev)localStorage.setItem(pbKey,S.elapsed);
+    const pbt=parseInt(localStorage.getItem(pbKey)||"0");
+    if(pbt>0)$("pbBadge").textContent="PB: "+fmtTime(pbt*1000);
+  }
+  let wh="";
+  if(S.wrongList.length>0){
+    wh='<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#f87171;font-size:.9em">❌ 错误单词列表：</span><button onclick="copyWL()" style="background:#252545;border:1px solid #3a3a5a;color:#94a3b8;padding:4px 14px;border-radius:6px;font-size:.82em;cursor:pointer">📋 复制</button></div>';
+    wh+='<div style="max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:12px;text-align:left">';
+    S.wrongList.forEach(it=>{wh+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em"><span style="color:#e2e8f0">'+esc(it.en)+'</span><span style="color:#94a3b8">'+esc(it.cn)+'</span></div>'});
+    wh+='</div></div>';
+  }
+  $("rmg").innerHTML=wh;$("ov").classList.add("show");
+}
+function retry(){$("ov").classList.remove("show");$("pbBadge").textContent="";$("timerDisplay").textContent="0:00";S.matchRound=0;startL(S.l);}
+function copyWL(){
+  const t=S.wrongList.map(it=>it.en+" - "+it.cn).join("\n");
+  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)}).catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)});
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ====== Click word to pronounce ======
+// Handled by $("qw").onclick in showQ()
+// ====== Init ======
+renderLv();
+
+</script>
+
+</body>
+</html>
