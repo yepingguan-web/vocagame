@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英语不规则动词检测 — 规律版 & 乱序版</title>
+<style>
+:root{--primary:#4f46e5;--primary-light:#eef2ff;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--green:#16a34a;--red:#dc2626;--amber:#d97706}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.header{background:linear-gradient(135deg,#1e1b4b,#312e81,#4338ca);color:#fff;padding:28px 20px 20px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.header h1{font-size:26px;margin-bottom:4px}
+.header .sub{font-size:13px;opacity:.8}
+.tabs{display:flex;justify-content:center;gap:4px;padding:16px 20px 0;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:100px;z-index:99}
+.tab-btn{padding:10px 28px;border:none;border-radius:10px 10px 0 0;cursor:pointer;font-size:15px;font-weight:600;background:transparent;color:var(--muted);transition:all .2s}
+.tab-btn:hover{color:var(--primary);background:var(--primary-light)}
+.tab-btn.active{color:var(--primary);background:var(--primary-light);border-bottom:3px solid var(--primary)}
+.container{max-width:1300px;margin:0 auto;padding:20px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;align-items:center}
+.search-box{flex:1;min-width:200px;position:relative}
+.search-box input{width:100%;padding:10px 16px 10px 40px;border:2px solid var(--border);border-radius:24px;font-size:14px;outline:none;transition:border .2s;background:#fff}
+.search-box input:focus{border-color:var(--primary)}
+.search-box .s-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#999}
+.toolbar .btn{padding:10px 20px;border:2px solid var(--border);border-radius:24px;cursor:pointer;font-size:14px;font-weight:500;background:#fff;transition:all .2s;white-space:nowrap}
+.toolbar .btn:hover{border-color:var(--primary);color:var(--primary)}
+.toolbar .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.toolbar .btn-quiz{padding:10px 20px;background:var(--green);color:#fff;border:none;border-radius:24px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap;transition:opacity .2s}
+.toolbar .btn-quiz:hover{opacity:.85}
+.count-info{font-size:13px;color:var(--muted);margin-left:auto}
+.cat-section{margin-bottom:24px;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.cat-header{padding:14px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;border-bottom:1px solid var(--border);user-select:none;transition:background .15s}
+.cat-header:hover{background:#f8fafc}
+.cat-header .arrow{transition:transform .25s;font-size:12px}
+.cat-header.collapsed .arrow{transform:rotate(-90deg)}
+.cat-badge{padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;color:#fff}
+.badge-aaa{background:#16a34a}
+.badge-abb{background:#2563eb}
+.badge-aba{background:#d97706}
+.badge-abc{background:#dc2626}
+.cat-body{overflow:hidden;transition:max-height .35s}
+.cat-body.hidden{max-height:0!important}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{background:#f8fafc;padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:2px solid var(--border);position:sticky;top:0;white-space:nowrap}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr:hover{background:#f8fafc}
+td.ipa{color:var(--muted);font-size:12px}
+td.meaning{min-width:120px;white-space:normal}
+.verb-base{font-weight:700;color:var(--primary)}
+.speakable{cursor:pointer;transition:all .15s;border-radius:4px;padding:2px 4px;margin:-2px -4px}
+.speakable:hover{background:#eef2ff;color:var(--primary)}
+.speakable:active{background:#dde4ff}
+.speak-icon{font-size:11px;opacity:.4;margin-left:2px;transition:opacity .15s}
+.speakable:hover .speak-icon{opacity:1}
+.blur-cell{filter:blur(5px);cursor:pointer;transition:filter .2s;user-select:none}
+.blur-cell:hover{filter:blur(2px)}
+.blur-cell.revealed{filter:none;cursor:default}
+.col-toggle{font-size:11px;color:var(--muted);cursor:pointer;user-select:none}
+.col-toggle:hover{color:var(--primary)}
+.btn-copy{padding:4px 12px;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;color:var(--muted);transition:all .15s;margin-left:8px}
+.btn-copy:hover{background:#e2e8f0;color:var(--text)}
+.btn-copy.copied{background:var(--green);color:#fff;border-color:var(--green)}
+.speaking{animation:pulse .3s}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+/* Quiz */
+.quiz-area{max-width:700px;margin:0 auto}
+.quiz-card{background:var(--card);border-radius:12px;padding:28px;box-shadow:0 4px 16px rgba(0,0,0,.08);text-align:center;margin-bottom:16px}
+.quiz-card .hint{font-size:13px;color:var(--muted);margin-bottom:4px}
+.quiz-card .base-word{font-size:42px;font-weight:800;color:var(--primary);margin:8px 0}
+.quiz-card .meaning-word{font-size:18px;color:var(--text);margin-bottom:12px}
+.quiz-card .meaning-cn{font-size:15px;color:var(--muted)}
+.quiz-inputs{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.quiz-inputs .field{text-align:left}
+.quiz-inputs label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.quiz-inputs input{padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:16px;width:180px;outline:none;transition:border .2s}
+.quiz-inputs input:focus{border-color:var(--primary)}
+.quiz-inputs input.correct{border-color:var(--green);background:#f0fdf4}
+.quiz-inputs input.wrong{border-color:var(--red);background:#fef2f2}
+.quiz-feedback{margin-top:16px;font-size:15px;min-height:24px}
+.quiz-feedback.correct{color:var(--green)}
+.quiz-feedback.wrong{color:var(--red)}
+.quiz-stats{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.quiz-stat{background:var(--card);border-radius:10px;padding:16px 24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.quiz-stat .num{font-size:28px;font-weight:700}
+.quiz-stat .lbl{font-size:12px;color:var(--muted)}
+.quiz-stat .num.ok{color:var(--green)}
+.quiz-stat .num.bad{color:var(--red)}
+/* Mobile */
+@media(max-width:768px){
+.header h1{font-size:20px}
+.tabs{top:80px}
+.tab-btn{padding:8px 16px;font-size:13px}
+.cat-header{font-size:14px}
+table{font-size:12px}
+tbody td{padding:8px 6px}
+.quiz-card .base-word{font-size:32px}
+.quiz-inputs input{width:140px;font-size:14px}
+}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 24px;border-radius:20px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>📖 英语不规则动词检测</h1>
+<div class="sub">规律版 · 乱序版 · 测验模式 | 含音标 & 中文释义</div>
+</div>
+
+<div class="tabs" id="tabBar">
+<button class="tab-btn active" data-tab="pattern">📂 规律版</button>
+<button class="tab-btn" data-tab="shuffle">🔀 乱序版</button>
+<button class="tab-btn" data-tab="quiz">✏️ 测验模式</button>
+</div>
+
+<div class="container">
+
+<!-- Toolbar -->
+<div class="toolbar" id="toolbar">
+<div class="search-box">
+<span class="s-icon">🔍</span>
+<input type="text" id="searchInput" placeholder="搜索动词原形、过去式、中文释义…">
+</div>
+<button class="btn active" id="btnShowAll" onclick="toggleBlur(false)">👁️ 全部显示</button>
+<button class="btn" id="btnBlurPast" onclick="toggleBlur('past')">🙈 隐藏过去式</button>
+<button class="btn" id="btnBlurPP" onclick="toggleBlur('pp')">🙈 隐藏过去分词</button>
+<button class="btn" id="btnBlurBoth" onclick="toggleBlur('both')">🙈 全部隐藏</button>
+<button class="btn-quiz" onclick="switchToQuiz()">✏️ 开始测验</button>
+<span class="count-info" id="countInfo"></span>
+</div>
+
+<!-- Pattern View -->
+<div id="viewPattern"></div>
+
+<!-- Shuffle View -->
+<div id="viewShuffle" style="display:none"></div>
+
+<!-- Quiz View -->
+<div id="viewQuiz" style="display:none"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== VERB DATA ====================
+const VERB_DATA = [
+  // ===== 1. AAA型 (原形=过去式=过去分词) =====
+  {base:'bet',past:'bet',pp:'bet',ing:'betting',ipaBase:'/bet/',ipaPast:'/bet/',ipaPP:'/bet/',meaning:'打赌',cat:'AAA'},
+  {base:'broadcast',past:'broadcast',pp:'broadcast',ing:'broadcasting',ipaBase:'/ˈbrɔːdkɑːst/',ipaPast:'',ipaPP:'',meaning:'广播',cat:'AAA'},
+  {base:'cast',past:'cast',pp:'cast',ing:'casting',ipaBase:'/kɑːst/',ipaPast:'/kɑːst/',ipaPP:'/kɑːst/',meaning:'抛',cat:'AAA'},
+  {base:'cost',past:'cost',pp:'cost',ing:'costing',ipaBase:'[kɔst]',ipaPast:'[kɔst]',ipaPP:'[kɔst]',meaning:'花费',cat:'AAA'},
+  {base:'cut',past:'cut',pp:'cut',ing:'cutting',ipaBase:'[kʌt]',ipaPast:'[kʌt]',ipaPP:'[kʌt]',meaning:'割，切',cat:'AAA'},
+  {base:'hurt',past:'hurt',pp:'hurt',ing:'hurting',ipaBase:'[hə:t]',ipaPast:'[hə:t]',ipaPP:'[hə:t]',meaning:'受伤',cat:'AAA'},
+  {base:'hit',past:'hit',pp:'hit',ing:'hitting',ipaBase:'[hit]',ipaPast:'[hit]',ipaPP:'[hit]',meaning:'打，撞',cat:'AAA'},
+  {base:'let',past:'let',pp:'let',ing:'letting',ipaBase:'[let]',ipaPast:'[let]',ipaPP:'[let]',meaning:'让',cat:'AAA'},
+  {base:'put',past:'put',pp:'put',ing:'putting',ipaBase:'[put]',ipaPast:'[put]',ipaPP:'[put]',meaning:'放下',cat:'AAA'},
+  {base:'read',past:'read',pp:'read',ing:'reading',ipaBase:'[ri:d]',ipaPast:'[red]',ipaPP:'[red]',meaning:'读',cat:'AAA'},
+  {base:'set',past:'set',pp:'set',ing:'setting',ipaBase:'[set]',ipaPast:'[set]',ipaPP:'[set]',meaning:'安排，安置',cat:'AAA'},
+  {base:'spread',past:'spread',pp:'spread',ing:'spreading',ipaBase:'[spred]',ipaPast:'[spred]',ipaPP:'[spred]',meaning:'展开，传播，涂',cat:'AAA'},
+  {base:'spit',past:'spit/spat',pp:'spit/spat',ing:'spitting',ipaBase:'[spit]',ipaPast:'[spit]',ipaPP:'[spit]',meaning:'吐痰',cat:'AAA'},
+  {base:'shut',past:'shut',pp:'shut',ing:'shutting',ipaBase:'[ʃʌt]',ipaPast:'[ʃʌt]',ipaPP:'[ʃʌt]',meaning:'关上,闭起,停止营业',cat:'AAA'},
+  {base:'upset',past:'upset',pp:'upset',ing:'upsetting',ipaBase:'/ʌpˈset/',ipaPast:'',ipaPP:'',meaning:'打乱;使心烦意乱;使生气',cat:'AAA'},
+  // AAA-like with alternatives
+  {base:'bleed',past:'bled',pp:'bled',ing:'bleeding',ipaBase:'/bliːd/',ipaPast:'/bled/',ipaPP:'/bled/',meaning:'流血',cat:'AAA',sub:'元音变化'},
+  {base:'bless',past:'blessed',pp:'blessed',ing:'blessing',ipaBase:'[bles]',ipaPast:'/blest/',ipaPP:"['blesɪd] /blest",meaning:'祝福；保佑；赞美',cat:'AAA',sub:'规则变化'},
+  {base:'breed',past:'bred',pp:'bred',ing:'breeding',ipaBase:'[bri:d]',ipaPast:'[bred]',ipaPP:'[bred]',meaning:'饲养;培育;繁殖',cat:'AAA',sub:'元音变化'},
+  {base:'burn',past:'burnt/burned',pp:'burnt/burned',ing:'burning',ipaBase:'[bɜ:n]',ipaPast:'',ipaPP:'',meaning:'燃烧',cat:'AAA',sub:'两种形式'},
+  {base:'flee',past:'fled',pp:'fled',ing:'fleeing',ipaBase:'[fli:]',ipaPast:'/fled/',ipaPP:'/fled/',meaning:'逃走;逃避',cat:'AAA',sub:'元音变化'},
+  {base:'kneel',past:'knelt/kneeled',pp:'knelt/kneeled',ing:'kneeling',ipaBase:'/niːl/',ipaPast:'/nelt/',ipaPP:'',meaning:'跪，下跪',cat:'AAA',sub:'两种形式'},
+  {base:'knit',past:'knitted/knit',pp:'knitted/knit',ing:'knitting',ipaBase:'/nɪt/',ipaPast:'',ipaPP:'',meaning:'编织;接合(折骨等)',cat:'AAA',sub:'两种形式'},
+
+  // ===== 2. ABB型 (过去式=过去分词) =====
+  {base:'beat',past:'beat',pp:'beaten',ing:'beating',ipaBase:'[bi:t]',ipaPast:'[bi:t]',ipaPP:"['bi:tn]",meaning:'打败',cat:'ABB'},
+  {base:'bend',past:'bent',pp:'bent',ing:'bending',ipaBase:'/bend/',ipaPast:'/bent/',ipaPP:'/bent/',meaning:'使弯曲',cat:'ABB'},
+  {base:'bite',past:'bit',pp:'bit',ing:'biting',ipaBase:'/baɪt/',ipaPast:'/bɪt/',ipaPP:'/bɪt/',meaning:'咬',cat:'ABB'},
+  {base:'die',past:'died',pp:'died',ing:'dying',ipaBase:'/daɪ/',ipaPast:'/daɪ/',ipaPP:'/daɪ/',meaning:'死',cat:'ABB'},
+  {base:'lie',past:'lied',pp:'lied',ing:'lying',ipaBase:'/laɪ/',ipaPast:'/laɪd/',ipaPP:'/laɪd/',meaning:'撒谎',cat:'ABB',note:'规则变化'},
+  {base:'lay',past:'laid',pp:'laid',ing:'laying',ipaBase:'/leɪ/',ipaPast:'/leɪd/',ipaPP:'/leɪd/',meaning:'铺，放，下蛋',cat:'ABB'},
+  {base:'lie',past:'lay',pp:'lain',ing:'lying',ipaBase:'/laɪ/',ipaPast:'/leɪ/',ipaPP:'/leɪn/',meaning:'躺，位于',cat:'ABB',note:'不规则'},
+  {base:'plan',past:'planned',pp:'planned',ing:'planning',ipaBase:'/plæn/',ipaPast:'/plænd/',ipaPP:'/plænd/',meaning:'计划',cat:'ABB'},
+  {base:'quit',past:'quit/quitted',pp:'quit/quitted',ing:'quitting',ipaBase:'/kwɪt/',ipaPast:'',ipaPP:'',meaning:'放弃',cat:'ABB'},
+  {base:'rid',past:'rid',pp:'rid',ing:'ridding',ipaBase:'/rɪd/',ipaPast:'/rɪd/',ipaPP:'/rɪd/',meaning:'免除',cat:'ABB'},
+  {base:'seek',past:'sought',pp:'sought',ing:'seeking',ipaBase:'/siːk/',ipaPast:'/sɔːt/',ipaPP:'/sɔːt/',meaning:'寻觅',cat:'ABB'},
+  {base:'sew',past:'sewed',pp:'sewed',ing:'sewing',ipaBase:'/səʊ/',ipaPast:'/səʊd/',ipaPP:'/səʊd/',meaning:'缝;缝制;缝合',cat:'ABB'},
+  {base:'sow',past:'sowed',pp:'sowed',ing:'sowing',ipaBase:'/səʊ/',ipaPast:'/səʊd/',ipaPP:'/səʊd/',meaning:'播(种)',cat:'ABB'},
+  {base:'spring',past:'sprang',pp:'sprung',ing:'springing',ipaBase:'/sprɪŋ/',ipaPast:'/spræŋ/',ipaPP:'/sprʌŋ/',meaning:'跳，跃；发源',cat:'ABB'},
+  {base:'strike',past:'struck',pp:'struck',ing:'striking',ipaBase:'/straɪk/',ipaPast:'/strʌk/',ipaPP:'/strʌk/',meaning:'罢(工/课);撞;攻击',cat:'ABB'},
+  {base:'wet',past:'wet/wetted',pp:'wet/wetted',ing:'wetting',ipaBase:'/wet/',ipaPast:'',ipaPP:'',meaning:'使潮湿;把…弄湿',cat:'ABB'},
+
+  // ===== 3. ABA型 (原形=过去分词) =====
+  {base:'become',past:'became',pp:'become',ing:'becoming',ipaBase:"[bi'kʌm]",ipaPast:"[bi'keim]",ipaPP:"[bi'kʌm]",meaning:'变',cat:'ABA'},
+  {base:'come',past:'came',pp:'come',ing:'coming',ipaBase:'[kʌm]',ipaPast:'[keim]',ipaPP:'[kʌm]',meaning:'来',cat:'ABA'},
+  {base:'run',past:'ran',pp:'run',ing:'running',ipaBase:'[rʌn]',ipaPast:'[ræn]',ipaPP:'[rʌn]',meaning:'跑',cat:'ABA'},
+
+  // ===== 4. ABB子类型 =====
+  // (1) 加辅音字母d/t/ed
+  {base:'deal',past:'dealt',pp:'dealt',ing:'dealing',ipaBase:'[di:l]',ipaPast:'[delt]',ipaPP:'[delt]',meaning:'解决',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'dream',past:'dreamed/dreamt',pp:'dreamed/dreamt',ing:'dreaming',ipaBase:'[dri:m]',ipaPast:'[dremt]',ipaPP:'[dremt]',meaning:'做梦',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'hear',past:'heard',pp:'heard',ing:'hearing',ipaBase:'[hiə]',ipaPast:'[hə:d]',ipaPP:'[hə:d]',meaning:'听见',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'hang',past:'hanged/hung',pp:'hanged/hung',ing:'hanging',ipaBase:"['hæŋ]",ipaPast:'[hʌŋ]',ipaPP:'[hʌŋ]',meaning:'绞死，悬挂',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'learn',past:'learned/learnt',pp:'learned/learnt',ing:'learning',ipaBase:'[lə:n]',ipaPast:'[lə:nt]',ipaPP:'[lə:nt]',meaning:'学习',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'light',past:'lit/lighted',pp:'lit/lighted',ing:'lighting',ipaBase:"['lait]",ipaPast:'[lit]',ipaPP:'[lit]',meaning:'点燃,照亮',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'mean',past:'meant',pp:'meant',ing:'meaning',ipaBase:'[mi:n]',ipaPast:'[ment]',ipaPP:'[ment]',meaning:'意思',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'prove',past:'proved',pp:'proven/proved',ing:'proving',ipaBase:'[pru:v]',ipaPast:'',ipaPP:"['pru:vən]",meaning:'证明,证实,试验',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'shine',past:'shone/shined',pp:'shone/shined',ing:'shining',ipaBase:'[ʃain]',ipaPast:'[ʃəun,ʃɔn]',ipaPP:'[ʃəun,ʃɔn]',meaning:'使照耀;使发光',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'show',past:'showed',pp:'showed/shown',ing:'showing',ipaBase:'[ʃəu]',ipaPast:'',ipaPP:"['ʃəun]",meaning:'展示,给...看',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'shrink',past:'shrank',pp:'shrunk',ing:'shrinking',ipaBase:'/ʃrɪŋk/',ipaPast:'/ʃræŋk/',ipaPP:'/ʃrʌŋk/',meaning:'收缩;(使)缩水;退缩',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'slide',past:'slid',pp:'slid',ing:'sliding',ipaBase:'/slaɪd/',ipaPast:'/slɪd/',ipaPP:'/slɪd/',meaning:'滑落;下跌;逐渐降低',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'smell',past:'smelled/smelt',pp:'smelled/smelt',ing:'smelling',ipaBase:'[smel]',ipaPast:'[smelt]',ipaPP:'[smelt]',meaning:'闻,嗅',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'speed',past:'sped/speeded',pp:'sped/speeded',ing:'speeding',ipaBase:'[spi:d]',ipaPast:'[sped]',ipaPP:'[sped]',meaning:'加速',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'spell',past:'spelled/spelt',pp:'spelled/spelt',ing:'spelling',ipaBase:'[spel]',ipaPast:'[spelt]',ipaPP:'[spelt]',meaning:'拼写',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'spin',past:'spun',pp:'spun',ing:'spinning',ipaBase:'/spɪn/',ipaPast:'/spʌn/',ipaPP:'/spʌn/',meaning:'旋转;自旋;旋转球',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'split',past:'split',pp:'split',ing:'splitting',ipaBase:'/splɪt/',ipaPast:'/splɪt/',ipaPP:'/splɪt/',meaning:'分裂;分开',cat:'ABB',sub:'原形+d/t/ed'},
+  {base:'wake',past:'woke',pp:'woken',ing:'waking',ipaBase:'[weik]',ipaPast:'[wəuk]',ipaPP:"['wəukən]",meaning:'醒来;叫醒;激发',cat:'ABB',sub:'原形+d/t/ed'},
+  // (2) 改d→t
+  {base:'build',past:'built',pp:'built',ing:'building',ipaBase:'[bild]',ipaPast:'[bilt]',ipaPP:'[bilt]',meaning:'修建',cat:'ABB',sub:'d→t'},
+  {base:'lend',past:'lent',pp:'lent',ing:'lending',ipaBase:'[lend]',ipaPast:'[lent]',ipaPP:'[lent]',meaning:'借给',cat:'ABB',sub:'d→t'},
+  {base:'rebuild',past:'rebuilt',pp:'rebuilt',ing:'rebuilding',ipaBase:"[ri:'bild]",ipaPast:"[ri:'bilt]",ipaPP:"[ri:'bilt]",meaning:'改建,重建',cat:'ABB',sub:'d→t'},
+  {base:'send',past:'sent',pp:'sent',ing:'sending',ipaBase:'[send]',ipaPast:'[sent]',ipaPP:'[sent]',meaning:'送',cat:'ABB',sub:'d→t'},
+  {base:'spend',past:'spent',pp:'spent',ing:'spending',ipaBase:'[spend]',ipaPast:'[spent]',ipaPP:'[spent]',meaning:'花费',cat:'ABB',sub:'d→t'},
+  // (3) ought
+  {base:'bring',past:'brought',pp:'brought',ing:'bringing',ipaBase:'[briŋ]',ipaPast:'[brɔ:t]',ipaPP:'[brɔ:t]',meaning:'带来',cat:'ABB',sub:'ought'},
+  {base:'buy',past:'bought',pp:'bought',ing:'buying',ipaBase:'[bai]',ipaPast:'[bɔ:t]',ipaPP:'[bɔ:t]',meaning:'买',cat:'ABB',sub:'ought'},
+  {base:'fight',past:'fought',pp:'fought',ing:'fighting',ipaBase:'[fait]',ipaPast:'[fɔ:t]',ipaPP:'[fɔ:t]',meaning:'打架',cat:'ABB',sub:'ought'},
+  {base:'think',past:'thought',pp:'thought',ing:'thinking',ipaBase:'[θiŋk]',ipaPast:'[θɔ:t]',ipaPP:'[θɔ:t]',meaning:'思考,想',cat:'ABB',sub:'ought'},
+  // (4) aught
+  {base:'catch',past:'caught',pp:'caught',ing:'catching',ipaBase:'[kætʃ]',ipaPast:'[kɔ:t]',ipaPP:'[kɔ:t]',meaning:'捉,抓',cat:'ABB',sub:'aught'},
+  {base:'teach',past:'taught',pp:'taught',ing:'teaching',ipaBase:'[ti:tʃ]',ipaPast:'[tɔ:t]',ipaPP:'[tɔ:t]',meaning:'教',cat:'ABB',sub:'aught'},
+  // (5) 变元音字母
+  {base:'dig',past:'dug',pp:'dug',ing:'digging',ipaBase:'[diɡ]',ipaPast:'[dʌɡ]',ipaPP:'[dʌɡ]',meaning:'掘(土),挖(洞/沟等)',cat:'ABB',sub:'变元音'},
+  {base:'feed',past:'fed',pp:'fed',ing:'feeding',ipaBase:'[fi:d]',ipaPast:'[fed]',ipaPP:'[fed]',meaning:'喂',cat:'ABB',sub:'变元音'},
+  {base:'find',past:'found',pp:'found',ing:'finding',ipaBase:'[faind]',ipaPast:'',ipaPP:'',meaning:'发现，找到',cat:'ABB',sub:'变元音'},
+  {base:'get',past:'got',pp:'got/gotten',ing:'getting',ipaBase:'[ɡet]',ipaPast:'[ɡɔt]',ipaPP:"['ɡɔtən]",meaning:'得到',cat:'ABB',sub:'变元音'},
+  {base:'hold',past:'held',pp:'held',ing:'holding',ipaBase:'[həuld]',ipaPast:'[held]',ipaPP:'[held]',meaning:'拥有，握住，支持',cat:'ABB',sub:'变元音'},
+  {base:'lead',past:'led',pp:'led',ing:'leading',ipaBase:'[li:d]',ipaPast:'[led]',ipaPP:'[led]',meaning:'引导,带领,领导',cat:'ABB',sub:'变元音'},
+  {base:'meet',past:'met',pp:'met',ing:'meeting',ipaBase:'[mi:t]',ipaPast:'[met]',ipaPP:'[met]',meaning:'遇见',cat:'ABB',sub:'变元音'},
+  {base:'sit',past:'sat',pp:'sat',ing:'sitting',ipaBase:'[sit]',ipaPast:'[sæt]',ipaPP:'[sæt]',meaning:'坐',cat:'ABB',sub:'变元音'},
+  {base:'shoot',past:'shot',pp:'shot',ing:'shooting',ipaBase:'[ʃu:t]',ipaPast:'[ʃɔt]',ipaPP:'[ʃɔt]',meaning:'射击',cat:'ABB',sub:'变元音'},
+  {base:'stick',past:'stuck',pp:'stuck',ing:'sticking',ipaBase:'[stik]',ipaPast:'[stʌk]',ipaPP:'[stʌk]',meaning:'插进,刺入,粘住',cat:'ABB',sub:'变元音'},
+  {base:'win',past:'won',pp:'won',ing:'winning',ipaBase:'[win]',ipaPast:'[wʌn]',ipaPP:'[wʌn]',meaning:'赢',cat:'ABB',sub:'变元音'},
+  // (6) lt/pt/ft
+  {base:'feel',past:'felt',pp:'felt',ing:'feeling',ipaBase:"['fi:l]",ipaPast:'[felt]',ipaPP:'[felt]',meaning:'感到',cat:'ABB',sub:'lt/pt/ft'},
+  {base:'keep',past:'kept',pp:'kept',ing:'keeping',ipaBase:'[ki:p]',ipaPast:'[kept]',ipaPP:'[kept]',meaning:'保持',cat:'ABB',sub:'lt/pt/ft'},
+  {base:'leave',past:'left',pp:'left',ing:'leaving',ipaBase:'[li:v]',ipaPast:'[left]',ipaPP:'[left]',meaning:'离开',cat:'ABB',sub:'lt/pt/ft'},
+  {base:'sleep',past:'slept',pp:'slept',ing:'sleeping',ipaBase:'[sli:p]',ipaPast:'[slept]',ipaPP:'[slept]',meaning:'睡觉',cat:'ABB',sub:'lt/pt/ft'},
+  {base:'sweep',past:'swept',pp:'swept',ing:'sweeping',ipaBase:'[swi:p]',ipaPast:'[swept]',ipaPP:'[swept]',meaning:'扫',cat:'ABB',sub:'lt/pt/ft'},
+  // (7) 其它ABB
+  {base:'lay',past:'laid',pp:'laid',ing:'laying',ipaBase:'[lei]',ipaPast:'[leid]',ipaPP:'[leid]',meaning:'下蛋,放置',cat:'ABB',sub:'其它'},
+  {base:'pay',past:'paid',pp:'paid',ing:'paying',ipaBase:'[pei]',ipaPast:'[peid]',ipaPP:'[peid]',meaning:'付',cat:'ABB',sub:'其它'},
+  {base:'say',past:'said',pp:'said',ing:'saying',ipaBase:'[sei]',ipaPast:'[sed]',ipaPP:'[sed]',meaning:'说',cat:'ABB',sub:'其它'},
+  {base:'stand',past:'stood',pp:'stood',ing:'standing',ipaBase:'[stænd]',ipaPast:'[stud]',ipaPP:'[stud]',meaning:'站',cat:'ABB',sub:'其它'},
+  {base:'understand',past:'understood',pp:'understood',ing:'understanding',ipaBase:"[,ʌndə'stænd]",ipaPast:'',ipaPP:'',meaning:'明白',cat:'ABB',sub:'其它'},
+  {base:'lose',past:'lost',pp:'lost',ing:'losing',ipaBase:'[lu:z]',ipaPast:'[lɔst]',ipaPP:'[lɔst]',meaning:'失去',cat:'ABB',sub:'其它'},
+  {base:'have',past:'had',pp:'had',ing:'having',ipaBase:'[həv]',ipaPast:'[hæd]',ipaPP:'[hæd]',meaning:'有',cat:'ABB',sub:'其它'},
+  {base:'make',past:'made',pp:'made',ing:'making',ipaBase:'[meik]',ipaPast:'[meid]',ipaPP:'[meid]',meaning:'制造',cat:'ABB',sub:'其它'},
+  {base:'sell',past:'sold',pp:'sold',ing:'selling',ipaBase:'[sel]',ipaPast:'[səuld]',ipaPP:'[səuld]',meaning:'卖',cat:'ABB',sub:'其它'},
+  {base:'tell',past:'told',pp:'told',ing:'telling',ipaBase:'[tel]',ipaPast:'[təuld]',ipaPP:'[təuld]',meaning:'告诉',cat:'ABB',sub:'其它'},
+  {base:'retell',past:'retold',pp:'retold',ing:'retelling',ipaBase:"[ri:'tel]",ipaPast:"[ri:'təuld]",ipaPP:"[ri:'təuld]",meaning:'重复，复述',cat:'ABB',sub:'其它'},
+  {base:'wind',past:'wound',pp:'wound',ing:'winding',ipaBase:'/waɪnd/',ipaPast:'/waʊnd/',ipaPP:'/waʊnd/',meaning:'蜿蜒;缠绕',cat:'ABB',sub:'其它'},
+
+  // ===== 5. ABC型 =====
+  // (1) 原形→过去式→原形+(e)n
+  {base:'blow',past:'blew',pp:'blown',ing:'blowing',ipaBase:'[bləu]',ipaPast:'[blu:]',ipaPP:'',meaning:'吹',cat:'ABC',sub:'原形+(e)n'},
+  {base:'drive',past:'drove',pp:'driven',ing:'driving',ipaBase:'[draiv]',ipaPast:'[drəuv]',ipaPP:'[drivən]',meaning:'驾驶',cat:'ABC',sub:'原形+(e)n'},
+  {base:'draw',past:'drew',pp:'drawn',ing:'drawing',ipaBase:'[drɔ:]',ipaPast:'[dru:]',ipaPP:'[drɔ:n]',meaning:'画画',cat:'ABC',sub:'原形+(e)n'},
+  {base:'eat',past:'ate',pp:'eaten',ing:'eating',ipaBase:'[i:t]',ipaPast:'[et,eit]',ipaPP:"['i:tən]",meaning:'吃',cat:'ABC',sub:'原形+(e)n'},
+  {base:'fall',past:'fell',pp:'fallen',ing:'falling',ipaBase:'[fɔ:l]',ipaPast:'[fel]',ipaPP:"['fɔ:lən]",meaning:'落下',cat:'ABC',sub:'原形+(e)n'},
+  {base:'give',past:'gave',pp:'given',ing:'giving',ipaBase:'[ɡiv]',ipaPast:'[ɡeiv]',ipaPP:"['ɡivən]",meaning:'给',cat:'ABC',sub:'原形+(e)n'},
+  {base:'grow',past:'grew',pp:'grown',ing:'growing',ipaBase:'[ɡrəu]',ipaPast:'[ɡru:]',ipaPP:'[ɡrəun]',meaning:'生长',cat:'ABC',sub:'原形+(e)n'},
+  {base:'forgive',past:'forgave',pp:'forgiven',ing:'forgiving',ipaBase:"[fə'ɡiv]",ipaPast:"[fə'ɡeiv]",ipaPP:"[fə'ɡivən]",meaning:'原谅,饶恕',cat:'ABC',sub:'原形+(e)n'},
+  {base:'know',past:'knew',pp:'known',ing:'knowing',ipaBase:'[nəu]',ipaPast:'[nju:,nu:]',ipaPP:'',meaning:'知道',cat:'ABC',sub:'原形+(e)n'},
+  {base:'mistake',past:'mistook',pp:'mistaken',ing:'mistaking',ipaBase:"[mi'steik]",ipaPast:"[mi'stuk]",ipaPP:"[mi'steikən]",meaning:'弄错;误解',cat:'ABC',sub:'原形+(e)n'},
+  {base:'overeat',past:'overate',pp:'overeaten',ing:'overeating',ipaBase:"['əuvə'i:t]",ipaPast:"[əuvə'reit]",ipaPP:"['əuvə'i:tən]",meaning:'(使)吃过量',cat:'ABC',sub:'原形+(e)n'},
+  {base:'take',past:'took',pp:'taken',ing:'taking',ipaBase:'[teik]',ipaPast:'[tuk]',ipaPP:"['teikn]",meaning:'拿',cat:'ABC',sub:'原形+(e)n'},
+  {base:'throw',past:'threw',pp:'thrown',ing:'throwing',ipaBase:'[θrəu]',ipaPast:'[θru:]',ipaPP:'[θrəun]',meaning:'抛，扔',cat:'ABC',sub:'原形+(e)n'},
+  {base:'ride',past:'rode',pp:'ridden',ing:'riding',ipaBase:'[raid]',ipaPast:'[rəud]',ipaPP:"['ridən]",meaning:'骑',cat:'ABC',sub:'原形+(e)n'},
+  {base:'rise',past:'rose',pp:'risen',ing:'rising',ipaBase:'/raɪz/',ipaPast:'/rəʊz/',ipaPP:"/ˈrɪzən/",meaning:'升起',cat:'ABC',sub:'原形+(e)n'},
+  {base:'arise',past:'arose',pp:'arisen',ing:'arising',ipaBase:'[əˈraɪz]',ipaPast:'/əˈrəʊz/',ipaPP:"/əˈrɪzən/",meaning:'产生;发生;出现',cat:'ABC',sub:'原形+(e)n'},
+  {base:'shake',past:'shook',pp:'shaken',ing:'shaking',ipaBase:'[ʃeɪk]',ipaPast:'/ʃʊk/',ipaPP:"/ˈʃeɪkən/",meaning:'动摇;摇头;使发抖',cat:'ABC',sub:'原形+(e)n'},
+  {base:'see',past:'saw',pp:'seen',ing:'seeing',ipaBase:'[si:]',ipaPast:'[sɔ:]',ipaPP:'[si:n]',meaning:'看见',cat:'ABC',sub:'原形+(e)n'},
+  {base:'tear',past:'tore',pp:'torn',ing:'tearing',ipaBase:'/teə/',ipaPast:'/tɔː/',ipaPP:'/tɔːn/',meaning:'撕裂;拉掉;挣开;拉伤',cat:'ABC',sub:'原形+(e)n'},
+  {base:'write',past:'wrote',pp:'written',ing:'writing',ipaBase:'[rait]',ipaPast:'[rəut]',ipaPP:"['ritən]",meaning:'写',cat:'ABC',sub:'原形+(e)n'},
+  // (2) 过去式+(e)n
+  {base:'awake',past:'awoke',pp:'awoken',ing:'awaking',ipaBase:'/əˈweɪk/',ipaPast:'/əˈwəʊk/',ipaPP:'/əˈwəʊkən/',meaning:'唤醒;唤起',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'break',past:'broke',pp:'broken',ing:'breaking',ipaBase:'[breik]',ipaPast:'[brəuk]',ipaPP:"['brəukən]",meaning:'打破',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'choose',past:'chose',pp:'chosen',ing:'choosing',ipaBase:'[tʃu:z]',ipaPast:'[tʃəuz]',ipaPP:"['tʃəuzən]",meaning:'选择',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'hide',past:'hid',pp:'hidden',ing:'hiding',ipaBase:'[haid]',ipaPast:'[hid]',ipaPP:"['hidən]",meaning:'隐藏',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'forget',past:'forgot',pp:'forgotten',ing:'forgetting',ipaBase:"[fə'ɡet]",ipaPast:"[fə'ɡɔt]",ipaPP:"[fə'ɡɔtn]",meaning:'忘记',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'forbid',past:'forbade',pp:'forbidden',ing:'forbidding',ipaBase:'/fəˈbɪd/',ipaPast:'/fəˈbæd/',ipaPP:'/fəˈbɪdn/',meaning:'禁止',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'freeze',past:'froze',pp:'frozen',ing:'freezing',ipaBase:'[fri:z]',ipaPast:'[frəuz]',ipaPP:"['frəuzn]",meaning:'冷冻,结冰;感到严寒',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'speak',past:'spoke',pp:'spoken',ing:'speaking',ipaBase:'[spi:k]',ipaPast:'[spəuk]',ipaPP:"['spəukən]",meaning:'说',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'steal',past:'stole',pp:'stolen',ing:'stealing',ipaBase:'[sti:l]',ipaPast:'',ipaPP:"['stəulən]",meaning:'偷',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'strive',past:'strove',pp:'striven',ing:'striving',ipaBase:'/straɪv/',ipaPast:'/strəʊv/',ipaPP:"/ˈstrɪvən/",meaning:'努力;奋斗;力求;力争',cat:'ABC',sub:'过去式+(e)n'},
+  {base:'weave',past:'wove',pp:'woven',ing:'weaving',ipaBase:'/wiːv/',ipaPast:'/wəʊv/',ipaPP:"/ˈwəʊvən/",meaning:'织(布);编织;编排',cat:'ABC',sub:'过去式+(e)n'},
+  // (3) i→a→u
+  {base:'begin',past:'began',pp:'begun',ing:'beginning',ipaBase:"[bi'ɡin]",ipaPast:"[bi'ɡæn]",ipaPP:"[bi'ɡʌn]",meaning:'开始',cat:'ABC',sub:'i→a→u'},
+  {base:'drink',past:'drank',pp:'drunk',ing:'drinking',ipaBase:'[driŋk]',ipaPast:'[dræŋk]',ipaPP:'[drʌŋk]',meaning:'喝',cat:'ABC',sub:'i→a→u'},
+  {base:'sing',past:'sang',pp:'sung',ing:'singing',ipaBase:'[siŋ]',ipaPast:'[sæŋ]',ipaPP:'[sʌŋ]',meaning:'唱',cat:'ABC',sub:'i→a→u'},
+  {base:'sink',past:'sank',pp:'sunk',ing:'sinking',ipaBase:'[siŋk]',ipaPast:'[sæŋk]',ipaPP:'[sʌŋk]',meaning:'下沉,沉没',cat:'ABC',sub:'i→a→u'},
+  {base:'swim',past:'swam',pp:'swum',ing:'swimming',ipaBase:'[swim]',ipaPast:'[swæm]',ipaPP:'[swʌm]',meaning:'游泳',cat:'ABC',sub:'i→a→u'},
+  {base:'ring',past:'rang',pp:'rung',ing:'ringing',ipaBase:'[riŋ]',ipaPast:'[ræŋ]',ipaPP:'[rʌŋ]',meaning:'打电话',cat:'ABC',sub:'i→a→u'},
+  // (4) 其它ABC
+  {base:'be',past:'was/were',pp:'been',ing:'being',ipaBase:'[bi:]',ipaPast:'[wɔz/wə:]',ipaPP:'[bi:n]',meaning:'是',cat:'ABC',sub:'其它'},
+  {base:'bear',past:'bore',pp:'born/borne',ing:'bearing',ipaBase:'[bεə]',ipaPast:'[bɔ:]',ipaPP:'[bɔ:n]',meaning:'负担,忍受',cat:'ABC',sub:'其它'},
+  {base:'do',past:'did',pp:'done',ing:'doing',ipaBase:'[du:]',ipaPast:'[did]',ipaPP:'[dʌn]',meaning:'做',cat:'ABC',sub:'其它'},
+  {base:'fly',past:'flew',pp:'flown',ing:'flying',ipaBase:'[flai]',ipaPast:'[flu:]',ipaPP:'[fləun]',meaning:'飞',cat:'ABC',sub:'其它'},
+  {base:'go',past:'went',pp:'gone',ing:'going',ipaBase:'[ɡəu]',ipaPast:'[went]',ipaPP:'[ɡɔn]',meaning:'去',cat:'ABC',sub:'其它'},
+  {base:'wear',past:'wore',pp:'worn',ing:'wearing',ipaBase:'[wεə]',ipaPast:'[wɔ:]',ipaPP:'[wɔ:n]',meaning:'穿',cat:'ABC',sub:'其它'},
+  {base:'swear',past:'swore',pp:'sworn',ing:'swearing',ipaBase:'',ipaPast:'/swɔː/',ipaPP:'/swɔːn/',meaning:'发誓;咒骂',cat:'ABC',sub:'其它'},
+  {base:'swell',past:'swelled',pp:'swollen',ing:'swelling',ipaBase:'/swel/',ipaPast:'/sweld/',ipaPP:"/ˈswəʊlən/",meaning:'增强;肿胀;膨胀',cat:'ABC',sub:'其它'},
+  {base:'undertake',past:'undertook',pp:'undertaken',ing:'undertaking',ipaBase:'/ˌʌndəˈteɪk/',ipaPast:'',ipaPP:'',meaning:'着手做;从事;承担',cat:'ABC',sub:'其它'}
+];
+
+// ==================== CATEGORY DEFINITIONS ====================
+const CATEGORIES = [
+  {id:'AAA',label:'AAA型',desc:'原形 = 过去式 = 过去分词',badge:'badge-aaa',verbs:VERB_DATA.filter(v=>v.cat==='AAA')},
+  {id:'ABB',label:'ABB型',desc:'过去式 = 过去分词',badge:'badge-abb',verbs:VERB_DATA.filter(v=>v.cat==='ABB')},
+  {id:'ABA',label:'ABA型',desc:'原形 = 过去分词',badge:'badge-aba',verbs:VERB_DATA.filter(v=>v.cat==='ABA')},
+  {id:'ABC',label:'ABC型',desc:'原形 ≠ 过去式 ≠ 过去分词',badge:'badge-abc',verbs:VERB_DATA.filter(v=>v.cat==='ABC')}
+];
+
+// ==================== STATE ====================
+let currentTab = 'pattern';
+let blurMode = 'none'; // 'none' | 'past' | 'pp' | 'both'
+let searchQuery = '';
+let collapsedCats = {};
+let shuffleOrder = [];
+
+// ==================== INIT ====================
+function init(){
+  setupTabs();
+  renderCurrentView();
+  updateCount();
+}
+
+function setupTabs(){
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      currentTab = this.dataset.tab;
+      document.getElementById('viewPattern').style.display = currentTab==='pattern'?'':'none';
+      document.getElementById('viewShuffle').style.display = currentTab==='shuffle'?'':'none';
+      document.getElementById('viewQuiz').style.display = currentTab==='quiz'?'':'none';
+      document.getElementById('toolbar').style.display = currentTab==='quiz'?'none':'';
+      if(currentTab==='quiz') startQuiz();
+      else renderCurrentView();
+    });
+  });
+  document.getElementById('searchInput').addEventListener('input',function(){
+    searchQuery = this.value.trim().toLowerCase();
+    renderCurrentView();
+  });
+}
+
+// ==================== RENDER: PATTERN VIEW ====================
+function renderPatternView(){
+  const container = document.getElementById('viewPattern');
+  let html = '';
+  CATEGORIES.forEach(cat=>{
+    let verbs = cat.verbs;
+    if(searchQuery) verbs = verbs.filter(v=>matchVerb(v));
+    if(verbs.length===0) return;
+    const isCollapsed = collapsedCats[cat.id] || false;
+    const maxH = isCollapsed ? 0 : (verbs.length * 46 + 60) + 'px';
+    html += `<div class="cat-section">
+      <div class="cat-header${isCollapsed?' collapsed':''}" onclick="toggleCat('${cat.id}')" data-cat="${cat.id}">
+        <span class="arrow">▼</span>
+        <span class="cat-badge ${cat.badge}">${cat.label}</span>
+        <span>${cat.desc}</span>
+        <span style="color:var(--muted);font-weight:400;margin-left:auto">${verbs.length}个动词</span>
+      </div>
+      <div class="cat-body${isCollapsed?' hidden':''}" style="max-height:${maxH}" data-cat-body="${cat.id}">
+        <div class="table-wrap">
+          <table><thead><tr>
+            <th>动词原形</th><th>音标</th>
+            <th class="col-toggle" data-col="past">过去式</th><th>音标</th>
+            <th class="col-toggle" data-col="pp">过去分词</th><th>音标</th>
+            <th>现在分词</th><th>中文释义</th>
+          </tr></thead><tbody>`;
+    verbs.forEach(v=>{
+      html += `<tr>
+        <td class="verb-base speakable" onclick="speakWord('${escAttr(v.base)}',this)">${v.base}<span class="speak-icon">🔊</span></td>
+        <td class="ipa">${v.ipaBase||''}</td>
+        <td class="blur-cell${blurMode==='past'||blurMode==='both'?'':' revealed'}" data-col="past" onclick="revealCell(this);event.stopPropagation();speakWord('${escAttr(v.past.split('/')[0].trim())}')">${v.past}</td>
+        <td class="ipa">${v.ipaPast||''}</td>
+        <td class="blur-cell${blurMode==='pp'||blurMode==='both'?'':' revealed'}" data-col="pp" onclick="revealCell(this);event.stopPropagation();speakWord('${escAttr(v.pp.split('/')[0].trim())}')">${v.pp}</td>
+        <td class="ipa">${v.ipaPP||''}</td>
+        <td class="speakable" onclick="speakWord('${escAttr(v.ing)}',this)">${v.ing}<span class="speak-icon">🔊</span></td>
+        <td class="meaning">${v.meaning}</td>
+      </tr>`;
+    });
+    html += '</tbody></table></div></div></div>';
+  });
+  container.innerHTML = html || '<div class="empty-state">🔍 没有匹配的动词</div>';
+}
+
+// ==================== RENDER: SHUFFLE VIEW ====================
+function renderShuffleView(){
+  const container = document.getElementById('viewShuffle');
+  let verbs = [...VERB_DATA];
+  if(searchQuery) verbs = verbs.filter(v=>matchVerb(v));
+  if(shuffleOrder.length !== verbs.length || !shuffleOrder.length){
+    shuffleOrder = verbs.map((_,i)=>i);
+    // Fisher-Yates
+    for(let i=shuffleOrder.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffleOrder[i],shuffleOrder[j]]=[shuffleOrder[j],shuffleOrder[i]];}
+  }
+  const ordered = shuffleOrder.map(i=>verbs[i]).filter(Boolean);
+  if(ordered.length===0){container.innerHTML='<div class="empty-state">🔀 没有匹配的动词，<a href="#" onclick="reshuffle()">点击随机排序</a></div>';return;}
+
+  container.innerHTML = `<div style="margin-bottom:12px"><button class="btn" onclick="reshuffle()">🎲 重新随机排序</button></div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>#</th><th>动词原形</th><th>音标</th>
+      <th class="col-toggle" data-col="past">过去式</th><th>音标</th>
+      <th class="col-toggle" data-col="pp">过去分词</th><th>音标</th>
+      <th>现在分词</th><th>中文释义</th><th>类型</th>
+    </tr></thead><tbody>
+    ${ordered.map((v,i)=>`<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td class="verb-base speakable" onclick="speakWord('${escAttr(v.base)}',this)">${v.base}<span class="speak-icon">🔊</span></td>
+      <td class="ipa">${v.ipaBase||''}</td>
+      <td class="blur-cell${blurMode==='past'||blurMode==='both'?'':' revealed'}" data-col="past" onclick="revealCell(this);event.stopPropagation();speakWord('${escAttr(v.past.split('/')[0].trim())}')">${v.past}</td>
+      <td class="ipa">${v.ipaPast||''}</td>
+      <td class="blur-cell${blurMode==='pp'||blurMode==='both'?'':' revealed'}" data-col="pp" onclick="revealCell(this);event.stopPropagation();speakWord('${escAttr(v.pp.split('/')[0].trim())}')">${v.pp}</td>
+      <td class="ipa">${v.ipaPP||''}</td>
+      <td class="speakable" onclick="speakWord('${escAttr(v.ing)}',this)">${v.ing}<span class="speak-icon">🔊</span></td>
+      <td class="meaning">${v.meaning}</td>
+      <td><span class="cat-badge badge-${v.cat.toLowerCase()}">${v.cat}</span></td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ==================== QUIZ ====================
+let quizVerbs = [], quizIndex = 0, quizCorrect = 0, quizWrong = 0, quizTotal = 0;
+let wrongList = []; // {base, past, pp, meaning, userPast, userPP}
+
+function startQuiz(){
+  // Deduplicate by base+past+pp for quiz mode
+  const seen = new Set();
+  quizVerbs = VERB_DATA.filter(v=>{
+    const key = v.base+'|'+v.past+'|'+v.pp;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).sort(()=>Math.random()-.5);
+  quizIndex = 0; quizCorrect = 0; quizWrong = 0; quizTotal = 0;
+  wrongList = [];
+  renderQuizCard();
+  updateQuizStats();
+}
+function renderQuizCard(){
+  stopSpeech();
+  if(quizIndex >= quizVerbs.length){
+    const pct = quizTotal>0 ? Math.round(quizCorrect/quizTotal*100) : 0;
+    let wrongHTML = '';
+    if(wrongList.length > 0){
+      wrongHTML = `
+        <div style="margin-top:16px;text-align:left;max-width:600px;margin-left:auto;margin-right:auto">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-weight:700;font-size:15px">❌ 错题汇总 (${wrongList.length}题)</span>
+            <button class="btn-copy" onclick="copyWrongList(this)" style="font-size:13px;padding:6px 16px">📋 一键复制全部错题</button>
+          </div>
+          <div style="overflow-x:auto"><table style="width:100%;font-size:13px;border-collapse:collapse">
+            <thead><tr style="background:#fef2f2">
+              <th style="padding:8px;text-align:left;border-bottom:2px solid #fecaca">#</th>
+              <th style="padding:8px;text-align:left;border-bottom:2px solid #fecaca">原形</th>
+              <th style="padding:8px;text-align:left;border-bottom:2px solid #fecaca">正确过去式</th>
+              <th style="padding:8px;text-align:left;border-bottom:2px solid #fecaca">正确过去分词</th>
+              <th style="padding:8px;text-align:left;border-bottom:2px solid #fecaca">你的答案</th>
+              <th style="padding:8px;text-align:left;border-bottom:2px solid #fecaca">释义</th>
+            </tr></thead><tbody>
+            ${wrongList.map((w,i)=>`<tr style="border-bottom:1px solid #fee2e2">
+              <td style="padding:6px 8px;color:var(--muted)">${i+1}</td>
+              <td style="padding:6px 8px;font-weight:700">${w.base}</td>
+              <td style="padding:6px 8px;color:var(--green)">${w.past}</td>
+              <td style="padding:6px 8px;color:var(--green)">${w.pp}</td>
+              <td style="padding:6px 8px;color:var(--red);font-size:12px">${w.userPast||'-'} / ${w.userPP||'-'}</td>
+              <td style="padding:6px 8px">${w.meaning}</td>
+            </tr>`).join('')}
+          </tbody></table></div>
+        </div>`;
+    }
+    document.getElementById('viewQuiz').innerHTML = `
+      <div class="quiz-card">
+        <div style="font-size:48px;margin-bottom:12px">${pct>=80?'🎉':pct>=60?'📚':'💪'}</div>
+        <div style="font-size:24px;font-weight:700">测验${quizTotal===quizVerbs.length?'完成':'结束'}！</div>
+        <div style="margin-top:12px;color:var(--muted)">正确 ${quizCorrect} / ${quizTotal}（共${quizVerbs.length}题${quizTotal<quizVerbs.length?'，已做'+quizTotal+'题':''}）</div>
+        <div style="font-size:48px;font-weight:800;color:${pct>=80?'var(--green)':pct>=60?'var(--amber)':'var(--red)'};margin:8px 0">${pct}%</div>
+        ${wrongList.length===0&&quizTotal>0?'<div style="color:var(--green);font-size:16px">🌟 全部正确，太棒了！</div>':''}
+        <button class="btn-quiz" style="margin-top:12px" onclick="startQuiz()">🔄 再来一轮</button>
+      </div>
+      ${wrongHTML}
+      <div class="quiz-stats" style="margin-top:16px">
+        <div class="quiz-stat"><div class="num" id="qTotal">0</div><div class="lbl">总题数</div></div>
+        <div class="quiz-stat"><div class="num ok" id="qOk">0</div><div class="lbl">✅ 正确</div></div>
+        <div class="quiz-stat"><div class="num bad" id="qBad">0</div><div class="lbl">❌ 错误</div></div>
+        <div class="quiz-stat"><div class="num" id="qPct">-</div><div class="lbl">正确率</div></div>
+      </div>`;
+    updateQuizStats();
+    return;
+  }
+  const v = quizVerbs[quizIndex];
+  document.getElementById('viewQuiz').innerHTML = `
+    <div class="quiz-area">
+      <div class="quiz-card">
+        <div class="hint">第 ${quizIndex+1} / ${quizVerbs.length} 题 ｜ 类型：${v.cat}型</div>
+        <div class="base-word speakable" onclick="speakWord('${escAttr(v.base)}',this)" style="cursor:pointer">${v.base}<span class="speak-icon" style="font-size:18px">🔊</span></div>
+        <div class="meaning-word">/${v.ipaBase||''}/</div>
+        <div class="meaning-cn">${v.meaning}</div>
+        <div class="quiz-inputs">
+          <div class="field"><label>过去式 (Past)</label><input type="text" id="quizPast" placeholder="输入过去式…" autocomplete="off"></div>
+          <div class="field"><label>过去分词 (P.P.)</label><input type="text" id="quizPP" placeholder="输入过去分词…" autocomplete="off"></div>
+        </div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+        <div id="quizActions" style="margin-top:12px">
+          <button class="btn-quiz" id="btnCheck" onclick="checkQuiz()">✅ 检查</button>
+          <button class="btn" style="margin-left:8px;display:none" id="btnNext" onclick="nextQuiz()">→ 下一题</button>
+          <button class="btn" style="margin-left:8px;display:none" id="btnSpeak" onclick="speakAnswer()">🔊 朗读答案</button>
+          <button class="btn" style="margin-left:8px" id="btnStop" onclick="stopQuiz()">⏹ 结束测验</button>
+        </div>
+      </div>
+      <div class="quiz-stats">
+        <div class="quiz-stat"><div class="num" id="qTotal">0</div><div class="lbl">总题数</div></div>
+        <div class="quiz-stat"><div class="num ok" id="qOk">0</div><div class="lbl">✅ 正确</div></div>
+        <div class="quiz-stat"><div class="num bad" id="qBad">0</div><div class="lbl">❌ 错误</div></div>
+        <div class="quiz-stat"><div class="num" id="qPct">-</div><div class="lbl">正确率</div></div>
+      </div>
+    </div>`;
+  // Auto-speak the base word
+  setTimeout(() => speakWord(v.base), 300);
+
+  const inpP = document.getElementById('quizPast');
+  inpP.focus();
+  inpP.addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('quizPP').focus();});
+  // Auto-speak after typing past tense (when user moves to next field or pauses)
+  inpP.addEventListener('blur',function(){if(this.value.trim())speakWord(this.value.trim());});
+  document.getElementById('quizPP').addEventListener('keydown',function(e){if(e.key==='Enter')checkQuiz();});
+  document.getElementById('quizPP').addEventListener('blur',function(){if(this.value.trim())speakWord(this.value.trim());});
+}
+function checkQuiz(){
+  const v = quizVerbs[quizIndex];
+  const inputPast = document.getElementById('quizPast').value.trim().toLowerCase();
+  const inputPP = document.getElementById('quizPP').value.trim().toLowerCase();
+  const correctPasts = v.past.toLowerCase().split('/').map(s=>s.trim());
+  const correctPPs = v.pp.toLowerCase().split('/').map(s=>s.trim());
+  const pastOk = correctPasts.some(c=>c&&inputPast===c);
+  const ppOk = correctPPs.some(c=>c&&inputPP===c);
+  const fb = document.getElementById('quizFeedback');
+  const inpP = document.getElementById('quizPast');
+  const inpPP = document.getElementById('quizPP');
+
+  if(!inputPast && !inputPP){fb.textContent='请输入至少一个答案';fb.className='quiz-feedback wrong';return;}
+
+  // Require both fields for a complete answer
+  if(!inputPast || !inputPP){
+    if(inputPast && !inputPP){inpP.className=pastOk?'correct':'wrong';fb.textContent='请输入过去分词';fb.className='quiz-feedback';return;}
+    if(!inputPast && inputPP){inpPP.className=ppOk?'correct':'wrong';fb.textContent='请输入过去式';fb.className='quiz-feedback';return;}
+  }
+
+  inpP.className = pastOk ? 'correct' : 'wrong';
+  inpPP.className = ppOk ? 'correct' : 'wrong';
+  quizTotal++;
+
+  if(pastOk && ppOk){
+    // CORRECT → auto-advance
+    quizCorrect++;
+    fb.textContent='✅ 完全正确！自动跳转下一题…';
+    fb.className='quiz-feedback correct';
+    document.getElementById('btnCheck').style.display='none';
+    document.getElementById('btnStop').style.display='none';
+    document.getElementById('quizPast').disabled=true;
+    document.getElementById('quizPP').disabled=true;
+    // Speak the correct answer
+    speakWord(v.base + '. ' + v.past + '. ' + v.pp);
+    updateQuizStats();
+    setTimeout(() => { quizIndex++; if(quizIndex < quizVerbs.length) renderQuizCard(); else { quizIndex = quizVerbs.length; renderQuizCard(); }}, 1200);
+    return;
+  }
+
+  // WRONG or PARTIAL → track in wrongList (no per-question copy)
+  quizWrong++;
+  wrongList.push({
+    base: v.base,
+    past: v.past,
+    pp: v.pp,
+    meaning: v.meaning,
+    userPast: document.getElementById('quizPast').value.trim(),
+    userPP: document.getElementById('quizPP').value.trim()
+  });
+
+  if(!pastOk && !ppOk){
+    fb.innerHTML=`❌ 正确答案：<b>过去式</b> = ${v.past}，<b>过去分词</b> = ${v.pp}`;
+    fb.className='quiz-feedback wrong';
+  } else {
+    fb.innerHTML=`⚠️ 部分正确！<b>过去式</b> = ${v.past}，<b>过去分词</b> = ${v.pp}`;
+    fb.className='quiz-feedback wrong';
+  }
+
+  // Speak the correct answer
+  speakWord(v.base + '. Past: ' + v.past + '. Past participle: ' + v.pp);
+
+  document.getElementById('btnCheck').style.display='none';
+  document.getElementById('btnStop').style.display='none';
+  document.getElementById('btnNext').style.display='inline-block';
+  document.getElementById('btnSpeak').style.display='inline-block';
+  document.getElementById('quizPast').disabled=true;
+  document.getElementById('quizPP').disabled=true;
+
+  updateQuizStats();
+}
+
+function speakAnswer(){
+  const v = quizVerbs[quizIndex];
+  speakWord(v.base + '. Past: ' + v.past + '. Past participle: ' + v.pp);
+}
+
+function nextQuiz(){
+  stopSpeech();
+  quizIndex++;
+  renderQuizCard();
+}
+
+function stopQuiz(){
+  stopSpeech();
+  // Jump to end to show wrong answer summary
+  quizIndex = quizVerbs.length;
+  renderQuizCard();
+}
+
+function copyWrongList(btn){
+  let text = '';
+  wrongList.forEach((w,i)=>{
+    text += `${i+1}. ${w.base} → 过去式: ${w.past}  过去分词: ${w.pp}  (${w.meaning})\n`;
+    text += `   你的答案: ${w.userPast||'未填'} / ${w.userPP||'未填'}\n`;
+  });
+  text += `\n共 ${wrongList.length} 道错题 | 正确率 ${Math.round(quizCorrect/quizTotal*100)}%`;
+  copyText(text, btn);
+}
+
+function updateQuizStats(){
+  document.getElementById('qTotal').textContent = quizTotal;
+  document.getElementById('qOk').textContent = quizCorrect;
+  document.getElementById('qBad').textContent = quizWrong;
+  document.getElementById('qPct').textContent = quizTotal>0 ? Math.round(quizCorrect/quizTotal*100)+'%' : '-';
+}
+
+// ==================== HELPERS ====================
+function renderCurrentView(){
+  if(currentTab==='pattern') renderPatternView();
+  else if(currentTab==='shuffle') renderShuffleView();
+  updateCount();
+}
+function escAttr(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function matchVerb(v){
+  const q = searchQuery;
+  return v.base.toLowerCase().includes(q) || v.past.toLowerCase().includes(q) || v.pp.toLowerCase().includes(q) || v.meaning.includes(q) || v.ing.toLowerCase().includes(q);
+}
+function updateCount(){
+  let verbs = currentTab==='pattern' ? [...VERB_DATA] : [...VERB_DATA];
+  if(searchQuery) verbs = verbs.filter(v=>matchVerb(v));
+  document.getElementById('countInfo').textContent = `共 ${verbs.length} 个动词`;
+}
+function toggleCat(id){
+  collapsedCats[id] = !collapsedCats[id];
+  const header = document.querySelector(`.cat-header[data-cat="${id}"]`);
+  const body = document.querySelector(`.cat-body[data-cat-body="${id}"]`);
+  if(header) header.classList.toggle('collapsed',collapsedCats[id]);
+  if(body){
+    body.classList.toggle('hidden',collapsedCats[id]);
+    if(!collapsedCats[id]) body.style.maxHeight = (body.querySelectorAll('tbody tr').length * 46 + 60) + 'px';
+    else body.style.maxHeight = '0';
+  }
+}
+function toggleBlur(mode){
+  blurMode = blurMode===mode ? 'none' : mode;
+  document.querySelectorAll('#btnShowAll,#btnBlurPast,#btnBlurPP,#btnBlurBoth').forEach(b=>b.classList.remove('active'));
+  if(blurMode==='past') document.getElementById('btnBlurPast').classList.add('active');
+  else if(blurMode==='pp') document.getElementById('btnBlurPP').classList.add('active');
+  else if(blurMode==='both') document.getElementById('btnBlurBoth').classList.add('active');
+  else document.getElementById('btnShowAll').classList.add('active');
+  renderCurrentView();
+}
+function revealCell(td){td.classList.add('revealed');}
+function reshuffle(){
+  shuffleOrder = [];
+  renderShuffleView();
+}
+
+// ==================== SPEECH (优质浏览器语音) ====================
+let speechSynth = window.speechSynthesis;
+let premiumVoice = null;
+let speakingEl = null;
+
+function initVoice() {
+  if (!speechSynth) return;
+  // Try to find a premium voice; voices may load async
+  const voices = speechSynth.getVoices();
+  const preferred = ['Google US English','Google 英语（美国）','Samantha','Alex','Microsoft David','Microsoft Zira','Karen','Daniel','Moira','Fiona'];
+  for (const p of preferred) {
+    const v = voices.find(v=>v.name.includes(p)&&v.lang.startsWith('en'));
+    if (v) { premiumVoice = v; return; }
+  }
+  // Fallback: any English voice
+  premiumVoice = voices.find(v=>v.lang.startsWith('en')) || null;
+}
+// Load voices now + on change (some browsers load them async)
+initVoice();
+if (speechSynth) speechSynth.onvoiceschanged = initVoice;
+
+function speakWord(text, el) {
+  if (!text || !speechSynth) return;
+  const cleanText = text.replace(/[\/\[\]ˈˌɔɛəʌɔ̃ɑɒæʃʒŋθð̃]/g,'').replace(/['']/g,'').trim();
+  if (!cleanText) return;
+  speechSynth.cancel();
+  const u = new SpeechSynthesisUtterance(cleanText);
+  u.lang = 'en-US';
+  u.rate = 0.9;
+  u.pitch = 1;
+  if (premiumVoice) u.voice = premiumVoice;
+  if (el) {
+    el.classList.add('speaking');
+    u.onend = () => el.classList.remove('speaking');
+    u.onerror = () => el.classList.remove('speaking');
+  }
+  speechSynth.speak(u);
+}
+
+function stopSpeech() { if (speechSynth) speechSynth.cancel(); }
+
+// ==================== COPY ====================
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ 已复制';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed';ta.opacity=0;
+    document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    btn.textContent = '✅ 已复制';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+function switchToQuiz(){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-tab="quiz"]').classList.add('active');
+  currentTab = 'quiz';
+  document.getElementById('viewPattern').style.display='none';
+  document.getElementById('viewShuffle').style.display='none';
+  document.getElementById('viewQuiz').style.display='';
+  document.getElementById('toolbar').style.display='none';
+  startQuiz();
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+init();
+</script>
+</body>
+</html>
