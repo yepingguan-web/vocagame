@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>词汇闯关 · 中英配对</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0f23;color:#e8e8f0;min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#7dd3fc;margin-bottom:4px;letter-spacing:2px;word-break:break-word}
+.subtitle{text-align:center;color:#64748b;font-size:.82em;margin-bottom:20px;word-break:break-word}
+.card{background:#1e1e3a;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.4);margin-bottom:16px}
+.level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:16px}
+.level-btn{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.8em}
+.level-btn:hover{border-color:#7dd3fc;background:#1a2a3a}
+.level-btn.done{border-color:#4ade80;background:#052016}
+.level-btn .lnum{font-size:1.1em;font-weight:700;display:block;color:#e2e8f0}
+.level-btn .lcount{font-size:.7em;color:#64748b;display:block;margin-top:2px}
+.level-btn .lcount.ok{color:#4ade80}
+.question{text-align:center;margin-bottom:20px}
+.qword{font-size:1.6em;font-weight:700;color:#7dd3fc;letter-spacing:1px;word-break:break-word}
+.qtype{font-size:.8em;color:#64748b;margin-top:4px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.option{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .2s;font-size:.95em;color:#cbd5e1;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.option:hover{border-color:#7dd3fc;background:#1a2a3a}
+.option.correct{border-color:#4ade80;background:#052016;color:#4ade80}
+.option.wrong{border-color:#f87171;background:#2a0a0a;color:#f87171}
+.option:disabled{cursor:default}
+.progress-bar{height:6px;background:#2a2a4a;border-radius:3px;margin-top:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#4ade80);border-radius:3px;transition:width .4s ease}
+.stats{display:flex;justify-content:center;gap:32px;margin-top:16px;color:#94a3b8;font-size:.85em}
+.stats span{color:#e2e8f0}
+.btn{background:#2563eb;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-size:.95em;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.btn-ghost:hover{border-color:#7dd3fc;color:#7dd3fc}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 20px;border-radius:8px;border:2px solid #3a3a5a;background:transparent;color:#94a3b8;cursor:pointer;font-size:.9em;transition:all .2s}
+.mode-tab.active{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc}
+.hint-btn{background:transparent;border:1px solid #3a3a5a;border-radius:6px;color:#64748b;padding:6px 14px;font-size:.8em;cursor:pointer;margin-top:12px}
+.hint-btn:hover{border-color:#7dd3fc;color:#7dd3fc}
+.hint-text{color:#fbbf24;font-size:.85em;margin-top:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#1e1e3a;border-radius:16px;padding:32px;max-width:420px;text-align:center;width:90%;max-height:90vh;overflow-y:auto}
+.modal h2{color:#7dd3fc;margin-bottom:16px;font-size:1.4em}
+.modal .score-big{font-size:3em;font-weight:700;color:#fbbf24;margin:16px 0}
+.modal .acc{color:#4ade80;font-size:1.1em}
+.modal .msg{margin-top:12px;color:#94a3b8;font-size:.85em}
+.match-area{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:20px}
+.match-col{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.match-item{padding:10px 16px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#e8e8f0;cursor:pointer;transition:all .2s;text-align:center;font-size:.9em;user-select:none;min-width:100px;word-break:break-word}
+.match-item:hover{border-color:#7dd3fc}
+.match-item.selected{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc;box-shadow:0 0 8px rgba(125,211,252,.3)}
+.match-item.matched{border-color:#4ade80;background:#052016;color:#4ade80;cursor:default;opacity:.7}
+.match-item.wrong-flash{border-color:#f87171;background:#2a0a0a;color:#f87171;animation:shake .4s}
+.match-group-label{color:#94a3b8;font-size:.85em;text-align:center;margin:12px 0 4px;padding:4px 16px;background:#2a2a4a;border-radius:6px;display:inline-block}
+.match-progress{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.match-dot{width:14px;height:14px;border-radius:50%;background:#3a3a5a;transition:all .3s}
+.match-dot.cur{background:#7dd3fc;transform:scale(1.2)}
+.match-dot.ok{background:#4ade80}
+.match-dot.err{background:#f87171}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:600px){
+  .options-grid{grid-template-columns:1fr}
+  .level-grid{grid-template-columns:repeat(auto-fill,minmax:65px,1fr)}
+  .qword{font-size:1.3em}
+  .match-area{gap:12px}
+  .match-col{min-width:90px}
+}
+
+.timer-display{font-size:1.3em;font-weight:700;color:#fbbf24;font-variant-numeric:tabular-nums;min-width:80px;text-align:center;padding:4px 0}
+.pb-badge{font-size:.85em;color:#a78bfa;margin-left:12px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1 id="gTitle">词汇闯关 · 中英配对</h1>
+<p class="subtitle" id="gSub">新概念 2</p>
+
+<div id="levelView" class="card">
+  <div style="text-align:center;color:#94a3b8;font-size:.85em;margin-bottom:8px">📚 选择关卡开始闯关</div>
+  <div class="level-grid" id="lg"></div>
+</div>
+
+<div id="gameView" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-ghost" onclick="backToLevels()" style="font-size:.8em;padding:6px 14px">← 返回关卡</button>
+    <span id="lvTitle" style="color:#7dd3fc;font-size:.9em">第 1 关</span>
+    <div class="timer-display" id="timerDisplay">0:00</div>
+    <div class="pb-badge" id="pbBadge"></div>
+  </div>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div id="qArea">
+    <div class="question">
+      <div class="qword" id="qw"></div>
+      <div class="qtype" id="qt"></div>
+    </div>
+    <div class="options-grid" id="oa"></div>
+    <div style="text-align:center">
+      <button class="hint-btn" id="hb" onclick="sh()">💡 提示</button>
+    </div>
+    <div class="hint-text" id="ht" style="display:none"></div>
+  </div>
+  <div id="matchArea" class="match-area" style="display:none"></div>
+  <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+  <div class="stats">
+    <div>✅ 正确 <span id="so">0</span></div>
+    <div>❌ 错误 <span id="se">0</span></div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2 id="rt"></h2>
+    <div class="score-big" id="rs"></div>
+    <div class="acc" id="rsc"></div>
+    <div class="acc" id="rac" style="margin-top:4px"></div>
+    <div class="msg" id="rmg"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="retry()">🔄 重玩本关</button>
+      <button class="btn btn-ghost" onclick="backToLevels()">📚 返回关卡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== Game Data ======
+const D = {"star1":[{"en":"private","cn":"私人的","key":"p"},{"en":"conversation","cn":"谈话","key":"c"},{"en":"theatre","cn":"剧场，戏院","key":"t"},{"en":"seat","cn":"座位","key":"s"},{"en":"play","cn":"戏","key":"p"},{"en":"loudly","cn":"大声地","key":"l"},{"en":"angry","cn":"生气的","key":"a"},{"en":"angrily","cn":"生气地","key":"a"},{"en":"attention","cn":"注意","key":"a"},{"en":"bear","cn":"容忍","key":"b"},{"en":"business","cn":"事","key":"b"},{"en":"rudely","cn":"无礼地，粗鲁地","key":"r"}],"star2":[{"en":"until","cn":"直到","key":"u"},{"en":"outside","cn":"外面","key":"o"},{"en":"ring","cn":"(铃、电话等)响","key":"r"},{"en":"aunt","cn":"姑，姨，婶，舅妈","key":"a"},{"en":"repeat","cn":"重复","key":"r"}],"star3":[{"en":"send","cn":"寄，送","key":"s"},{"en":"postcard","cn":"明信片","key":"p"},{"en":"spoil","cn":"使索然无味，损坏","key":"s"},{"en":"museum","cn":"博物馆","key":"m"},{"en":"public","cn":"公共的","key":"p"},{"en":"friendly","cn":"友好的","key":"f"},{"en":"waiter","cn":"服务员，招待员","key":"w"},{"en":"lend","cn":"借给","key":"l"},{"en":"decision","cn":"决定","key":"d"},{"en":"whole","cn":"整个的","key":"w"},{"en":"single","cn":"唯一的，单一的","key":"s"}],"star4":[{"en":"exciting","cn":"令人兴奋的","key":"e"},{"en":"receive","cn":"接受，收到","key":"r"},{"en":"firm","cn":"商行，公司","key":"f"},{"en":"different","cn":"不同的","key":"d"},{"en":"centre","cn":"中心","key":"c"},{"en":"abroad","cn":"在国外","key":"a"}],"star5":[{"en":"pigeon","cn":"鸽子","key":"p"},{"en":"message","cn":"信息","key":"m"},{"en":"over","cn":"越过","key":"o"},{"en":"distance","cn":"距离","key":"d"},{"en":"request","cn":"要求，请求","key":"r"},{"en":"spare","cn":"备件","key":"s"},{"en":"service","cn":"业务，服务","key":"s"}],"star6":[{"en":"beggar","cn":"乞丐","key":"b"},{"en":"food","cn":"食物","key":"f"},{"en":"pocket","cn":"衣服口袋","key":"p"},{"en":"call","cn":"拜访，光顾","key":"c"}],"star7":[{"en":"detective","cn":"侦探","key":"d"},{"en":"airport","cn":"机场","key":"a"},{"en":"expect","cn":"期待，等待","key":"e"},{"en":"valuable","cn":"贵重的","key":"v"},{"en":"parcel","cn":"包裹","key":"p"},{"en":"diamond","cn":"钻石","key":"d"},{"en":"steal","cn":"偷","key":"s"},{"en":"main","cn":"主要的","key":"m"},{"en":"airfield","cn":"飞机起落的场地","key":"a"},{"en":"guard","cn":"警戒，守卫","key":"g"},{"en":"precious","cn":"珍贵的","key":"p"},{"en":"stone","cn":"石子","key":"s"},{"en":"sand","cn":"沙子","key":"s"}],"star8":[{"en":"competition","cn":"比赛,竞赛","key":"c"},{"en":"neat","cn":"整齐的，整洁的","key":"n"},{"en":"path","cn":"小路，小径","key":"p"},{"en":"wooden","cn":"木头的","key":"w"},{"en":"pool","cn":"水池","key":"p"}],"star9":[{"en":"welcome","cn":"欢迎","key":"w"},{"en":"crowd","cn":"人群","key":"c"},{"en":"gather","cn":"聚集","key":"g"},{"en":"hand","cn":"(表或机器的)指针","key":"h"},{"en":"shout","cn":"喊叫","key":"s"},{"en":"refuse","cn":"拒绝","key":"r"},{"en":"laugh","cn":"笑","key":"l"}],"star10":[{"en":"jazz","cn":"爵士音乐","key":"j"},{"en":"musical","cn":"音乐的","key":"m"},{"en":"instrument","cn":"乐器","key":"i"},{"en":"clavichord","cn":"古钢琴","key":"c"},{"en":"recently","cn":"最近","key":"r"},{"en":"damage","cn":"损坏","key":"d"},{"en":"key","cn":"琴键","key":"k"},{"en":"string","cn":"(乐器的)弦","key":"s"},{"en":"shock","cn":"使不悦或生气，震惊","key":"s"},{"en":"allow","cn":"允许，让","key":"a"},{"en":"touch","cn":"触摸","key":"t"}],"star11":[{"en":"turn","cn":"行为，举止","key":"t"},{"en":"deserve","cn":"应得到，值得","key":"d"},{"en":"lawyer","cn":"律师","key":"l"},{"en":"bank","cn":"银行","key":"b"},{"en":"salary","cn":"工资","key":"s"},{"en":"immediately","cn":"立刻","key":"i"}],"star12":[{"en":"luck","cn":"运气，幸运","key":"l"},{"en":"captain","cn":"船长","key":"c"},{"en":"sail","cn":"航行","key":"s"},{"en":"harbour","cn":"港口","key":"h"},{"en":"proud","cn":"自豪","key":"p"},{"en":"important","cn":"重要的","key":"i"}],"star13":[{"en":"group","cn":"小组，团体","key":"g"},{"en":"pop singer","cn":"流行歌手","key":"p"},{"en":"club","cn":"俱乐部","key":"c"},{"en":"performance","cn":"演出","key":"p"},{"en":"occasion","cn":"场合","key":"o"}],"star14":[{"en":"amusing","cn":"好笑的，有趣的","key":"a"},{"en":"experience","cn":"经历","key":"e"},{"en":"wave","cn":"招手","key":"w"},{"en":"lift","cn":"搭便车","key":"l"},{"en":"reply","cn":"回答","key":"r"},{"en":"language","cn":"语言","key":"l"},{"en":"journey","cn":"旅行","key":"j"}],"star15":[{"en":"secretary","cn":"秘书","key":"s"},{"en":"nervous","cn":"精神紧张的","key":"n"},{"en":"afford","cn":"负担得起","key":"a"},{"en":"weak","cn":"弱的","key":"w"},{"en":"interrupt","cn":"插话，打断","key":"i"}],"star16":[{"en":"park","cn":"停放(汽车)","key":"p"},{"en":"traffic","cn":"交通","key":"t"},{"en":"ticket","cn":"交通法规罚款单","key":"t"},{"en":"note","cn":"便条","key":"n"},{"en":"area","cn":"地点","key":"a"},{"en":"sign","cn":"指示牌","key":"s"},{"en":"reminder","cn":"指示","key":"r"},{"en":"fail","cn":"无视，忘记","key":"f"},{"en":"obey","cn":"服从","key":"o"}],"star17":[{"en":"appear","cn":"登场，扮演","key":"a"},{"en":"stage","cn":"舞台","key":"s"},{"en":"bright","cn":"鲜艳的","key":"b"},{"en":"stocking","cn":"(女用)长筒袜","key":"s"},{"en":"sock","cn":"短袜","key":"s"}],"star18":[{"en":"pub","cn":"小酒店","key":"p"},{"en":"landlord","cn":"店主","key":"l"},{"en":"bill","cn":"帐单","key":"b"}],"star19":[{"en":"hurry","cn":"匆忙","key":"h"},{"en":"ticket office","cn":"售票处","key":"t"},{"en":"pity","cn":"令人遗憾的事","key":"p"},{"en":"exclaim","cn":"大声说","key":"e"},{"en":"return","cn":"退回","key":"r"},{"en":"sadly","cn":"悲哀地，丧气地","key":"s"}],"star20":[{"en":"catch","cn":"抓到","key":"c"},{"en":"fisherman","cn":"钓鱼人，渔民","key":"f"},{"en":"boot","cn":"靴子","key":"b"},{"en":"waste","cn":"浪费","key":"w"},{"en":"realize","cn":"意识到","key":"r"}],"star21":[{"en":"mad","cn":"发疯","key":"m"},{"en":"reason","cn":"原因","key":"r"},{"en":"sum","cn":"量","key":"s"},{"en":"determined","cn":"坚定的，下决心的","key":"d"}],"star22":[{"en":"dream","cn":"做梦，梦想","key":"d"},{"en":"age","cn":"年龄","key":"a"},{"en":"channel","cn":"海峡","key":"c"},{"en":"throw","cn":"扔，抛","key":"t"}],"star23":[{"en":"complete","cn":"完成","key":"c"},{"en":"modern","cn":"新式的，与以往不同的","key":"m"},{"en":"strange","cn":"奇怪的","key":"s"},{"en":"district","cn":"地区","key":"d"}],"star24":[{"en":"manager","cn":"经理","key":"m"},{"en":"upset","cn":"不安","key":"u"},{"en":"sympathetic","cn":"表示同情的","key":"s"},{"en":"complain","cn":"抱怨","key":"c"},{"en":"wicked","cn":"很坏的，邪恶的","key":"w"},{"en":"contain","cn":"包含，内装","key":"c"},{"en":"honesty","cn":"诚实","key":"h"}],"star25":[{"en":"railway","cn":"铁路","key":"r"},{"en":"porter","cn":"搬运工","key":"p"},{"en":"several","cn":"几个","key":"s"},{"en":"foreigner","cn":"外国人","key":"f"},{"en":"wonder","cn":"感到奇怪","key":"w"}],"star26":[{"en":"art","cn":"艺术","key":"a"},{"en":"critic","cn":"评论家","key":"c"},{"en":"paint","cn":"画","key":"p"},{"en":"pretend","cn":"假装","key":"p"},{"en":"pattern","cn":"图案","key":"p"},{"en":"curtain","cn":"窗帘，幕布","key":"c"},{"en":"material","cn":"材料","key":"m"},{"en":"appreciate","cn":"鉴赏","key":"a"},{"en":"notice","cn":"注意到","key":"n"},{"en":"whether","cn":"是否","key":"w"},{"en":"hang","cn":"悬挂，吊","key":"h"},{"en":"critically","cn":"批评地","key":"c"},{"en":"upside","cn":"上下颠倒地","key":"u"}],"star27":[{"en":"tent","cn":"帐篷","key":"t"},{"en":"field","cn":"田地，田野","key":"f"},{"en":"smell","cn":"闻起来","key":"s"},{"en":"wonderful","cn":"极好的","key":"w"},{"en":"campfire","cn":"营火，篝火","key":"c"},{"en":"creep","cn":"爬行","key":"c"},{"en":"sleeping bag","cn":"睡袋","key":"s"},{"en":"comfortable","cn":"舒适的，安逸的","key":"c"},{"en":"soundly","cn":"香甜地","key":"s"},{"en":"leap","cn":"跳跃，跳起","key":"l"},{"en":"heavily","cn":"大量地","key":"h"},{"en":"stream","cn":"小溪","key":"s"},{"en":"form","cn":"形成","key":"f"},{"en":"wind","cn":"蜿蜒","key":"w"},{"en":"right","cn":"正好","key":"r"}],"star28":[{"en":"rare","cn":"罕见的","key":"r"},{"en":"ancient","cn":"古代的，古老的","key":"a"},{"en":"myth","cn":"神话故事","key":"m"},{"en":"trouble","cn":"麻烦","key":"t"},{"en":"effect","cn":"结果，效果","key":"e"},{"en":"Medusa","cn":"美杜莎","key":"m"},{"en":"Gorgon","cn":"蛇发女怪","key":"g"}],"star29":[{"en":"taxi","cn":"出租汽车","key":"t"},{"en":"Pilatus Porter","cn":"皮勒特斯·波特(飞机名)","key":"p"},{"en":"land","cn":"着陆","key":"l"},{"en":"plough","cn":"耕地","key":"p"},{"en":"lonely","cn":"偏僻的，人迹罕至的","key":"l"},{"en":"Welsh","cn":"威尔士的","key":"w"},{"en":"roof","cn":"楼顶","key":"r"},{"en":"block","cn":"一座大楼","key":"b"},{"en":"flat","cn":"公寓房","key":"f"},{"en":"desert","cn":"废弃","key":"d"}],"star30":[{"en":"polo","cn":"水球","key":"p"},{"en":"cut","cn":"穿过","key":"c"},{"en":"row","cn":"划(船)","key":"r"},{"en":"kick","cn":"踢","key":"k"},{"en":"towards","cn":"朝，向","key":"t"},{"en":"nearly","cn":"几乎","key":"n"},{"en":"sight","cn":"眼界，视域","key":"s"}],"star31":[{"en":"retire","cn":"退休","key":"r"},{"en":"company","cn":"公司","key":"c"},{"en":"bicycle","cn":"自行车","key":"b"},{"en":"save","cn":"积蓄","key":"s"},{"en":"workshop","cn":"车间","key":"w"},{"en":"helper","cn":"帮手，助手","key":"h"},{"en":"employ","cn":"雇佣","key":"e"},{"en":"grandson","cn":"孙子","key":"g"}],"star32":[{"en":"once","cn":"曾经，以前","key":"o"},{"en":"temptation","cn":"诱惑","key":"t"},{"en":"article","cn":"物品，东西","key":"a"},{"en":"wrap","cn":"包裹","key":"w"},{"en":"simply","cn":"仅仅","key":"s"},{"en":"arrest","cn":"逮捕","key":"a"}],"star33":[{"en":"darkness","cn":"黑暗","key":"d"},{"en":"explain","cn":"解释，叙述","key":"e"},{"en":"coast","cn":"海岸","key":"c"},{"en":"storm","cn":"暴风雨","key":"s"},{"en":"towards","cn":"接近","key":"t"},{"en":"rock","cn":"岩石，礁石","key":"r"},{"en":"shore","cn":"海岸","key":"s"},{"en":"light","cn":"灯光","key":"l"},{"en":"ahead","cn":"在前面","key":"a"},{"en":"cliff","cn":"峭壁","key":"c"},{"en":"struggle","cn":"挣扎","key":"s"},{"en":"hospital","cn":"医院","key":"h"}],"star34":[{"en":"station","cn":"(警察)局","key":"s"},{"en":"most","cn":"相当，非常","key":"m"}],"star35":[{"en":"while","cn":"一段时间","key":"w"},{"en":"regret","cn":"后悔","key":"r"},{"en":"far","cn":"非常","key":"f"},{"en":"rush","cn":"冲","key":"r"},{"en":"act","cn":"行动","key":"a"},{"en":"straight","cn":"径直","key":"s"},{"en":"fright","cn":"害怕","key":"f"},{"en":"battered","cn":"撞坏的","key":"b"},{"en":"shortly","cn":"很快，不久","key":"s"},{"en":"afterwards","cn":"以后","key":"a"}],"star36":[{"en":"record","cn":"记录","key":"r"},{"en":"strong","cn":"强壮的","key":"s"},{"en":"swimmer","cn":"游泳运动员","key":"s"},{"en":"succeed","cn":"成功","key":"s"},{"en":"train","cn":"训练","key":"t"},{"en":"anxiously","cn":"焦急地","key":"a"},{"en":"intend","cn":"打算","key":"i"},{"en":"solid","cn":"固体的，硬的","key":"s"}],"star37":[{"en":"Olympic","cn":"奥林匹克的","key":"o"},{"en":"hold","cn":"召开","key":"h"},{"en":"government","cn":"政府","key":"g"},{"en":"immense","cn":"巨大的","key":"i"},{"en":"stadium","cn":"露天体育场","key":"s"},{"en":"standard","cn":"标准","key":"s"},{"en":"capital","cn":"首都","key":"c"},{"en":"fantastic","cn":"巨大的","key":"f"},{"en":"design","cn":"设计","key":"d"}],"star38":[{"en":"except","cn":"除了","key":"e"},{"en":"Mediterranean","cn":"地中海","key":"m"},{"en":"complain","cn":"抱怨","key":"c"},{"en":"continually","cn":"不断地","key":"c"},{"en":"bitterly","cn":"刺骨地","key":"b"},{"en":"sunshine","cn":"阳光","key":"s"}],"star39":[{"en":"operation","cn":"手术","key":"o"},{"en":"successful","cn":"成功的","key":"s"},{"en":"following","cn":"下一个","key":"f"},{"en":"patient","cn":"病人","key":"p"},{"en":"alone","cn":"独自的","key":"a"},{"en":"exchange","cn":"(电话的)交换台","key":"e"},{"en":"inquire","cn":"询问，打听","key":"i"},{"en":"certain","cn":"某个","key":"c"},{"en":"caller","cn":"打电话的人","key":"c"},{"en":"relative","cn":"亲戚","key":"r"}],"star40":[{"en":"hostess","cn":"女主人","key":"h"},{"en":"unsmiling","cn":"不笑的，严肃的","key":"u"},{"en":"tight","cn":"紧身的","key":"t"},{"en":"fix","cn":"凝视","key":"f"},{"en":"globe","cn":"地球","key":"g"},{"en":"despair","cn":"绝望","key":"d"}],"star41":[{"en":"rude","cn":"无礼的","key":"r"},{"en":"mirror","cn":"镜子","key":"m"},{"en":"hole","cn":"孔","key":"h"},{"en":"remark","cn":"评说","key":"r"},{"en":"remind","cn":"提醒","key":"r"},{"en":"lighthouse","cn":"灯塔","key":"l"}],"star42":[{"en":"musical","cn":"精通音乐的","key":"m"},{"en":"market","cn":"市场，集市","key":"m"},{"en":"snake","cn":"蛇；玩蛇者","key":"s"},{"en":"pipe","cn":"(吹奏地)管乐器","key":"p"},{"en":"tune","cn":"曲调","key":"t"},{"en":"glimpse","cn":"一瞥","key":"g"},{"en":"movement","cn":"动作","key":"m"},{"en":"continue","cn":"继续","key":"c"},{"en":"dance","cn":"跳舞","key":"d"},{"en":"obviously","cn":"显然","key":"o"},{"en":"difference","cn":"差别","key":"d"},{"en":"Indian","cn":"印度的","key":"i"}],"star43":[{"en":"pole","cn":"(地球的)极","key":"p"},{"en":"flight","cn":"飞行","key":"f"},{"en":"explorer","cn":"探险家","key":"e"},{"en":"lie","cn":"处于","key":"l"},{"en":"serious","cn":"严重的","key":"s"},{"en":"point","cn":"地点","key":"p"},{"en":"seem","cn":"似乎，好像","key":"s"},{"en":"crash","cn":"坠毁","key":"c"},{"en":"sack","cn":"袋子","key":"s"},{"en":"clear","cn":"越过","key":"c"},{"en":"aircraft","cn":"飞机","key":"a"},{"en":"endless","cn":"无尽的","key":"e"},{"en":"plain","cn":"平原","key":"p"}],"star44":[{"en":"forest","cn":"森林","key":"f"},{"en":"risk","cn":"危险，冒险","key":"r"},{"en":"picnic","cn":"野餐","key":"p"},{"en":"edge","cn":"边缘","key":"e"},{"en":"strap","cn":"带，皮带","key":"s"},{"en":"possession","cn":"所有","key":"p"},{"en":"breath","cn":"呼吸","key":"b"},{"en":"contents","cn":"(常用复数)内有的物品","key":"c"},{"en":"mend","cn":"修理","key":"m"}],"star45":[{"en":"clear","cn":"无罪的，不亏心的","key":"c"},{"en":"conscience","cn":"良心，道德心","key":"c"},{"en":"wallet","cn":"皮夹，钱夹","key":"w"},{"en":"savings","cn":"存款","key":"s"},{"en":"villager","cn":"村民","key":"v"},{"en":"per cent","cn":"百分之…","key":"p"}],"star46":[{"en":"unload","cn":"卸(货)","key":"u"},{"en":"wooden","cn":"木制的","key":"w"},{"en":"extremely","cn":"非常，极其","key":"e"},{"en":"occur","cn":"发生","key":"o"},{"en":"astonish","cn":"使惊讶","key":"a"},{"en":"pile","cn":"堆","key":"p"},{"en":"woollen","cn":"羊毛的","key":"w"},{"en":"goods","cn":"(常用复数)货物，商品","key":"g"},{"en":"discover","cn":"发现","key":"d"},{"en":"admit","cn":"承认","key":"a"},{"en":"confine","cn":"关在狭小空间","key":"c"},{"en":"normal","cn":"正常的，通常的","key":"n"}],"star47":[{"en":"thirsty","cn":"贪杯的","key":"t"},{"en":"ghost","cn":"鬼魂","key":"g"},{"en":"haunt","cn":"(鬼)来访，闹鬼","key":"h"},{"en":"block","cn":"堵","key":"b"},{"en":"furniture","cn":"家具","key":"f"},{"en":"whisky","cn":"威士忌酒","key":"w"},{"en":"suggest","cn":"暗示","key":"s"},{"en":"shake","cn":"摇动","key":"s"},{"en":"accept","cn":"接受","key":"a"}],"star48":[{"en":"pull","cn":"拔","key":"p"},{"en":"cotton","cn":"药棉","key":"c"},{"en":"collect","cn":"搜集","key":"c"},{"en":"collection","cn":"收藏品，收集品","key":"c"},{"en":"nod","cn":"点头","key":"n"},{"en":"meanwhile","cn":"同时","key":"m"}],"star49":[{"en":"tired","cn":"厌烦的","key":"t"},{"en":"real","cn":"真正的","key":"r"},{"en":"owner","cn":"主人","key":"o"},{"en":"spring","cn":"弹簧","key":"s"},{"en":"mattress","cn":"床垫","key":"m"},{"en":"gust","cn":"一阵风","key":"g"},{"en":"sweep","cn":"扫，刮","key":"s"},{"en":"courtyard","cn":"院子","key":"c"},{"en":"smash","cn":"碰碎，摔碎","key":"s"},{"en":"miraculously","cn":"奇迹般地","key":"m"},{"en":"unhurt","cn":"没有受伤的","key":"u"},{"en":"glance","cn":"扫视","key":"g"},{"en":"promptly","cn":"迅速地","key":"p"}],"star50":[{"en":"ride","cn":"旅行","key":"r"},{"en":"excursion","cn":"远足","key":"e"},{"en":"conductor","cn":"售票员","key":"c"},{"en":"view","cn":"景色","key":"v"}],"star51":[{"en":"reward","cn":"报偿；给奖赏","key":"r"},{"en":"virtue","cn":"美德","key":"v"},{"en":"diet","cn":"节食","key":"d"},{"en":"forbid","cn":"禁止","key":"f"},{"en":"hurriedly","cn":"匆忙地","key":"h"},{"en":"embarrass","cn":"使尴尬","key":"e"},{"en":"guiltily","cn":"内疚地","key":"g"},{"en":"strict","cn":"严格的","key":"s"},{"en":"occasionally","cn":"偶尔地","key":"o"}],"star52":[{"en":"temporarily","cn":"暂时地","key":"t"},{"en":"inch","cn":"英寸","key":"i"},{"en":"space","cn":"空间","key":"s"},{"en":"actually","cn":"实际上","key":"a"}],"star53":[{"en":"hot","cn":"带电的，充电的","key":"h"},{"en":"fireman","cn":"消防队员","key":"f"},{"en":"cause","cn":"引起；原因","key":"c"},{"en":"examine","cn":"检查","key":"e"},{"en":"accidentally","cn":"意外地,偶然地","key":"a"},{"en":"remains","cn":"尸体，残骸","key":"r"},{"en":"wire","cn":"电线","key":"w"},{"en":"volt","cn":"伏特(电压单位)","key":"v"},{"en":"power line","cn":"电力线","key":"p"},{"en":"solve","cn":"解决","key":"s"},{"en":"mystery","cn":"谜","key":"m"},{"en":"snatch","cn":"抓住","key":"s"},{"en":"spark","cn":"电火花","key":"s"}],"star54":[{"en":"sticky","cn":"粘的","key":"s"},{"en":"finger","cn":"手指","key":"f"},{"en":"pie","cn":"馅饼","key":"p"},{"en":"mix","cn":"混合，拌和","key":"m"},{"en":"pastry","cn":"面糊","key":"p"},{"en":"annoying","cn":"恼人的","key":"a"},{"en":"receiver","cn":"电话话筒","key":"r"},{"en":"dismay","cn":"失望，泄气","key":"d"},{"en":"recognize","cn":"认出，听出","key":"r"},{"en":"persuade","cn":"说服，劝说","key":"p"},{"en":"mess","cn":"乱七八糟","key":"m"},{"en":"doorknob","cn":"门把手","key":"d"},{"en":"sign","cn":"签字","key":"s"},{"en":"register","cn":"挂号邮寄","key":"r"}],"star55":[{"en":"gold","cn":"金子","key":"g"},{"en":"mine","cn":"矿","key":"m"},{"en":"treasure","cn":"财宝","key":"t"},{"en":"revealer","cn":"探测器","key":"r"},{"en":"invent","cn":"发明","key":"i"},{"en":"detect","cn":"探测","key":"d"},{"en":"bury","cn":"埋藏","key":"b"},{"en":"cave","cn":"山洞","key":"c"},{"en":"seashore","cn":"海岸","key":"s"},{"en":"pirate","cn":"海盗","key":"p"},{"en":"arm","cn":"武装","key":"a"},{"en":"soil","cn":"泥土","key":"s"},{"en":"entrance","cn":"入口","key":"e"},{"en":"finally","cn":"最后","key":"f"},{"en":"worthless","cn":"毫无价值的","key":"w"},{"en":"thoroughly","cn":"彻底地","key":"t"},{"en":"trunk","cn":"行李箱","key":"t"},{"en":"confident","cn":"有信心的","key":"c"},{"en":"value","cn":"价值","key":"v"}],"star56":[{"en":"sound","cn":"声音","key":"s"},{"en":"excitement","cn":"激动，兴奋","key":"e"},{"en":"handsome","cn":"漂亮的，美观的","key":"h"},{"en":"Rolls-Royce","cn":"罗尔斯—罗伊斯","key":"r"},{"en":"Benz","cn":"奔驰","key":"b"},{"en":"wheel","cn":"轮子","key":"w"},{"en":"explosion","cn":"爆炸，轰响","key":"e"},{"en":"course","cn":"跑道；行程","key":"c"},{"en":"rival","cn":"对手","key":"r"},{"en":"speed","cn":"疾驶","key":"s"},{"en":"downhill","cn":"下坡","key":"d"}],"star57":[{"en":"madam","cn":"(对妇女的尊称)太太，夫人","key":"m"},{"en":"jeans","cn":"牛仔裤","key":"j"},{"en":"hesitate","cn":"犹豫，迟疑","key":"h"},{"en":"serve","cn":"接待(顾客)","key":"s"},{"en":"scornfully","cn":"轻蔑地","key":"s"},{"en":"punish","cn":"惩罚","key":"p"},{"en":"fur","cn":"裘皮","key":"f"},{"en":"eager","cn":"热切的，热情的","key":"e"}],"star58":[{"en":"blessing","cn":"福分，福气","key":"b"},{"en":"disguise","cn":"伪装","key":"d"},{"en":"tiny","cn":"极小的","key":"t"},{"en":"possess","cn":"拥有","key":"p"},{"en":"cursed","cn":"可恨的","key":"c"},{"en":"increase","cn":"增加","key":"i"},{"en":"plant","cn":"种植","key":"p"},{"en":"church","cn":"教堂","key":"c"},{"en":"evil","cn":"坏的","key":"e"},{"en":"reputation","cn":"名声","key":"r"},{"en":"claim","cn":"以…为其后果","key":"c"},{"en":"victim","cn":"受害者，牺牲品","key":"v"},{"en":"vicar","cn":"教区牧师","key":"v"},{"en":"source","cn":"来源","key":"s"},{"en":"income","cn":"收入","key":"i"},{"en":"trunk","cn":"树干","key":"t"}],"star59":[{"en":"bark","cn":"狗叫","key":"b"},{"en":"press","cn":"按压","key":"p"},{"en":"paw","cn":"脚爪","key":"p"},{"en":"latch","cn":"门闩","key":"l"},{"en":"expert","cn":"专家","key":"e"},{"en":"develop","cn":"养成","key":"d"},{"en":"habit","cn":"习惯","key":"h"},{"en":"remove","cn":"拆掉，取下","key":"r"}],"star60":[{"en":"future","cn":"未来，前途","key":"f"},{"en":"fair","cn":"集市","key":"f"},{"en":"fortune-teller","cn":"算命人","key":"f"},{"en":"crystal","cn":"水晶","key":"c"},{"en":"relation","cn":"亲属","key":"r"},{"en":"impatiently","cn":"不耐烦地","key":"i"}],"star61":[{"en":"Hubble","cn":"哈勃","key":"h"},{"en":"telescope","cn":"望远镜","key":"t"},{"en":"launch","cn":"发射","key":"l"},{"en":"space","cn":"空间","key":"s"},{"en":"NASA","cn":"国家航空和宇宙航行局","key":"n"},{"en":"billion","cn":"10亿","key":"b"},{"en":"faulty","cn":"有错误的","key":"f"},{"en":"astronaut","cn":"宇航员","key":"a"},{"en":"shuttle","cn":"宇航飞机","key":"s"},{"en":"Endeavour","cn":"\"奋进\"号","key":"e"},{"en":"robot-arm","cn":"机器手","key":"r"},{"en":"grab","cn":"抓","key":"g"},{"en":"atmosphere","cn":"大气层","key":"a"},{"en":"distant","cn":"遥远的","key":"d"},{"en":"galaxy","cn":"星系","key":"g"},{"en":"universe","cn":"宇宙","key":"u"},{"en":"eagle eye","cn":"鹰眼","key":"e"}],"star62":[{"en":"control","cn":"控制","key":"c"},{"en":"smoke","cn":"烟","key":"s"},{"en":"desolate","cn":"荒凉的","key":"d"},{"en":"threaten","cn":"威胁","key":"t"},{"en":"surrounding","cn":"周围的","key":"s"},{"en":"destruction","cn":"破坏，毁灭","key":"d"},{"en":"flood","cn":"洪水，水灾","key":"f"},{"en":"authority","cn":"(常用复数)当局","key":"a"},{"en":"grass-seed","cn":"草籽","key":"g"},{"en":"spray","cn":"喷撒","key":"s"},{"en":"quantity","cn":"量","key":"q"},{"en":"root","cn":"根","key":"r"},{"en":"century","cn":"世纪","key":"c"},{"en":"patch","cn":"小片","key":"p"},{"en":"blacken","cn":"变黑，发暗","key":"b"}],"star63":[{"en":"circle","cn":"圈子","key":"c"},{"en":"admire","cn":"赞美，钦佩","key":"a"},{"en":"close","cn":"亲密的","key":"c"},{"en":"wedding","cn":"婚礼","key":"w"},{"en":"reception","cn":"招待会","key":"r"},{"en":"sort","cn":"种类","key":"s"}],"star64":[{"en":"tunnel","cn":"隧道","key":"t"},{"en":"port","cn":"港口","key":"p"},{"en":"ventilate","cn":"通风","key":"v"},{"en":"chimney","cn":"烟囱","key":"c"},{"en":"sea level","cn":"海平面","key":"s"},{"en":"double","cn":"双的","key":"d"},{"en":"ventilation","cn":"通风","key":"v"},{"en":"fear","cn":"害怕","key":"f"},{"en":"invasion","cn":"入侵，侵略","key":"i"},{"en":"officially","cn":"正式地","key":"o"},{"en":"connect","cn":"连接","key":"c"},{"en":"European","cn":"欧洲的","key":"e"},{"en":"continent","cn":"大陆","key":"c"}],"star65":[{"en":"versus","cn":"对","key":"v"},{"en":"Christmas","cn":"圣诞节","key":"c"},{"en":"circus","cn":"马戏团","key":"c"},{"en":"present","cn":"礼物","key":"p"},{"en":"accompany","cn":"陪伴，随行","key":"a"},{"en":"approach","cn":"走近","key":"a"},{"en":"ought","cn":"应该","key":"o"},{"en":"weigh","cn":"重","key":"w"},{"en":"fortunate","cn":"幸运的","key":"f"}],"star66":[{"en":"Lancaster","cn":"兰开斯特","key":"l"},{"en":"bomber","cn":"轰炸机","key":"b"},{"en":"remote","cn":"偏僻的","key":"r"},{"en":"Pacific","cn":"太平洋","key":"p"},{"en":"damage","cn":"毁坏","key":"d"},{"en":"wreck","cn":"残骸","key":"w"},{"en":"rediscover","cn":"重新发现","key":"r"},{"en":"aerial","cn":"航空的","key":"a"},{"en":"survey","cn":"调查","key":"s"},{"en":"rescue","cn":"营救","key":"r"},{"en":"package","cn":"把…打包","key":"p"},{"en":"enthusiast","cn":"热心人","key":"e"},{"en":"restore","cn":"修复","key":"r"},{"en":"imagine","cn":"想像","key":"i"},{"en":"packing","cn":"包装箱","key":"p"},{"en":"colony","cn":"群","key":"c"},{"en":"bee","cn":"蜂","key":"b"},{"en":"hive","cn":"蜂房","key":"h"},{"en":"preserve","cn":"保护","key":"p"},{"en":"beeswax","cn":"蜂蜡","key":"b"}],"star67":[{"en":"volcano","cn":"火山","key":"v"},{"en":"active","cn":"活动的","key":"a"},{"en":"Kivu","cn":"基伍湖","key":"k"},{"en":"Congo","cn":"刚果","key":"c"},{"en":"Kituro","cn":"基图罗","key":"k"},{"en":"erupt","cn":"(火山)喷发","key":"e"},{"en":"violently","cn":"猛烈地，剧烈地","key":"v"},{"en":"manage","cn":"设法","key":"m"},{"en":"brilliant","cn":"精彩的","key":"b"},{"en":"liquid","cn":"液态的","key":"l"},{"en":"escape","cn":"逃脱","key":"e"},{"en":"alive","cn":"活着的","key":"a"}],"star68":[{"en":"persistent","cn":"坚持的，固执的","key":"p"},{"en":"avoid","cn":"避开","key":"a"},{"en":"insist","cn":"坚持做","key":"i"}],"star69":[{"en":"murder","cn":"谋杀","key":"m"},{"en":"instruct","cn":"命令，指示","key":"i"},{"en":"acquire","cn":"取得，获得","key":"a"},{"en":"confidence","cn":"信心","key":"c"},{"en":"examiner","cn":"主考人","key":"e"},{"en":"suppose","cn":"假设","key":"s"},{"en":"tap","cn":"轻敲","key":"t"},{"en":"react","cn":"反应","key":"r"},{"en":"brake","cn":"刹车","key":"b"},{"en":"pedal","cn":"踏板","key":"p"},{"en":"mournful","cn":"悲哀的","key":"m"}],"star70":[{"en":"bullfight","cn":"斗牛","key":"b"},{"en":"drunk","cn":"醉汉","key":"d"},{"en":"wander","cn":"溜达，乱走","key":"w"},{"en":"ring","cn":"圆形竞技场地","key":"r"},{"en":"unaware","cn":"不知道的，未觉察的","key":"u"},{"en":"bull","cn":"公牛","key":"b"},{"en":"matador","cn":"斗牛士","key":"m"},{"en":"remark","cn":"评论；言语","key":"r"},{"en":"apparently","cn":"明显地","key":"a"},{"en":"sensitive","cn":"敏感的","key":"s"},{"en":"criticism","cn":"批评","key":"c"},{"en":"charge","cn":"冲上去","key":"c"},{"en":"clumsily","cn":"笨拙地","key":"c"},{"en":"bow","cn":"鞠躬","key":"b"},{"en":"safety","cn":"安全地带","key":"s"},{"en":"sympathetically","cn":"同情地","key":"s"}],"star71":[{"en":"parliament","cn":"议会，国会","key":"p"},{"en":"erect","cn":"建起","key":"e"},{"en":"accurate","cn":"准确的","key":"a"},{"en":"official","cn":"官员，行政人员","key":"o"},{"en":"Greenwich","cn":"格林威治","key":"g"},{"en":"observatory","cn":"天文台","key":"o"},{"en":"check","cn":"检查","key":"c"},{"en":"microphone","cn":"扩音器，麦克风","key":"m"},{"en":"tower","cn":"塔","key":"t"}],"star72":[{"en":"racing","cn":"竞赛","key":"r"},{"en":"per","cn":"每","key":"p"},{"en":"Utah","cn":"犹他(美国州名)","key":"u"},{"en":"horsepower","cn":"马力","key":"h"},{"en":"burst","cn":"爆裂","key":"b"},{"en":"average","cn":"平均的","key":"a"},{"en":"footstep","cn":"足迹","key":"f"}],"star73":[{"en":"record-holder","cn":"纪录保持者","key":"r"},{"en":"truant","cn":"逃学的孩子","key":"t"},{"en":"unimaginative","cn":"缺乏想象力的","key":"u"},{"en":"shame","cn":"惭愧，羞耻","key":"s"},{"en":"hitchhike","cn":"搭便车旅行","key":"h"},{"en":"meantime","cn":"其间","key":"m"},{"en":"lorry","cn":"卡车","key":"l"},{"en":"border","cn":"边界","key":"b"},{"en":"evade","cn":"逃避，逃离","key":"e"}],"star74":[{"en":"limelight","cn":"舞台灯光","key":"l"},{"en":"precaution","cn":"预防措施","key":"p"},{"en":"fan","cn":"狂热者，迷","key":"f"},{"en":"shady","cn":"遮荫的","key":"s"},{"en":"sheriff","cn":"司法长官","key":"s"},{"en":"notice","cn":"告示","key":"n"},{"en":"sneer","cn":"冷笑","key":"s"}],"star75":[{"en":"thick","cn":"厚的","key":"t"},{"en":"signal","cn":"信号","key":"s"},{"en":"stamp","cn":"跺，踩","key":"s"},{"en":"helicopter","cn":"直升飞机","key":"h"},{"en":"scene","cn":"现场","key":"s"},{"en":"survivor","cn":"幸存者","key":"s"}],"star76":[{"en":"fool","cn":"傻瓜","key":"f"},{"en":"bulletin","cn":"新闻简报","key":"b"},{"en":"announcer","cn":"(电视、电台)播音员","key":"a"},{"en":"macaroni","cn":"通心面，空心面条","key":"m"},{"en":"leading","cn":"主要的","key":"l"},{"en":"grower","cn":"种植者","key":"g"},{"en":"splendid","cn":"极好的","key":"s"},{"en":"stalk","cn":"梗","key":"s"},{"en":"gather","cn":"收庄稼","key":"g"},{"en":"thresh","cn":"打(庄稼)","key":"t"},{"en":"process","cn":"加工","key":"p"},{"en":"signor","cn":"(意大利语)先生","key":"s"},{"en":"present","cn":"目前的","key":"p"},{"en":"champion","cn":"冠军","key":"c"},{"en":"studio","cn":"播音室","key":"s"}],"star77":[{"en":"mummy","cn":"木乃伊","key":"m"},{"en":"Egyptian","cn":"埃及的","key":"e"},{"en":"temple","cn":"庙","key":"t"},{"en":"mark","cn":"斑点","key":"m"},{"en":"plate","cn":"(照相)底片","key":"p"},{"en":"disease","cn":"疾病","key":"d"},{"en":"last","cn":"持续","key":"l"},{"en":"prove","cn":"显示出","key":"p"},{"en":"resin","cn":"树脂","key":"r"},{"en":"skin","cn":"皮，皮肤","key":"s"},{"en":"section","cn":"切片","key":"s"},{"en":"figure","cn":"(人的)体形；人像","key":"f"},{"en":"normally","cn":"通常地","key":"n"},{"en":"survive","cn":"幸免于","key":"s"}],"star78":[{"en":"entitle","cn":"以…为名","key":"e"},{"en":"calm","cn":"使镇定","key":"c"},{"en":"nerve","cn":"神经","key":"n"},{"en":"concentration","cn":"集中，专心","key":"c"},{"en":"suffer","cn":"受苦，受害","key":"s"},{"en":"symptom","cn":"症状","key":"s"},{"en":"temper","cn":"脾气","key":"t"},{"en":"appetite","cn":"胃口，食欲","key":"a"},{"en":"produce","cn":"拿出","key":"p"},{"en":"urge","cn":"力劝，怂恿","key":"u"},{"en":"satisfaction","cn":"满意，满足","key":"s"},{"en":"delighted","cn":"欣喜的","key":"d"}],"star79":[{"en":"parent","cn":"父(母)亲","key":"p"},{"en":"flight","cn":"n. 空中乘务员","key":"f"},{"en":"frightened","cn":"害怕，担惊","key":"f"},{"en":"curious","cn":"急于了解，好奇的","key":"c"},{"en":"bomb","cn":"炸弹","key":"b"},{"en":"plant","cn":"安放","key":"p"}],"star80":[{"en":"palace","cn":"宫殿","key":"p"},{"en":"extraordinary","cn":"不平常的，非凡的","key":"e"},{"en":"exhibition","cn":"展览","key":"e"},{"en":"iron","cn":"铁","key":"i"},{"en":"various","cn":"各种各样的","key":"v"},{"en":"machinery","cn":"机器","key":"m"},{"en":"display","cn":"展览","key":"d"},{"en":"steam","cn":"蒸汽","key":"s"},{"en":"profit","cn":"利润","key":"p"},{"en":"college","cn":"学院","key":"c"}],"star81":[{"en":"prisoner","cn":"囚犯","key":"p"},{"en":"bush","cn":"灌木丛","key":"b"},{"en":"rapidly","cn":"迅速地","key":"r"},{"en":"uniform","cn":"制服","key":"u"},{"en":"rifle","cn":"来福枪，步枪","key":"r"},{"en":"shoulder","cn":"肩","key":"s"},{"en":"march","cn":"行进","key":"m"},{"en":"boldly","cn":"大胆地","key":"b"},{"en":"blaze","cn":"闪耀","key":"b"},{"en":"salute","cn":"行礼","key":"s"},{"en":"elderly","cn":"上了年纪的","key":"e"},{"en":"grey","cn":"灰白的","key":"g"},{"en":"sharp","cn":"猛烈的","key":"s"},{"en":"blow","cn":"打击","key":"b"}],"star82":[{"en":"monster","cn":"怪物","key":"m"},{"en":"sailor","cn":"海员","key":"s"},{"en":"sight","cn":"见到","key":"s"},{"en":"creature","cn":"动物，生物","key":"c"},{"en":"peculiar","cn":"奇怪的，不寻常的","key":"p"},{"en":"shining","cn":"闪闪发光的","key":"s"},{"en":"oarfish","cn":"桨鱼","key":"o"}],"star83":[{"en":"election","cn":"选举","key":"e"},{"en":"former","cn":"从前的","key":"f"},{"en":"defeat","cn":"打败","key":"d"},{"en":"fanatical","cn":"狂热的","key":"f"},{"en":"opponent","cn":"反对者，对手","key":"o"},{"en":"radical","cn":"激进的","key":"r"},{"en":"progressive","cn":"进步的","key":"p"},{"en":"ex-","cn":"前缀，前…","key":"e"},{"en":"suspicious","cn":"怀疑的","key":"s"}],"star84":[{"en":"strike","cn":"罢工","key":"s"},{"en":"busman","cn":"公共汽车司机","key":"b"},{"en":"state","cn":"正式提出，宣布","key":"s"},{"en":"agreement","cn":"协议","key":"a"},{"en":"relieve","cn":"减轻","key":"r"},{"en":"pressure","cn":"压力，麻烦","key":"p"},{"en":"extent","cn":"程度","key":"e"},{"en":"volunteer","cn":"自动提出，自愿","key":"v"},{"en":"gratitude","cn":"感激","key":"g"},{"en":"Press","cn":"新闻界","key":"p"},{"en":"object","cn":"不赞成，反对","key":"o"}],"star85":[{"en":"inform","cn":"告诉，通知","key":"i"},{"en":"headmaster","cn":"校长","key":"h"},{"en":"contribute","cn":"捐助，援助","key":"c"},{"en":"gift","cn":"礼物，赠品","key":"g"},{"en":"album","cn":"签名簿，相册","key":"a"},{"en":"patience","cn":"耐心","key":"p"},{"en":"encouragement","cn":"鼓励","key":"e"},{"en":"farewell","cn":"告别","key":"f"},{"en":"honour","cn":"敬意","key":"h"},{"en":"coincidence","cn":"巧合","key":"c"},{"en":"total","cn":"总数","key":"t"},{"en":"devote","cn":"致力于","key":"d"},{"en":"gardening","cn":"园艺","key":"g"},{"en":"hobby","cn":"爱好，嗜好","key":"h"}],"star86":[{"en":"swing","cn":"转向","key":"s"},{"en":"speedboat","cn":"快艇","key":"s"},{"en":"desperately","cn":"绝望地","key":"d"},{"en":"companion","cn":"同伙，同伴","key":"c"},{"en":"water ski","cn":"滑水","key":"w"},{"en":"buoy","cn":"浮标","key":"b"},{"en":"dismay","cn":"沮丧","key":"d"},{"en":"tremendous","cn":"巨大的","key":"t"},{"en":"petrol","cn":"汽油","key":"p"},{"en":"drift","cn":"漂动，漂流","key":"d"},{"en":"gently","cn":"缓慢地，轻轻地","key":"g"}],"star87":[{"en":"alibi","cn":"不在犯罪现场","key":"a"},{"en":"commit","cn":"犯(罪、错)","key":"c"},{"en":"inspector","cn":"探长","key":"i"},{"en":"employer","cn":"雇主","key":"e"},{"en":"confirm","cn":"确认，证实","key":"c"},{"en":"suggest","cn":"提醒","key":"s"},{"en":"truth","cn":"真相","key":"t"}],"star88":[{"en":"trap","cn":"陷入，使陷于困境","key":"t"},{"en":"surface","cn":"地面，表面","key":"s"},{"en":"explosive","cn":"炸药","key":"e"},{"en":"vibration","cn":"震动","key":"v"},{"en":"collapse","cn":"坍塌","key":"c"},{"en":"drill","cn":"钻孔","key":"d"},{"en":"capsule","cn":"容器","key":"c"},{"en":"layer","cn":"层","key":"l"},{"en":"beneath","cn":"在…之下","key":"b"},{"en":"lower","cn":"放下，降低","key":"l"},{"en":"progress","cn":"进展，进行","key":"p"},{"en":"smoothly","cn":"顺利地","key":"s"}],"star89":[{"en":"slip","cn":"小错误","key":"s"},{"en":"comedy","cn":"喜剧","key":"c"},{"en":"present","cn":"演出；出席，到场的","key":"p"},{"en":"queue","cn":"排队","key":"q"},{"en":"dull","cn":"枯燥，无味","key":"d"},{"en":"artiste","cn":"艺人","key":"a"},{"en":"advertiser","cn":"报幕员","key":"a"}],"star90":[{"en":"chip","cn":"油煎豆片","key":"c"},{"en":"overfish","cn":"过度捕捞","key":"o"},{"en":"giant","cn":"巨大的","key":"g"},{"en":"terrify","cn":"吓，使恐怖","key":"t"},{"en":"diver","cn":"潜水员","key":"d"},{"en":"oil rig","cn":"石油钻塔","key":"o"},{"en":"wit","cn":"(复数)理智，头脑","key":"w"},{"en":"cage","cn":"笼","key":"c"},{"en":"shark","cn":"鲨鱼","key":"s"},{"en":"whale","cn":"鲸","key":"w"},{"en":"variety","cn":"品种","key":"v"},{"en":"cod","cn":"鳕","key":"c"},{"en":"skate","cn":"鳐","key":"s"},{"en":"factor","cn":"因素","key":"f"},{"en":"crew","cn":"全体工作人员","key":"c"}],"star91":[{"en":"balloon","cn":"气球","key":"b"},{"en":"royal","cn":"皇家","key":"r"},{"en":"spy","cn":"侦察","key":"s"},{"en":"track","cn":"轨迹，踪迹","key":"t"},{"en":"binoculars","cn":"望远镜","key":"b"}],"star92":[{"en":"fast","cn":"熟(睡)","key":"f"},{"en":"ladder","cn":"梯子","key":"l"},{"en":"shed","cn":"棚子","key":"s"},{"en":"sarcastic","cn":"讽刺的，讥笑的","key":"s"},{"en":"tone","cn":"语气，腔调","key":"t"}],"star93":[{"en":"noble","cn":"高尚的，壮丽的","key":"n"},{"en":"monument","cn":"纪念碑","key":"m"},{"en":"statue","cn":"雕像","key":"s"},{"en":"liberty","cn":"自由","key":"l"},{"en":"present","cn":"赠送","key":"p"},{"en":"sculptor","cn":"雕刻家","key":"s"},{"en":"actual","cn":"实际的，真实的","key":"a"},{"en":"copper","cn":"铜","key":"c"},{"en":"support","cn":"支持，支撑","key":"s"},{"en":"framework","cn":"构架，框架","key":"f"},{"en":"transport","cn":"运送","key":"t"},{"en":"site","cn":"场地","key":"s"},{"en":"pedestal","cn":"底座","key":"p"}],"star94":[{"en":"instruct","cn":"指导，传授","key":"i"},{"en":"Los Angeles","cn":"洛杉矶","key":"l"},{"en":"reluctant","cn":"勉强的，不愿意的","key":"r"},{"en":"weight","cn":"重物","key":"w"},{"en":"underwater","cn":"水下的","key":"u"},{"en":"tricycle","cn":"三轮车","key":"t"},{"en":"compete","cn":"比赛，对抗","key":"c"},{"en":"yard","cn":"码","key":"y"},{"en":"gasp","cn":"喘气","key":"g"}],"star95":[{"en":"fantasy","cn":"幻想故事","key":"f"},{"en":"ambassador","cn":"大使","key":"a"},{"en":"frightful","cn":"可怕的，令人吃惊的","key":"f"},{"en":"fire extinguisher","cn":"灭火器","key":"f"},{"en":"drily","cn":"冷淡地，枯燥无味地","key":"d"},{"en":"embassy","cn":"大使馆","key":"e"},{"en":"heaven","cn":"天，天堂","key":"h"},{"en":"basement","cn":"地下室","key":"b"},{"en":"definitely","cn":"肯定地","key":"d"},{"en":"post","cn":"派任","key":"p"},{"en":"shot","cn":"子弹","key":"s"}],"star96":[{"en":"festival","cn":"节日","key":"f"},{"en":"lantern","cn":"灯笼","key":"l"},{"en":"spectacle","cn":"景象，壮观，场面","key":"s"}]};
+const LVS = Object.keys(D);
+const TOTAL_LV = LVS.length;
+const LEVEL_NAMES = ["Lesson 1","Lesson 2","Lesson 3","Lesson 4","Lesson 5","Lesson 6","Lesson 7","Lesson 8","Lesson 9","Lesson 10","Lesson 11","Lesson 12","Lesson 13","Lesson 14","Lesson 15","Lesson 16","Lesson 17","Lesson 18","Lesson 19","Lesson 20","Lesson 21","Lesson 22","Lesson 23","Lesson 24","Lesson 25","Lesson 26","Lesson 27","Lesson 28","Lesson 29","Lesson 30","Lesson 31","Lesson 32","Lesson 33","Lesson 34","Lesson 35","Lesson 36","Lesson 37","Lesson 38","Lesson 39","Lesson 40","Lesson 41","Lesson 42","Lesson 43","Lesson 44","Lesson 45","Lesson 46","Lesson 47","Lesson 48","Lesson 49","Lesson 50","Lesson 51","Lesson 52","Lesson 53","Lesson 54","Lesson 55","Lesson 56","Lesson 57","Lesson 58","Lesson 59","Lesson 60","Lesson 61","Lesson 62","Lesson 63","Lesson 64","Lesson 65","Lesson 66","Lesson 67","Lesson 68","Lesson 69","Lesson 70","Lesson 71","Lesson 72","Lesson 73","Lesson 74","Lesson 75","Lesson 76","Lesson 77","Lesson 78","Lesson 79","Lesson 80","Lesson 81","Lesson 82","Lesson 83","Lesson 84","Lesson 85","Lesson 86","Lesson 87","Lesson 88","Lesson 89","Lesson 90","Lesson 91","Lesson 92","Lesson 93","Lesson 94","Lesson 95","Lesson 96"];
+
+const MODES = [
+  {id:"en-cn", label:"📖 英→中", q:"选择正确的中文释义", enFirst:true},
+  {id:"cn-en", label:"📝 中→英", q:"选择正确的英文单词", enFirst:false},
+  {id:"listen", label:"🔊 听音选", q:"听发音选择正确的中文", enFirst:true},
+  {id:"match", label:"🔗 配对", q:"将英文与中文配对", enFirst:true}
+];
+
+const S = {s:1, l:0, q:0, ord:[], ok:0, err:0, a:false, m:0, wrongList:[], timerInterval:null, startTime:0, elapsed:0};
+
+// ===== 计时 =====
+function startTimer(){
+  stopTimer();
+  S.startTime=Date.now();
+  S.timerInterval=setInterval(updateTimer,200);
+}
+function stopTimer(){
+  if(S.timerInterval){clearInterval(S.timerInterval);S.timerInterval=null;}
+}
+function updateTimer(){
+  if(!S.startTime)return;
+  const el=Math.floor((Date.now()-S.startTime)/1000);
+  S.elapsed=el;
+  const m=Math.floor(el/60),s=el%60;
+  const td=document.getElementById("timerDisplay");
+  if(td)td.textContent=m+":"+(s<10?"0":"")+s;
+}
+function fmtTime(ms){
+  const s=Math.floor(ms/1000),m=Math.floor(s/60);
+  return m+":"+(s%60<10?"0":"")+(s%60);
+}
+// ===== PB =====
+function getPB(lv,md){return parseInt(localStorage.getItem("pb_"+lv+"_"+md)||"0");}
+function setPB(lv,md,ms){
+  const k="pb_"+lv+"_"+md;
+  const prev=getPB(lv,md);
+  if(prev===0||ms<prev){localStorage.setItem(k,ms);return true;}
+  return false;
+}
+function getPBStr(lv,md){
+  const t=getPB(lv,md);
+  return t>0?"PB: "+fmtTime(t):"";
+}
+function $(id){return document.getElementById(id)}
+
+function renderLv(){
+  const lg=$("lg");
+  lg.innerHTML="";
+  LVS.forEach((key,i)=>{
+    const items=D[key].filter(it=>it.cn);
+    const done=JSON.parse(localStorage.getItem("vp")||"{}")[i];
+    const displayName=LEVEL_NAMES[i]||('第'+(i+1)+'关');
+    lg.innerHTML+='<div class="level-btn'+(done?" done":"")+'" onclick="startL('+i+')"><span class="lnum">'+displayName+'</span><span class="lcount'+(done?" ok":"")+'">'+(done?done+"/"+items.length+" ✅":items.length+"词")+'</span></div>';
+  });
+}
+
+function backToLevels(){
+  $("ov").classList.remove("show");
+  $("gameView").style.display="none";
+  $("levelView").style.display="block";
+  renderLv();
+}
+
+function startL(idx){
+  if(idx<0||idx>=TOTAL_LV)return;
+  S.l=idx;S.q=0;S.ok=0;S.err=0;S.a=false;S.wrongList=[];S.matchRound=0;
+  const lv=D[LVS[idx]];
+  const items=lv.filter(it=>it.cn);
+  S.ord=items.map((_,i)=>i);
+  S.ord=sha(S.ord);
+  $("levelView").style.display="none";
+  $("gameView").style.display="block";
+  $("lvTitle").textContent=LEVEL_NAMES[idx]+" · "+items.length+" 题";
+  renderModes();
+  startTimer();
+  showQ();
+}
+
+function renderModes(){
+  const c=$("modeTabs");
+  c.innerHTML="";
+  MODES.forEach((m,i)=>{
+    const b=document.createElement("button");
+    b.className="mode-tab"+(i===S.m?" active":"");
+    b.textContent=m.label;
+    b.onclick=()=>{S.m=i;document.querySelectorAll(".mode-tab").forEach(t=>t.classList.remove("active"));b.classList.add("active");showQ()};
+    c.appendChild(b);
+  });
+}
+
+function playAudio(word){
+  try{
+    if(window._aud){try{window._aud.pause();}catch(e){}}
+    const url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(word)+'&type=1';
+    window._aud=new Audio(url);
+    const p=window._aud.play();
+    if(p)p.catch(e=>console.warn('playAudio failed:',word,e));
+  }catch(e){console.warn('playAudio error:',word,e);}
+}
+
+function showQ(){
+  S.a=false;$("ht").style.display="none";$("hb").textContent="💡 提示";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  if(!items.length){backToLevels();return}
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  if(mode.id==="match"){showMatchQ();return}
+  const field=mode.enFirst?"en":"cn";
+  $("qArea").style.display="block";$("matchArea").style.display="none";
+  if(mode.id==="listen"){
+    $("qw").innerHTML='🔊';
+  }else{
+    $("qw").textContent=field==="en"?it.en:it.cn;
+  }
+  window._cw=it.en;$("qw").onclick=()=>{try{playAudio(window._cw)}catch(e){}};
+  if(mode.id==="listen")setTimeout(()=>playAudio(it.en),300);
+  $("qt").textContent=mode.q+"（"+(S.q+1)+"/"+S.ord.length+"）";
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  buildOpts(it,mode);
+}
+
+function buildOpts(it,mode){
+  const lv=D[LVS[S.l]];const items=lv.filter(x=>x.cn);
+  const correct=mode.enFirst?it.cn:it.en;
+  const optField=mode.enFirst?"cn":"en";
+  let pool=[];
+  if(mode.id==="listen"){
+    const others=mode.enFirst?items.map(x=>x.cn):items.map(x=>x.en);
+    pool=others.filter(x=>x!==correct);
+  }else if(optField==="cn"){
+    pool=items.map(x=>x.cn).filter(x=>x!==correct);
+  }else{
+    pool=items.map(x=>x.en).filter(x=>x!==correct);
+  }
+  if(pool.length<3){
+    const allItems=Object.values(D).flat().filter(x=>x.cn);
+    const exclude=new Set([correct,...pool]);
+    const extra=optField==="cn"?allItems.map(x=>x.cn):allItems.map(x=>x.en);
+    pool=pool.concat(extra.filter(x=>!exclude.has(x)));
+  }
+  const others=sha(pool).slice(0,3);
+  const opts=sha([correct,...others]);
+  let h="";
+  opts.forEach(o=>{
+        h+='<button class="option" data-v="'+encodeURIComponent(String(o))+'" onclick="check(this)">'+o+'</button>';
+  });
+  $("oa").innerHTML=h;
+}
+
+let _correct="";
+function check(btn){
+  if(S.a)return;S.a=true;
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  var chosen="";try{chosen=decodeURIComponent(btn.dataset.v)}catch(ex){chosen=btn.dataset.v}
+  _correct=mode.id==="cn-en"?it.en:it.cn;
+  const isOk=chosen===_correct;
+  if(isOk){btn.classList.add("correct");S.ok++;playOK()}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(b=>{if(b.textContent===_correct)b.classList.add("correct")});
+    S.err++;S.wrongList.push(it);playErr()
+  }
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  if(S.q+1<S.ord.length)setTimeout(nQ,500);else setTimeout(showRes,600);
+}
+
+// ====== Match Mode ======
+let M={sel:null,pairs:0,total:0};
+function showMatchQ(){
+  $("qArea").style.display="none";$("matchArea").style.display="flex";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const maxPerRound=10;
+  const totalItems=items.length;
+  const startIdx=S.matchRound*maxPerRound||0;
+  const endIdx=Math.min(startIdx+maxPerRound,totalItems);
+  const roundItems=items.slice(startIdx,endIdx);
+  const roundOrder=sha([...Array(roundItems.length).keys()]);
+  const enOrder=roundOrder.slice();
+  const cnOrder=sha([...roundOrder]);
+  M={sel:null,pairs:0,total:roundItems.length,roundItems,roundIdx:S.matchRound||0};
+  let enHtml='<div class="match-group-label">📖 英文</div>';
+  let cnHtml='<div class="match-group-label">📝 中文</div>';
+  enOrder.forEach((ri,i)=>{
+    enHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="en" onclick="matchClick(this,'+ri+')">'+roundItems[ri].en+'</div>';
+  });
+  cnOrder.forEach((ri,i)=>{
+    cnHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="cn" onclick="matchClick(this,'+ri+')">'+roundItems[ri].cn+'</div>';
+  });
+  $("matchArea").innerHTML='<div class="match-col" id="mcEn">'+enHtml+'</div><div class="match-col" id="mcCn">'+cnHtml+'</div>';
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  const roundNum=Math.floor(startIdx/maxPerRound)+1;
+  const totalRounds=Math.ceil(totalItems/maxPerRound);
+  $("qt").textContent="配对 "+(startIdx+1)+"-"+endIdx+"/"+totalItems+" (第 "+roundNum+"/"+totalRounds+" 轮)";
+}
+function matchClick(el,idx){
+  const pair=el.getAttribute('data-pair');
+  if(el.classList.contains("matched"))return;
+  if(!M.sel){el.classList.add("selected");M.sel={el,idx,pair};return;}
+  if(M.sel.el===el){el.classList.remove("selected");M.sel=null;return;}
+  if(M.sel.pair===pair){M.sel.el.classList.remove("selected");el.classList.add("selected");M.sel={el,idx,pair};return;}
+  const first=M.sel;
+  if(first.idx===idx){
+    first.el.classList.remove("selected");
+    first.el.classList.add("matched");
+    el.classList.add("matched");
+    M.sel=null;M.pairs++;S.ok++;playOK();
+    $("so").textContent=S.ok;
+    if(M.pairs>=M.total){
+    const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+    const maxPerRound=10;
+    const nextRound=(S.matchRound||0)+1;
+    const nextStart=nextRound*maxPerRound;
+    if(nextStart<items.length){
+      S.matchRound=nextRound;
+      setTimeout(showMatchQ,600);
+    }else{
+      setTimeout(goNext,600);
+    }
+  }
+    return;
+  }
+  first.el.classList.add("wrong-flash");
+  el.classList.add("wrong-flash");
+  S.err++;playErr();
+  // Determine EN/CN for wrong list
+  var enText = first.pair==="en"?first.el.textContent:el.textContent;
+  var cnText = first.pair==="cn"?first.el.textContent:el.textContent;
+  S.wrongList.push({en:enText,cn:cnText});
+  M.sel=null;
+  $("se").textContent=S.err;
+  setTimeout(()=>{
+    document.querySelectorAll(".wrong-flash").forEach(function(e){
+      e.classList.remove("wrong-flash");
+      e.classList.remove("selected");
+    });
+  },500);
+}
+
+function goNext(){S.q++;showRes();}
+
+function sha(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function nQ(){S.q++;showQ();}
+
+function sh(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];const mode=MODES[S.m];
+  $("ht").textContent="英文："+it.en;
+  $("ht").style.display="block";$("hb").textContent="已提示 ✓";
+  try{playAudio(it.en)}catch(e){}
+}
+
+function playOK(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sine";o.frequency.value=880;g.gain.setValueAtTime(.25,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.35)}catch(e){}
+}
+function playErr(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sawtooth";o.frequency.value=220;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.25);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.25)}catch(e){}
+}
+
+function showRes(){
+  stopTimer();
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const tot=items.length;const acc=tot>0?Math.round(S.ok/tot*100):0;
+  const stars=acc>=80?"★★★":acc>=60?"★★":"★";
+  const msgs=["继续加油！","做得不错！","太棒了！"];
+  $("rt").textContent=acc>=80?msgs[2]:acc>=60?msgs[1]:msgs[0];
+  $("rs").textContent=stars;$("rsc").textContent=S.ok+"/"+tot+" 正确";
+  const elapsedMs=S.elapsed?S.elapsed*1000:0;
+  $("rac").textContent="正确率 "+acc+"%  · 用时 "+fmtTime(elapsedMs);
+  const prog=JSON.parse(localStorage.getItem("vp")||"{}");
+  if(!prog[S.l]||prog[S.l]<S.ok)prog[S.l]=S.ok;
+  localStorage.setItem("vp",JSON.stringify(prog));
+  if(S.elapsed>0){
+    const pbKey="pb_"+S.l+"_"+S.m;
+    const prev=parseInt(localStorage.getItem(pbKey)||"0");
+    if(prev===0||S.elapsed<prev)localStorage.setItem(pbKey,S.elapsed);
+    const pbt=parseInt(localStorage.getItem(pbKey)||"0");
+    if(pbt>0)$("pbBadge").textContent="PB: "+fmtTime(pbt*1000);
+  }
+  let wh="";
+  if(S.wrongList.length>0){
+    wh='<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#f87171;font-size:.9em">❌ 错误单词列表：</span><button onclick="copyWL()" style="background:#252545;border:1px solid #3a3a5a;color:#94a3b8;padding:4px 14px;border-radius:6px;font-size:.82em;cursor:pointer">📋 复制</button></div>';
+    wh+='<div style="max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:12px;text-align:left">';
+    S.wrongList.forEach(it=>{wh+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em"><span style="color:#e2e8f0">'+esc(it.en)+'</span><span style="color:#94a3b8">'+esc(it.cn)+'</span></div>'});
+    wh+='</div></div>';
+  }
+  $("rmg").innerHTML=wh;$("ov").classList.add("show");
+}
+function retry(){$("ov").classList.remove("show");$("pbBadge").textContent="";$("timerDisplay").textContent="0:00";S.matchRound=0;startL(S.l);}
+function copyWL(){
+  const t=S.wrongList.map(it=>it.en+" - "+it.cn).join("\n");
+  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)}).catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)});
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ====== Click word to pronounce ======
+// Handled by $("qw").onclick in showQ()
+// ====== Init ======
+renderLv();
+
+</script>
+
+</body>
+</html>

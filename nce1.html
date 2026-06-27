@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>词汇闯关 · 中英配对</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0f23;color:#e8e8f0;min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#7dd3fc;margin-bottom:4px;letter-spacing:2px;word-break:break-word}
+.subtitle{text-align:center;color:#64748b;font-size:.82em;margin-bottom:20px;word-break:break-word}
+.card{background:#1e1e3a;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.4);margin-bottom:16px}
+.level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:16px}
+.level-btn{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.8em}
+.level-btn:hover{border-color:#7dd3fc;background:#1a2a3a}
+.level-btn.done{border-color:#4ade80;background:#052016}
+.level-btn .lnum{font-size:1.1em;font-weight:700;display:block;color:#e2e8f0}
+.level-btn .lcount{font-size:.7em;color:#64748b;display:block;margin-top:2px}
+.level-btn .lcount.ok{color:#4ade80}
+.question{text-align:center;margin-bottom:20px}
+.qword{font-size:1.6em;font-weight:700;color:#7dd3fc;letter-spacing:1px;word-break:break-word}
+.qtype{font-size:.8em;color:#64748b;margin-top:4px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.option{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .2s;font-size:.95em;color:#cbd5e1;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.option:hover{border-color:#7dd3fc;background:#1a2a3a}
+.option.correct{border-color:#4ade80;background:#052016;color:#4ade80}
+.option.wrong{border-color:#f87171;background:#2a0a0a;color:#f87171}
+.option:disabled{cursor:default}
+.progress-bar{height:6px;background:#2a2a4a;border-radius:3px;margin-top:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#4ade80);border-radius:3px;transition:width .4s ease}
+.stats{display:flex;justify-content:center;gap:32px;margin-top:16px;color:#94a3b8;font-size:.85em}
+.stats span{color:#e2e8f0}
+.btn{background:#2563eb;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-size:.95em;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.btn-ghost:hover{border-color:#7dd3fc;color:#7dd3fc}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 20px;border-radius:8px;border:2px solid #3a3a5a;background:transparent;color:#94a3b8;cursor:pointer;font-size:.9em;transition:all .2s}
+.mode-tab.active{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc}
+.hint-btn{background:transparent;border:1px solid #3a3a5a;border-radius:6px;color:#64748b;padding:6px 14px;font-size:.8em;cursor:pointer;margin-top:12px}
+.hint-btn:hover{border-color:#7dd3fc;color:#7dd3fc}
+.hint-text{color:#fbbf24;font-size:.85em;margin-top:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#1e1e3a;border-radius:16px;padding:32px;max-width:420px;text-align:center;width:90%;max-height:90vh;overflow-y:auto}
+.modal h2{color:#7dd3fc;margin-bottom:16px;font-size:1.4em}
+.modal .score-big{font-size:3em;font-weight:700;color:#fbbf24;margin:16px 0}
+.modal .acc{color:#4ade80;font-size:1.1em}
+.modal .msg{margin-top:12px;color:#94a3b8;font-size:.85em}
+.match-area{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:20px}
+.match-col{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.match-item{padding:10px 16px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#e8e8f0;cursor:pointer;transition:all .2s;text-align:center;font-size:.9em;user-select:none;min-width:100px;word-break:break-word}
+.match-item:hover{border-color:#7dd3fc}
+.match-item.selected{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc;box-shadow:0 0 8px rgba(125,211,252,.3)}
+.match-item.matched{border-color:#4ade80;background:#052016;color:#4ade80;cursor:default;opacity:.7}
+.match-item.wrong-flash{border-color:#f87171;background:#2a0a0a;color:#f87171;animation:shake .4s}
+.match-group-label{color:#94a3b8;font-size:.85em;text-align:center;margin:12px 0 4px;padding:4px 16px;background:#2a2a4a;border-radius:6px;display:inline-block}
+.match-progress{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.match-dot{width:14px;height:14px;border-radius:50%;background:#3a3a5a;transition:all .3s}
+.match-dot.cur{background:#7dd3fc;transform:scale(1.2)}
+.match-dot.ok{background:#4ade80}
+.match-dot.err{background:#f87171}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:600px){
+  .options-grid{grid-template-columns:1fr}
+  .level-grid{grid-template-columns:repeat(auto-fill,minmax:65px,1fr)}
+  .qword{font-size:1.3em}
+  .match-area{gap:12px}
+  .match-col{min-width:90px}
+}
+
+.timer-display{font-size:1.3em;font-weight:700;color:#fbbf24;font-variant-numeric:tabular-nums;min-width:80px;text-align:center;padding:4px 0}
+.pb-badge{font-size:.85em;color:#a78bfa;margin-left:12px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1 id="gTitle">词汇闯关 · 中英配对</h1>
+<p class="subtitle" id="gSub">新概念 1</p>
+
+<div id="levelView" class="card">
+  <div style="text-align:center;color:#94a3b8;font-size:.85em;margin-bottom:8px">📚 选择关卡开始闯关</div>
+  <div class="level-grid" id="lg"></div>
+</div>
+
+<div id="gameView" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-ghost" onclick="backToLevels()" style="font-size:.8em;padding:6px 14px">← 返回关卡</button>
+    <span id="lvTitle" style="color:#7dd3fc;font-size:.9em">第 1 关</span>
+    <div class="timer-display" id="timerDisplay">0:00</div>
+    <div class="pb-badge" id="pbBadge"></div>
+  </div>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div id="qArea">
+    <div class="question">
+      <div class="qword" id="qw"></div>
+      <div class="qtype" id="qt"></div>
+    </div>
+    <div class="options-grid" id="oa"></div>
+    <div style="text-align:center">
+      <button class="hint-btn" id="hb" onclick="sh()">💡 提示</button>
+    </div>
+    <div class="hint-text" id="ht" style="display:none"></div>
+  </div>
+  <div id="matchArea" class="match-area" style="display:none"></div>
+  <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+  <div class="stats">
+    <div>✅ 正确 <span id="so">0</span></div>
+    <div>❌ 错误 <span id="se">0</span></div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2 id="rt"></h2>
+    <div class="score-big" id="rs"></div>
+    <div class="acc" id="rsc"></div>
+    <div class="acc" id="rac" style="margin-top:4px"></div>
+    <div class="msg" id="rmg"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="retry()">🔄 重玩本关</button>
+      <button class="btn btn-ghost" onclick="backToLevels()">📚 返回关卡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== Game Data ======
+const D = {"star1":[{"en":"your","cn":"你的，你们的","key":"y"},{"en":"excuse","cn":"原谅","key":"e"},{"en":"yes","cn":"是的","key":"y"},{"en":"this","cn":"这","key":"t"},{"en":"me","cn":"我(宾格)","key":"m"},{"en":"thank you","cn":"感谢你(们)","key":"t"},{"en":"very much","cn":"非常地","key":"v"},{"en":"handbag","cn":"(女用)手提包","key":"h"},{"en":"pardon","cn":"原谅，请再说一遍","key":"p"},{"en":"it","cn":"它","key":"i"},{"en":"is","cn":"be动词第三人称单数","key":"i"}],"star2":[{"en":"coat","cn":"上衣，外衣","key":"c"},{"en":"watch","cn":"手表","key":"w"},{"en":"skirt","cn":"裙子","key":"s"},{"en":"dress","cn":"连衣裙","key":"d"},{"en":"pencil","cn":"铅笔","key":"p"},{"en":"car","cn":"小汽车","key":"c"},{"en":"shirt","cn":"衬衣","key":"s"},{"en":"pen","cn":"钢笔","key":"p"},{"en":"book","cn":"书","key":"b"},{"en":"house","cn":"房子","key":"h"}],"star3":[{"en":"ticket","cn":"票","key":"t"},{"en":"sir","cn":"先生","key":"s"},{"en":"here","cn":"这里","key":"h"},{"en":"sorry","cn":"对不起的","key":"s"},{"en":"number","cn":"号码","key":"n"},{"en":"please","cn":"请","key":"p"},{"en":"five","cn":"五","key":"f"},{"en":"cloakroom","cn":"衣帽存放处","key":"c"},{"en":"my","cn":"我的","key":"m"},{"en":"umbrella","cn":"伞","key":"u"}],"star4":[{"en":"daughter","cn":"女儿","key":"d"},{"en":"son","cn":"儿子","key":"s"},{"en":"suit","cn":"一套衣服","key":"s"},{"en":"school","cn":"学校","key":"s"},{"en":"teacher","cn":"老师","key":"t"}],"star5":[{"en":"nice","cn":"美好的","key":"n"},{"en":"Mr.","cn":"先生","key":"m"},{"en":"German","cn":"德国的；德国人","key":"g"},{"en":"Japanese","cn":"日本的；日本人","key":"j"},{"en":"French","cn":"法国的；法国人","key":"f"},{"en":"student","cn":"学生","key":"s"},{"en":"new","cn":"新的","key":"n"}],"star6":[{"en":"American","cn":"美国的；美国人","key":"a"},{"en":"Fiat","cn":"菲亚特","key":"f"},{"en":"Daewoo","cn":"大宇","key":"d"},{"en":"Ford","cn":"福特","key":"f"},{"en":"Italian","cn":"意大利的；意大利人","key":"i"},{"en":"Volvo","cn":"沃尔沃","key":"v"},{"en":"Peugeot","cn":"标致","key":"p"},{"en":"Swedish","cn":"瑞典的；瑞典人","key":"s"},{"en":"English","cn":"英国的；英国人","key":"e"},{"en":"Mercedes","cn":"梅赛德斯","key":"m"},{"en":"Mini","cn":"迷你","key":"m"},{"en":"make","cn":"(产品的)牌号","key":"m"},{"en":"Toyota","cn":"丰田","key":"t"}],"star7":[{"en":"job","cn":"工作","key":"j"},{"en":"am","cn":"be动词第一人称单数","key":"a"},{"en":"I","cn":"我","key":"i"},{"en":"nationality","cn":"国籍","key":"n"},{"en":"engineer","cn":"工程师","key":"e"},{"en":"name","cn":"名字","key":"n"},{"en":"operator","cn":"操作人员","key":"o"},{"en":"are","cn":"be动词复数","key":"a"},{"en":"keyboard","cn":"电脑键盘","key":"k"},{"en":"what","cn":"什么","key":"w"}],"star8":[{"en":"hairdresser","cn":"理发师","key":"h"},{"en":"housewife","cn":"家庭妇女","key":"h"},{"en":"mechanic","cn":"机械师","key":"m"},{"en":"air hostess","cn":"空中小姐","key":"a"},{"en":"policeman","cn":"警察","key":"p"},{"en":"nurse","cn":"护士","key":"n"},{"en":"postman","cn":"邮递员","key":"p"},{"en":"policewoman","cn":"女警察","key":"p"},{"en":"taxi driver","cn":"出租汽车司机","key":"t"},{"en":"milkman","cn":"送牛奶的人","key":"m"}],"star9":[{"en":"goodbye","cn":"再见","key":"g"},{"en":"how","cn":"怎样","key":"h"},{"en":"thanks","cn":"谢谢","key":"t"},{"en":"well","cn":"身体好","key":"w"},{"en":"see","cn":"看见","key":"s"},{"en":"hi","cn":"喂，嗨","key":"h"},{"en":"today","cn":"今天","key":"t"},{"en":"hello","cn":"喂(表问候)","key":"h"},{"en":"fine","cn":"美好的","key":"f"}],"star10":[{"en":"woman","cn":"女人","key":"w"},{"en":"hot","cn":"热的","key":"h"},{"en":"short","cn":"矮的","key":"s"},{"en":"busy","cn":"忙的","key":"b"},{"en":"fat","cn":"胖的","key":"f"},{"en":"dirty","cn":"脏的","key":"d"},{"en":"lazy","cn":"懒的","key":"l"},{"en":"old","cn":"老的","key":"o"},{"en":"cold","cn":"冷的","key":"c"},{"en":"young","cn":"年轻的","key":"y"},{"en":"tall","cn":"高的","key":"t"},{"en":"thin","cn":"瘦的","key":"t"},{"en":"clean","cn":"干净的","key":"c"}],"star11":[{"en":"white","cn":"白色的","key":"w"},{"en":"perhaps","cn":"大概","key":"p"},{"en":"catch","cn":"抓住","key":"c"},{"en":"whose","cn":"谁的","key":"w"},{"en":"blue","cn":"蓝色的","key":"b"}],"star12":[{"en":"his","cn":"他的","key":"h"},{"en":"tie","cn":"领带","key":"t"},{"en":"mother","cn":"母亲","key":"m"},{"en":"brother","cn":"兄，弟","key":"b"},{"en":"her","cn":"她的","key":"h"},{"en":"blouse","cn":"女衬衫","key":"b"},{"en":"father","cn":"父亲","key":"f"},{"en":"sister","cn":"姐，妹","key":"s"}],"star13":[{"en":"green","cn":"绿色的","key":"g"},{"en":"lovely","cn":"可爱的，秀丽的","key":"l"},{"en":"smart","cn":"时髦的，巧妙的","key":"s"},{"en":"same","cn":"相同的","key":"s"},{"en":"hat","cn":"帽子","key":"h"},{"en":"colour","cn":"颜色","key":"c"},{"en":"upstairs","cn":"楼上","key":"u"},{"en":"come","cn":"来","key":"c"}],"star14":[{"en":"carpet","cn":"地毯","key":"c"},{"en":"case","cn":"箱子","key":"c"},{"en":"dog","cn":"狗","key":"d"}],"star15":[{"en":"Norwegian","cn":"挪威的；挪威人","key":"n"},{"en":"girl","cn":"女孩，姑娘","key":"g"},{"en":"officer","cn":"官员","key":"o"},{"en":"tourist","cn":"旅游者","key":"t"},{"en":"Danish","cn":"丹麦的；丹麦人","key":"d"},{"en":"Customs","cn":"海关","key":"c"},{"en":"passport","cn":"护照","key":"p"},{"en":"brown","cn":"棕色的","key":"b"},{"en":"friend","cn":"朋友","key":"f"}],"star16":[{"en":"red","cn":"红色的","key":"r"},{"en":"black","cn":"黑色的","key":"b"},{"en":"orange","cn":"橘黄色的","key":"o"},{"en":"these","cn":"这些(this复数)","key":"t"},{"en":"Dutch","cn":"荷兰的；荷兰人","key":"d"},{"en":"Russian","cn":"俄罗斯的；俄罗斯人","key":"r"},{"en":"grey","cn":"灰色的","key":"g"},{"en":"yellow","cn":"黄色的","key":"y"}],"star17":[{"en":"sales reps","cn":"推销员","key":"s"},{"en":"office","cn":"办公室","key":"o"},{"en":"hard-working","cn":"勤奋的","key":"h"},{"en":"man","cn":"男人","key":"m"},{"en":"tired","cn":"累，疲乏","key":"t"},{"en":"mum","cn":"妈妈(儿语)","key":"m"},{"en":"right","cn":"好，可以","key":"r"},{"en":"matter","cn":"事情","key":"m"}],"star18":[{"en":"shoe","cn":"鞋子","key":"s"},{"en":"grandfather","cn":"祖父，外祖父","key":"g"},{"en":"small","cn":"小的","key":"s"},{"en":"light","cn":"轻的","key":"l"},{"en":"shut","cn":"关着的","key":"s"},{"en":"grandmother","cn":"祖母，外祖母","key":"g"}],"star19":[{"en":"which","cn":"哪一个","key":"w"},{"en":"give","cn":"给","key":"g"},{"en":"large","cn":"大的","key":"l"},{"en":"little","cn":"小的","key":"l"},{"en":"empty","cn":"空的","key":"e"},{"en":"full","cn":"满的","key":"f"},{"en":"sharp","cn":"尖的，锋利的","key":"s"},{"en":"big","cn":"大的","key":"b"}],"star20":[{"en":"blunt","cn":"钝的","key":"b"},{"en":"fork","cn":"叉子","key":"f"},{"en":"cup","cn":"茶杯","key":"c"},{"en":"knife","cn":"刀子","key":"k"},{"en":"tin","cn":"罐头","key":"t"},{"en":"small","cn":"小的","key":"s"},{"en":"box","cn":"盒子，箱子","key":"b"},{"en":"glass","cn":"杯子","key":"g"},{"en":"bottle","cn":"瓶子","key":"b"}],"star21":[{"en":"on","cn":"在…之上","key":"o"},{"en":"shelf","cn":"架子，搁板","key":"s"}],"star22":[{"en":"stereo","cn":"立体声音响","key":"s"},{"en":"cigarette","cn":"香烟","key":"c"},{"en":"cupboard","cn":"食橱","key":"c"},{"en":"magazine","cn":"杂志","key":"m"},{"en":"table","cn":"桌子","key":"t"},{"en":"plate","cn":"盘子","key":"p"},{"en":"newspaper","cn":"报纸","key":"n"},{"en":"dressing table","cn":"梳妆台","key":"d"},{"en":"floor","cn":"地板","key":"f"},{"en":"bed","cn":"床","key":"b"},{"en":"desk","cn":"课桌","key":"d"},{"en":"television","cn":"电视机","key":"t"}],"star23":[{"en":"left","cn":"左边","key":"l"},{"en":"room","cn":"房间","key":"r"},{"en":"Mrs.","cn":"夫人","key":"m"},{"en":"right","cn":"右边","key":"r"},{"en":"kitchen","cn":"厨房","key":"k"},{"en":"electric","cn":"带电的，可通电的","key":"e"},{"en":"middle","cn":"中间","key":"m"},{"en":"cooker","cn":"炉子，炊具","key":"c"},{"en":"refrigerator","cn":"电冰箱","key":"r"},{"en":"cup","cn":"杯子","key":"c"},{"en":"of","cn":"(属于)…的","key":"o"}],"star24":[{"en":"in","cn":"在…里","key":"i"},{"en":"where","cn":"在哪里","key":"w"}],"star25":[{"en":"armchair","cn":"手扶椅","key":"a"},{"en":"door","cn":"门","key":"d"},{"en":"window","cn":"窗户","key":"w"},{"en":"picture","cn":"图画","key":"p"},{"en":"living room","cn":"客厅","key":"l"},{"en":"wall","cn":"墙","key":"w"},{"en":"near","cn":"靠近","key":"n"}],"star26":[{"en":"trousers","cn":"长裤","key":"t"}],"star27":[{"en":"wardrobe","cn":"大衣柜","key":"w"},{"en":"untidy","cn":"乱，不整齐","key":"u"},{"en":"dust","cn":"掸掉灰尘","key":"d"},{"en":"must","cn":"必须，应该","key":"m"},{"en":"sweep","cn":"扫","key":"s"},{"en":"shut","cn":"关门","key":"s"}],"star28":[{"en":"sharpen","cn":"削尖，使锋利","key":"s"},{"en":"put on","cn":"穿上","key":"p"},{"en":"turn on","cn":"开(电灯)","key":"t"},{"en":"take off","cn":"脱掉","key":"t"}],"star29":[{"en":"after","cn":"在…之后","key":"a"},{"en":"under","cn":"在…之下","key":"u"},{"en":"garden","cn":"花园","key":"g"},{"en":"who","cn":"谁","key":"w"},{"en":"grass","cn":"草，草地","key":"g"}],"star30":[{"en":"meal","cn":"饭，一顿饭","key":"m"},{"en":"drink","cn":"喝","key":"d"},{"en":"eat","cn":"吃","key":"e"}],"star31":[{"en":"run","cn":"跑","key":"r"},{"en":"tree","cn":"树","key":"t"},{"en":"climb","cn":"爬，攀登","key":"c"},{"en":"cat","cn":"猫","key":"c"},{"en":"tap","cn":"(水)龙头","key":"t"}],"star32":[{"en":"basket","cn":"篮子","key":"b"},{"en":"bone","cn":"骨头","key":"b"},{"en":"cook","cn":"做(饭菜)","key":"c"},{"en":"clean","cn":"清洗","key":"c"},{"en":"tooth","cn":"牙齿","key":"t"},{"en":"milk","cn":"牛奶","key":"m"},{"en":"letter","cn":"信","key":"l"},{"en":"type","cn":"打字","key":"t"}],"star33":[{"en":"cloud","cn":"云","key":"c"},{"en":"aeroplane","cn":"飞机","key":"a"},{"en":"day","cn":"日子","key":"d"},{"en":"bridge","cn":"桥","key":"b"},{"en":"family","cn":"家庭(成员)","key":"f"},{"en":"shine","cn":"照耀","key":"s"},{"en":"sun","cn":"太阳","key":"s"},{"en":"with","cn":"和…在一起","key":"w"},{"en":"fly","cn":"飞","key":"f"},{"en":"ship","cn":"轮船","key":"s"},{"en":"sky","cn":"天空","key":"s"},{"en":"over","cn":"跨越，在…之上","key":"o"},{"en":"river","cn":"河","key":"r"},{"en":"boat","cn":"船","key":"b"},{"en":"walk","cn":"走路，步行","key":"w"}],"star34":[{"en":"wait","cn":"等","key":"w"},{"en":"sleep","cn":"睡觉","key":"s"},{"en":"shave","cn":"刮脸","key":"s"},{"en":"wash","cn":"洗","key":"w"},{"en":"cry","cn":"哭，喊","key":"c"},{"en":"jump","cn":"跳","key":"j"}],"star35":[{"en":"into","cn":"进入","key":"i"},{"en":"park","cn":"公园","key":"p"},{"en":"swim","cn":"游泳","key":"s"},{"en":"bank","cn":"河岸","key":"b"},{"en":"another","cn":"另一个","key":"a"},{"en":"across","cn":"横过","key":"a"},{"en":"hill","cn":"小山","key":"h"},{"en":"building","cn":"大楼，建筑物","key":"b"},{"en":"along","cn":"沿着","key":"a"},{"en":"water","cn":"水","key":"w"},{"en":"photograph","cn":"照片","key":"p"},{"en":"village","cn":"村庄","key":"v"}],"star36":[{"en":"between","cn":"在…之间","key":"b"},{"en":"wife","cn":"妻子","key":"w"},{"en":"beside","cn":"在…旁","key":"b"}],"star37":[{"en":"make","cn":"做","key":"m"},{"en":"pink","cn":"粉红色；粉红色的","key":"p"},{"en":"bookcase","cn":"书橱，书架","key":"b"},{"en":"favourite","cn":"最喜欢的","key":"f"}],"star38":[{"en":"homework","cn":"作业","key":"h"},{"en":"dish","cn":"盘子，碟子","key":"d"}],"star39":[{"en":"in front of","cn":"在…之前","key":"i"},{"en":"front","cn":"前面","key":"f"},{"en":"vase","cn":"花瓶","key":"v"}],"star40":[{"en":"send","cn":"送给","key":"s"},{"en":"show","cn":"给…看","key":"s"}],"star41":[{"en":"bread","cn":"面包","key":"b"},{"en":"chocolate","cn":"巧克力","key":"c"},{"en":"tea","cn":"茶","key":"t"},{"en":"coffee","cn":"咖啡","key":"c"}],"star42":[{"en":"some","cn":"一些","key":"s"}],"star43":[{"en":"find","cn":"找到","key":"f"},{"en":"teapot","cn":"茶壶","key":"t"},{"en":"boil","cn":"沸腾，开","key":"b"}],"star44":[{"en":"can","cn":"能够","key":"c"},{"en":"terrible","cn":"糟糕的，可怕的","key":"t"},{"en":"boss","cn":"老板，上司","key":"b"},{"en":"handwriting","cn":"书写","key":"h"},{"en":"minute","cn":"分(钟)","key":"m"}],"star45":[{"en":"biscuit","cn":"饼干","key":"b"}],"star46":[{"en":"lift","cn":"拿起，搬起","key":"l"},{"en":"cake","cn":"饼，蛋糕","key":"c"}],"star47":[{"en":"like","cn":"喜欢，想要","key":"l"},{"en":"blackboard","cn":"黑板","key":"b"}],"star48":[{"en":"butter","cn":"黄油","key":"b"},{"en":"sweet","cn":"甜的","key":"s"},{"en":"honey","cn":"蜂蜜","key":"h"},{"en":"egg","cn":"鸡蛋","key":"e"},{"en":"apple","cn":"苹果","key":"a"},{"en":"fresh","cn":"新鲜的","key":"f"},{"en":"Scotch whisky","cn":"苏格兰威士忌","key":"s"},{"en":"wine","cn":"酒，果酒","key":"w"},{"en":"pure","cn":"纯净的","key":"p"},{"en":"beer","cn":"啤酒","key":"b"}],"star49":[{"en":"beef","cn":"牛肉","key":"b"},{"en":"mince","cn":"肉馅，绞肉","key":"m"},{"en":"either","cn":"也(用于否定句)","key":"e"},{"en":"lamb","cn":"羔羊肉","key":"l"},{"en":"truth","cn":"实情","key":"t"},{"en":"tell","cn":"告诉","key":"t"}],"star50":[{"en":"potato","cn":"土豆","key":"p"},{"en":"bean","cn":"豆角","key":"b"},{"en":"lettuce","cn":"莴苣","key":"l"},{"en":"pear","cn":"梨","key":"p"},{"en":"grape","cn":"葡萄","key":"g"},{"en":"banana","cn":"香蕉","key":"b"},{"en":"ripe","cn":"成熟的","key":"r"}],"star51":[{"en":"windy","cn":"有风的","key":"w"},{"en":"pleasant","cn":"宜人的","key":"p"},{"en":"summer","cn":"夏天","key":"s"},{"en":"February","cn":"2月","key":"f"},{"en":"December","cn":"12月","key":"d"},{"en":"weather","cn":"天气","key":"w"},{"en":"March","cn":"3月","key":"m"},{"en":"September","cn":"9月","key":"s"},{"en":"country","cn":"国家","key":"c"},{"en":"May","cn":"5月","key":"m"},{"en":"November","cn":"11月","key":"n"},{"en":"rain","cn":"下雨","key":"r"},{"en":"spring","cn":"春季","key":"s"},{"en":"August","cn":"8月","key":"a"},{"en":"climate","cn":"气候","key":"c"},{"en":"snow","cn":"下雪","key":"s"},{"en":"winter","cn":"冬天","key":"w"},{"en":"autumn","cn":"秋天","key":"a"},{"en":"October","cn":"10月","key":"o"},{"en":"July","cn":"7月","key":"j"},{"en":"April","cn":"4月","key":"a"},{"en":"January","cn":"1月","key":"j"},{"en":"June","cn":"6月","key":"j"},{"en":"sometimes","cn":"有时","key":"s"},{"en":"warm","cn":"温暖的","key":"w"},{"en":"Greece","cn":"希腊","key":"g"}],"star52":[{"en":"Holland","cn":"荷兰","key":"h"},{"en":"France","cn":"法国","key":"f"},{"en":"Norway","cn":"挪威","key":"n"},{"en":"Germany","cn":"德国","key":"g"},{"en":"Sweden","cn":"瑞典","key":"s"},{"en":"Spain","cn":"西班牙","key":"s"},{"en":"Brazil","cn":"巴西","key":"b"},{"en":"England","cn":"英国","key":"e"},{"en":"Russia","cn":"俄罗斯","key":"r"},{"en":"the U.S.","cn":"美国","key":"t"},{"en":"Italy","cn":"意大利","key":"i"}],"star53":[{"en":"night","cn":"夜晚","key":"n"},{"en":"east","cn":"东方","key":"e"},{"en":"south","cn":"南方","key":"s"},{"en":"season","cn":"季节","key":"s"},{"en":"subject","cn":"话题","key":"s"},{"en":"always","cn":"总是","key":"a"},{"en":"best","cn":"最","key":"b"},{"en":"wet","cn":"潮湿的","key":"w"},{"en":"mild","cn":"温和的，温暖的","key":"m"},{"en":"set","cn":"(太阳)落下去","key":"s"},{"en":"west","cn":"西方","key":"w"},{"en":"north","cn":"北方","key":"n"},{"en":"interesting","cn":"有趣的","key":"i"},{"en":"late","cn":"晚，迟","key":"l"},{"en":"rise","cn":"升起","key":"r"}],"star54":[{"en":"Indian","cn":"印度人","key":"i"},{"en":"Austria","cn":"奥地利","key":"a"},{"en":"Nigerian","cn":"尼日利亚人","key":"n"},{"en":"Austrian","cn":"奥地利人","key":"a"},{"en":"Thai","cn":"泰国人","key":"t"},{"en":"Japan","cn":"日本","key":"j"},{"en":"Australian","cn":"澳大利亚人","key":"a"},{"en":"Canada","cn":"加拿大","key":"c"},{"en":"Korea","cn":"韩国","key":"k"},{"en":"Australia","cn":"澳大利亚","key":"a"},{"en":"Poland","cn":"波兰","key":"p"},{"en":"Thailand","cn":"泰国","key":"t"},{"en":"Turkey","cn":"土耳其","key":"t"},{"en":"India","cn":"印度","key":"i"},{"en":"Canadian","cn":"加拿大人","key":"c"},{"en":"Turkish","cn":"土耳其人","key":"t"},{"en":"Polish","cn":"波兰人","key":"p"},{"en":"Finnish","cn":"芬兰人","key":"f"},{"en":"Nigeria","cn":"尼日利亚","key":"n"},{"en":"China","cn":"中国","key":"c"},{"en":"Finland","cn":"芬兰","key":"f"}],"star55":[{"en":"evening","cn":"晚上","key":"e"},{"en":"together","cn":"一起","key":"t"},{"en":"afternoon","cn":"下午","key":"a"},{"en":"arrive","cn":"到达","key":"a"},{"en":"live","cn":"住，生活","key":"l"},{"en":"lunch","cn":"午饭","key":"l"},{"en":"usually","cn":"通常","key":"u"},{"en":"home","cn":"家；在家","key":"h"},{"en":"stay","cn":"呆在，停留","key":"s"},{"en":"housework","cn":"家务","key":"h"}],"star56":[{"en":"shop","cn":"商店","key":"s"},{"en":"moment","cn":"片刻，瞬间","key":"m"},{"en":"o'clock","cn":"点钟","key":"o"}],"star57":[{"en":"pad","cn":"信笺簿","key":"p"},{"en":"shop assistant","cn":"售货员","key":"s"},{"en":"glue","cn":"胶水","key":"g"},{"en":"change","cn":"零钱，找给的钱","key":"c"},{"en":"chalk","cn":"粉笔","key":"c"},{"en":"envelope","cn":"信封","key":"e"},{"en":"writing paper","cn":"信纸","key":"w"}],"star58":[{"en":"headache","cn":"头痛","key":"h"},{"en":"flu","cn":"流行性感冒","key":"f"},{"en":"must","cn":"必须","key":"m"},{"en":"feel","cn":"感觉","key":"f"},{"en":"stomach ache","cn":"胃痛","key":"s"},{"en":"bad","cn":"坏的，严重的","key":"b"},{"en":"temperature","cn":"温度","key":"t"},{"en":"mumps","cn":"腮腺炎","key":"m"},{"en":"telephone","cn":"电话","key":"t"},{"en":"cold","cn":"感冒","key":"c"},{"en":"aspirin","cn":"阿斯匹林","key":"a"},{"en":"doctor","cn":"医生","key":"d"}],"star59":[{"en":"certainly","cn":"当然","key":"c"},{"en":"better","cn":"形容词well的比较级","key":"b"},{"en":"rich","cn":"油腻的","key":"r"},{"en":"remain","cn":"保持，继续","key":"r"},{"en":"get up","cn":"起床","key":"g"},{"en":"yet","cn":"还，仍","key":"y"},{"en":"food","cn":"食物","key":"f"}],"star60":[{"en":"play","cn":"玩","key":"p"},{"en":"match","cn":"火柴","key":"m"},{"en":"talk","cn":"谈话","key":"t"},{"en":"library","cn":"图书馆","key":"l"},{"en":"drive","cn":"开车","key":"d"},{"en":"so","cn":"如此地","key":"s"},{"en":"quickly","cn":"快地","key":"q"},{"en":"lean out of","cn":"身体探出","key":"l"},{"en":"break","cn":"打破","key":"b"}],"star61":[{"en":"Dad","cn":"爸(儿语)","key":"d"},{"en":"key","cn":"钥匙","key":"k"},{"en":"hear","cn":"听见","key":"h"}],"star62":[{"en":"himself","cn":"他自己","key":"h"},{"en":"herself","cn":"她自己","key":"h"}],"star63":[{"en":"Monday","cn":"星期一","key":"m"},{"en":"keep","cn":"(身体健康)处于","key":"k"},{"en":"absent","cn":"缺席的","key":"a"},{"en":"Tuesday","cn":"星期二","key":"t"},{"en":"country","cn":"乡村","key":"c"},{"en":"lucky","cn":"幸运的","key":"l"},{"en":"Sunday","cn":"星期日","key":"s"}],"star64":[{"en":"church","cn":"教堂","key":"c"},{"en":"grocer","cn":"食品杂货商","key":"g"}],"star65":[{"en":"finish","cn":"结尾，结束","key":"f"},{"en":"town","cn":"城镇","key":"t"},{"en":"race","cn":"比赛","key":"r"},{"en":"winner","cn":"获胜者","key":"w"},{"en":"crowd","cn":"人群","key":"c"}],"star66":[{"en":"awful","cn":"让人讨厌的，坏的","key":"a"},{"en":"say","cn":"说","key":"s"},{"en":"phone","cn":"打电话","key":"p"},{"en":"answer","cn":"接(电话)","key":"a"},{"en":"last","cn":"最后的，前一次的","key":"l"},{"en":"time","cn":"次(数)","key":"t"},{"en":"again","cn":"又一次地","key":"a"}],"star67":[{"en":"hand","cn":"手","key":"h"},{"en":"phrasebook","cn":"短语手册","key":"p"},{"en":"slowly","cn":"缓慢地","key":"s"},{"en":"London","cn":"伦敦","key":"l"},{"en":"suddenly","cn":"突然地","key":"s"},{"en":"speak","cn":"讲，说","key":"s"},{"en":"pleasantly","cn":"愉快地","key":"p"},{"en":"pocket","cn":"衣袋","key":"p"},{"en":"exciting","cn":"使人激动的","key":"e"},{"en":"stand","cn":"站立","key":"s"},{"en":"just","cn":"正好，恰好","key":"j"}],"star68":[{"en":"thirstily","cn":"口渴地","key":"t"},{"en":"hurriedly","cn":"匆忙地","key":"h"},{"en":"cut","cn":"割，切","key":"c"}],"star69":[{"en":"pair","cn":"双，对","key":"p"},{"en":"wear","cn":"穿着","key":"w"},{"en":"fashion","cn":"(服装)流行式样","key":"f"},{"en":"ago","cn":"以前","key":"a"}],"star70":[{"en":"appointment","cn":"约会，预约","key":"a"},{"en":"till","cn":"直到…为止","key":"t"},{"en":"thing","cn":"事情","key":"t"},{"en":"need","cn":"需要","key":"n"},{"en":"hope","cn":"希望","key":"h"}],"star71":[{"en":"list","cn":"单子","key":"l"},{"en":"vegetable","cn":"蔬菜","key":"v"},{"en":"money","cn":"钱","key":"m"}],"star72":[{"en":"stationery","cn":"文具","key":"s"},{"en":"newsagent","cn":"报刊零售人","key":"n"}],"star73":[{"en":"roast","cn":"烤的","key":"r"},{"en":"ready","cn":"准备好的","key":"r"},{"en":"restaurant","cn":"饭馆","key":"r"}],"star74":[{"en":"holiday","cn":"假日","key":"h"},{"en":"breakfast","cn":"早饭","key":"b"}],"star75":[{"en":"suitcase","cn":"手提箱","key":"s"}],"star76":[{"en":"never","cn":"从来没有","key":"n"},{"en":"film","cn":"电影","key":"f"},{"en":"ever","cn":"在任何时候","key":"e"},{"en":"beautiful","cn":"漂亮的","key":"b"},{"en":"crash","cn":"碰撞","key":"c"},{"en":"attendant","cn":"接待员","key":"a"},{"en":"garage","cn":"车库，汽车修理厂","key":"g"},{"en":"lamp-post","cn":"灯杆","key":"l"},{"en":"repair","cn":"修理","key":"r"},{"en":"sell","cn":"卖，出售","key":"s"},{"en":"how long","cn":"多长","key":"h"},{"en":"because","cn":"因为","key":"b"},{"en":"retire","cn":"退休","key":"r"},{"en":"worth","cn":"值…钱","key":"w"},{"en":"penny","cn":"便士","key":"p"}],"star77":[{"en":"move","cn":"搬家","key":"m"},{"en":"person","cn":"人","key":"p"},{"en":"people","cn":"人们","key":"p"},{"en":"poor","cn":"可怜的","key":"p"}],"star78":[{"en":"try","cn":"努力，设法","key":"t"},{"en":"bring","cn":"带来","key":"b"},{"en":"cost","cn":"花费","key":"c"},{"en":"believe","cn":"相信","key":"b"},{"en":"why","cn":"为什么","key":"w"},{"en":"since","cn":"自从","key":"s"},{"en":"may","cn":"(用于请求许可)可以","key":"m"},{"en":"pound","cn":"英镑","key":"p"}],"star79":[{"en":"neighbour","cn":"邻居","key":"n"},{"en":"miss","cn":"想念，思念","key":"m"},{"en":"still","cn":"还，仍旧","key":"s"}],"star80":[{"en":"Tokyo","cn":"东京","key":"t"},{"en":"Madrid","cn":"马德里","key":"m"},{"en":"New York","cn":"纽约","key":"n"},{"en":"pilot","cn":"飞行员","key":"p"}],"star81":[{"en":"Stockholm","cn":"斯德哥尔摩","key":"s"},{"en":"Berlin","cn":"柏林","key":"b"},{"en":"Moscow","cn":"莫斯科","key":"m"},{"en":"Sydney","cn":"悉尼","key":"s"},{"en":"Seoul","cn":"汉城","key":"s"},{"en":"plenty","cn":"大量","key":"p"},{"en":"platform","cn":"站台","key":"p"},{"en":"miss","cn":"错过","key":"m"},{"en":"train","cn":"火车","key":"t"},{"en":"bar","cn":"酒吧","key":"b"}],"star82":[{"en":"left","cn":"遗留","key":"l"},{"en":"describe","cn":"描述","key":"d"},{"en":"belong","cn":"属于","key":"b"},{"en":"zip","cn":"拉链","key":"z"}],"star83":[{"en":"ow","cn":"哎哟","key":"o"},{"en":"back","cn":"背","key":"b"},{"en":"stand up","cn":"起立，站起来","key":"s"},{"en":"hurt","cn":"伤，伤害","key":"h"},{"en":"downstairs","cn":"下楼","key":"d"},{"en":"at once","cn":"立即","key":"a"}],"star84":[{"en":"fall","cn":"落下，跌倒","key":"f"},{"en":"sure","cn":"一定的，确信的","key":"s"},{"en":"help","cn":"帮助","key":"h"},{"en":"X-ray","cn":"X光透视","key":"x"},{"en":"slip","cn":"滑倒","key":"s"}],"star85":[{"en":"Scotland","cn":"苏格兰","key":"s"},{"en":"soon","cn":"不久","key":"s"},{"en":"association","cn":"协会","key":"a"},{"en":"write","cn":"写","key":"w"},{"en":"hostel","cn":"招待所，旅馆","key":"h"},{"en":"youth","cn":"青年","key":"y"},{"en":"cheer","cn":"振作，振奋","key":"c"},{"en":"pass","cn":"及格，通过","key":"p"},{"en":"mark","cn":"分数","key":"m"},{"en":"top","cn":"上方，顶部","key":"t"},{"en":"enough","cn":"足够地","key":"e"}],"star86":[{"en":"exam","cn":"考试","key":"e"},{"en":"difficult","cn":"困难的","key":"d"},{"en":"easy","cn":"容易的","key":"e"},{"en":"low","cn":"低的","key":"l"},{"en":"fail","cn":"未及格，失败","key":"f"},{"en":"question","cn":"问题","key":"q"},{"en":"guy","cn":"家伙，人","key":"g"},{"en":"answer","cn":"回答","key":"a"},{"en":"hate","cn":"讨厌","key":"h"},{"en":"rest","cn":"其他的东西","key":"r"},{"en":"mathematics","cn":"数学","key":"m"},{"en":"paper","cn":"考卷","key":"p"}],"star87":[{"en":"stale","cn":"变馊的","key":"s"},{"en":"sweet","cn":"甜的","key":"s"},{"en":"cheap","cn":"便宜的","key":"c"},{"en":"expensive","cn":"贵的","key":"e"},{"en":"loud","cn":"大声的","key":"l"},{"en":"hard","cn":"硬的","key":"h"},{"en":"sour","cn":"酸的","key":"s"},{"en":"fresh","cn":"新鲜的","key":"f"},{"en":"soft","cn":"软的","key":"s"}],"star88":[{"en":"mistake","cn":"错误","key":"m"},{"en":"present","cn":"礼物","key":"p"},{"en":"intelligent","cn":"聪明的，有智慧的","key":"i"},{"en":"carry","cn":"携带","key":"c"},{"en":"as well","cn":"同样","key":"a"},{"en":"suit","cn":"适于","key":"s"},{"en":"advice","cn":"建议，忠告","key":"a"},{"en":"instead","cn":"代替","key":"i"},{"en":"a little","cn":"少许(不可数)","key":"a"},{"en":"idea","cn":"主意","key":"i"}],"star89":[{"en":"best","cn":"(good最高级)最好的","key":"b"},{"en":"worse","cn":"(bad比较级)更坏","key":"w"},{"en":"worst","cn":"(bad最高级)最坏","key":"w"}],"star90":[{"en":"model","cn":"型号，式样","key":"m"},{"en":"afford","cn":"付得起(钱)","key":"a"},{"en":"price","cn":"价格","key":"p"}],"star91":[{"en":"deposit","cn":"预付定金","key":"d"},{"en":"instalment","cn":"分期付款","key":"i"},{"en":"millionaire","cn":"百万富翁","key":"m"}],"star92":[{"en":"except","cn":"除…外","key":"e"},{"en":"note","cn":"纸币","key":"n"},{"en":"fare","cn":"车费","key":"f"},{"en":"passenger","cn":"乘客","key":"p"},{"en":"none","cn":"没有任何东西","key":"n"}],"star93":[{"en":"joke","cn":"玩笑","key":"j"},{"en":"knock","cn":"敲，打","key":"k"},{"en":"invite","cn":"邀请","key":"i"},{"en":"anything","cn":"任何东西","key":"a"},{"en":"impossible","cn":"不可能的","key":"i"}],"star94":[{"en":"asleep","cn":"睡着的","key":"a"}],"star95":[{"en":"toilet","cn":"厕所，盥洗室","key":"t"},{"en":"mouth","cn":"嘴","key":"m"},{"en":"coin","cn":"硬币","key":"c"},{"en":"ring","cn":"响","key":"r"},{"en":"voice","cn":"(说话)声音","key":"v"},{"en":"dark","cn":"黑暗的","key":"d"},{"en":"enter","cn":"进入","key":"e"},{"en":"story","cn":"故事","key":"s"},{"en":"exercise book","cn":"练习本","key":"e"}],"star96":[{"en":"happen","cn":"发生","key":"h"},{"en":"parrot","cn":"鹦鹉","key":"p"},{"en":"thief","cn":"贼","key":"t"},{"en":"torch","cn":"手电筒","key":"t"}],"star97":[{"en":"recognize","cn":"认识","key":"r"},{"en":"counter","cn":"柜台","key":"c"},{"en":"customer","cn":"顾客","key":"c"},{"en":"forget","cn":"忘记","key":"f"},{"en":"manager","cn":"经理","key":"m"},{"en":"serve","cn":"照应，服务","key":"s"}],"star98":[{"en":"grow","cn":"长，生长","key":"g"},{"en":"trip","cn":"旅行","key":"t"},{"en":"travel","cn":"旅行","key":"t"},{"en":"during","cn":"在…期间","key":"d"},{"en":"offer","cn":"提供","key":"o"},{"en":"job","cn":"工作","key":"j"},{"en":"guess","cn":"猜","key":"g"},{"en":"beard","cn":"络腮胡子","key":"b"}],"star99":[{"en":"kitten","cn":"小猫","key":"k"},{"en":"dry","cn":"干燥的","key":"d"},{"en":"nuisance","cn":"讨厌的人/物","key":"n"},{"en":"surprise","cn":"惊奇","key":"s"},{"en":"water","cn":"浇水","key":"w"},{"en":"terribly","cn":"非常","key":"t"},{"en":"mean","cn":"意味着","key":"m"}],"star100":[{"en":"immediately","cn":"立即地","key":"i"}],"star101":[{"en":"read","cn":"通过阅读得知","key":"r"},{"en":"actress","cn":"女演员","key":"a"},{"en":"at least","cn":"至少","key":"a"},{"en":"actor","cn":"男演员","key":"a"},{"en":"famous","cn":"著名的","key":"f"}],"star102":[{"en":"darling","cn":"亲爱的","key":"d"},{"en":"dream","cn":"做梦","key":"d"},{"en":"speed","cn":"限速","key":"s"},{"en":"track","cn":"跑道","key":"t"},{"en":"wave","cn":"招手","key":"w"},{"en":"sign","cn":"标记","key":"s"},{"en":"overtake","cn":"超车","key":"o"},{"en":"driving licence","cn":"驾驶执照","key":"d"},{"en":"mile","cn":"英里","key":"m"},{"en":"charge","cn":"罚款","key":"c"}],"star103":[{"en":"worry","cn":"担忧","key":"w"},{"en":"Egypt","cn":"埃及","key":"e"},{"en":"abroad","cn":"国外","key":"a"}],"star104":[{"en":"reporter","cn":"记者","key":"r"},{"en":"sensational","cn":"耸人听闻的","key":"s"},{"en":"mink coat","cn":"貂皮大衣","key":"m"}],"star105":[{"en":"get married","cn":"结婚","key":"g"},{"en":"future","cn":"未来","key":"f"},{"en":"latest","cn":"最新的","key":"l"},{"en":"introduce","cn":"介绍","key":"i"},{"en":"hotel","cn":"饭店","key":"h"}],"star106":[{"en":"depend","cn":"依靠","key":"d"},{"en":"poor","cn":"贫穷的","key":"p"},{"en":"pool","cn":"赌注","key":"p"},{"en":"win","cn":"赢","key":"w"},{"en":"football","cn":"足球","key":"f"}],"star107":[{"en":"extra","cn":"额外的","key":"e"},{"en":"engineer","cn":"工程师","key":"e"},{"en":"company","cn":"公司","key":"c"},{"en":"engineering","cn":"工程","key":"e"},{"en":"line","cn":"线路","key":"l"},{"en":"overseas","cn":"海外的","key":"o"}],"star108":[{"en":"worried","cn":"担心的","key":"w"},{"en":"place","cn":"放置","key":"p"},{"en":"city","cn":"城市","key":"c"},{"en":"prosecute","cn":"依法处置","key":"p"}],"star109":[{"en":"ugly","cn":"丑陋的","key":"u"},{"en":"get on","cn":"登上","key":"g"},{"en":"amused","cn":"有趣的","key":"a"},{"en":"opposite","cn":"在…对面","key":"o"},{"en":"compact","cn":"带镜化妆盒","key":"c"},{"en":"excited","cn":"兴奋的","key":"e"}],"star110":[{"en":"powder","cn":"香粉","key":"p"},{"en":"regularly","cn":"经常地","key":"r"},{"en":"cover","cn":"覆盖","key":"c"},{"en":"tidy","cn":"整齐的","key":"t"},{"en":"wood","cn":"树林","key":"w"},{"en":"through","cn":"穿过","key":"t"},{"en":"throw","cn":"扔","key":"t"},{"en":"visitor","cn":"参观者","key":"v"},{"en":"rubbish","cn":"垃圾","key":"r"},{"en":"surround","cn":"包围","key":"s"},{"en":"among","cn":"在…之间","key":"a"},{"en":"beauty spot","cn":"风景点","key":"b"}]};
+const LVS = Object.keys(D);
+const TOTAL_LV = LVS.length;
+const LEVEL_NAMES = ["Lesson 1","Lesson 2","Lesson 3","Lesson 4","Lesson 5","Lesson 6","Lesson 7","Lesson 8","Lesson 9","Lesson 10","Lesson 11","Lesson 12","Lesson 13","Lesson 14","Lesson 15","Lesson 16","Lesson 17","Lesson 18","Lesson 19","Lesson 20","Lesson 21","Lesson 22","Lesson 23","Lesson 24","Lesson 25","Lesson 26","Lesson 27","Lesson 28","Lesson 29","Lesson 30","Lesson 31","Lesson 32","Lesson 33","Lesson 34","Lesson 35","Lesson 36","Lesson 37","Lesson 38","Lesson 39","Lesson 40","Lesson 41","Lesson 42","Lesson 43","Lesson 44","Lesson 45","Lesson 46","Lesson 47","Lesson 48","Lesson 49","Lesson 50","Lesson 51","Lesson 52","Lesson 53","Lesson 54","Lesson 55","Lesson 57","Lesson 59","Lesson 61","Lesson 63","Lesson 64","Lesson 65","Lesson 66","Lesson 67","Lesson 68","Lesson 69","Lesson 71","Lesson 73","Lesson 74","Lesson 75","Lesson 77","Lesson 79","Lesson 80","Lesson 81","Lesson 82","Lesson 83","Lesson 85","Lesson 87","Lesson 89","Lesson 91","Lesson 93","Lesson 94","Lesson 95","Lesson 97","Lesson 99","Lesson 101","Lesson 103","Lesson 104","Lesson 105","Lesson 107","Lesson 109","Lesson 111","Lesson 113","Lesson 115","Lesson 116","Lesson 117","Lesson 119","Lesson 121","Lesson 123","Lesson 125","Lesson 126","Lesson 127","Lesson 129","Lesson 131","Lesson 133","Lesson 135","Lesson 137","Lesson 139","Lesson 141","Lesson 142","Lesson 143"];
+
+const MODES = [
+  {id:"en-cn", label:"📖 英→中", q:"选择正确的中文释义", enFirst:true},
+  {id:"cn-en", label:"📝 中→英", q:"选择正确的英文单词", enFirst:false},
+  {id:"listen", label:"🔊 听音选", q:"听发音选择正确的中文", enFirst:true},
+  {id:"match", label:"🔗 配对", q:"将英文与中文配对", enFirst:true}
+];
+
+const S = {s:1, l:0, q:0, ord:[], ok:0, err:0, a:false, m:0, wrongList:[], timerInterval:null, startTime:0, elapsed:0};
+
+// ===== 计时 =====
+function startTimer(){
+  stopTimer();
+  S.startTime=Date.now();
+  S.timerInterval=setInterval(updateTimer,200);
+}
+function stopTimer(){
+  if(S.timerInterval){clearInterval(S.timerInterval);S.timerInterval=null;}
+}
+function updateTimer(){
+  if(!S.startTime)return;
+  const el=Math.floor((Date.now()-S.startTime)/1000);
+  S.elapsed=el;
+  const m=Math.floor(el/60),s=el%60;
+  const td=document.getElementById("timerDisplay");
+  if(td)td.textContent=m+":"+(s<10?"0":"")+s;
+}
+function fmtTime(ms){
+  const s=Math.floor(ms/1000),m=Math.floor(s/60);
+  return m+":"+(s%60<10?"0":"")+(s%60);
+}
+// ===== PB =====
+function getPB(lv,md){return parseInt(localStorage.getItem("pb_"+lv+"_"+md)||"0");}
+function setPB(lv,md,ms){
+  const k="pb_"+lv+"_"+md;
+  const prev=getPB(lv,md);
+  if(prev===0||ms<prev){localStorage.setItem(k,ms);return true;}
+  return false;
+}
+function getPBStr(lv,md){
+  const t=getPB(lv,md);
+  return t>0?"PB: "+fmtTime(t):"";
+}
+function $(id){return document.getElementById(id)}
+
+function renderLv(){
+  const lg=$("lg");
+  lg.innerHTML="";
+  LVS.forEach((key,i)=>{
+    const items=D[key].filter(it=>it.cn);
+    const done=JSON.parse(localStorage.getItem("vp")||"{}")[i];
+    const displayName=LEVEL_NAMES[i]||('第'+(i+1)+'关');
+    lg.innerHTML+='<div class="level-btn'+(done?" done":"")+'" onclick="startL('+i+')"><span class="lnum">'+displayName+'</span><span class="lcount'+(done?" ok":"")+'">'+(done?done+"/"+items.length+" ✅":items.length+"词")+'</span></div>';
+  });
+}
+
+function backToLevels(){
+  $("ov").classList.remove("show");
+  $("gameView").style.display="none";
+  $("levelView").style.display="block";
+  renderLv();
+}
+
+function startL(idx){
+  if(idx<0||idx>=TOTAL_LV)return;
+  S.l=idx;S.q=0;S.ok=0;S.err=0;S.a=false;S.wrongList=[];S.matchRound=0;
+  const lv=D[LVS[idx]];
+  const items=lv.filter(it=>it.cn);
+  S.ord=items.map((_,i)=>i);
+  S.ord=sha(S.ord);
+  $("levelView").style.display="none";
+  $("gameView").style.display="block";
+  $("lvTitle").textContent=LEVEL_NAMES[idx]+" · "+items.length+" 题";
+  renderModes();
+  startTimer();
+  showQ();
+}
+
+function renderModes(){
+  const c=$("modeTabs");
+  c.innerHTML="";
+  MODES.forEach((m,i)=>{
+    const b=document.createElement("button");
+    b.className="mode-tab"+(i===S.m?" active":"");
+    b.textContent=m.label;
+    b.onclick=()=>{S.m=i;document.querySelectorAll(".mode-tab").forEach(t=>t.classList.remove("active"));b.classList.add("active");showQ()};
+    c.appendChild(b);
+  });
+}
+
+function playAudio(word){
+  try{
+    if(window._aud){try{window._aud.pause();}catch(e){}}
+    const url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(word)+'&type=1';
+    window._aud=new Audio(url);
+    const p=window._aud.play();
+    if(p)p.catch(e=>console.warn('playAudio failed:',word,e));
+  }catch(e){console.warn('playAudio error:',word,e);}
+}
+
+function showQ(){
+  S.a=false;$("ht").style.display="none";$("hb").textContent="💡 提示";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  if(!items.length){backToLevels();return}
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  if(mode.id==="match"){showMatchQ();return}
+  const field=mode.enFirst?"en":"cn";
+  $("qArea").style.display="block";$("matchArea").style.display="none";
+  if(mode.id==="listen"){
+    $("qw").innerHTML='🔊';
+  }else{
+    $("qw").textContent=field==="en"?it.en:it.cn;
+  }
+  window._cw=it.en;$("qw").onclick=()=>{try{playAudio(window._cw)}catch(e){}};
+  if(mode.id==="listen")setTimeout(()=>playAudio(it.en),300);
+  $("qt").textContent=mode.q+"（"+(S.q+1)+"/"+S.ord.length+"）";
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  buildOpts(it,mode);
+}
+
+function buildOpts(it,mode){
+  const lv=D[LVS[S.l]];const items=lv.filter(x=>x.cn);
+  const correct=mode.enFirst?it.cn:it.en;
+  const optField=mode.enFirst?"cn":"en";
+  let pool=[];
+  if(mode.id==="listen"){
+    const others=mode.enFirst?items.map(x=>x.cn):items.map(x=>x.en);
+    pool=others.filter(x=>x!==correct);
+  }else if(optField==="cn"){
+    pool=items.map(x=>x.cn).filter(x=>x!==correct);
+  }else{
+    pool=items.map(x=>x.en).filter(x=>x!==correct);
+  }
+  if(pool.length<3){
+    const allItems=Object.values(D).flat().filter(x=>x.cn);
+    const exclude=new Set([correct,...pool]);
+    const extra=optField==="cn"?allItems.map(x=>x.cn):allItems.map(x=>x.en);
+    pool=pool.concat(extra.filter(x=>!exclude.has(x)));
+  }
+  const others=sha(pool).slice(0,3);
+  const opts=sha([correct,...others]);
+  let h="";
+  opts.forEach(o=>{
+        h+='<button class="option" data-v="'+encodeURIComponent(String(o))+'" onclick="check(this)">'+o+'</button>';
+  });
+  $("oa").innerHTML=h;
+}
+
+let _correct="";
+function check(btn){
+  if(S.a)return;S.a=true;
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  var chosen="";try{chosen=decodeURIComponent(btn.dataset.v)}catch(ex){chosen=btn.dataset.v}
+  _correct=mode.id==="cn-en"?it.en:it.cn;
+  const isOk=chosen===_correct;
+  if(isOk){btn.classList.add("correct");S.ok++;playOK()}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(b=>{if(b.textContent===_correct)b.classList.add("correct")});
+    S.err++;S.wrongList.push(it);playErr()
+  }
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  if(S.q+1<S.ord.length)setTimeout(nQ,500);else setTimeout(showRes,600);
+}
+
+// ====== Match Mode ======
+let M={sel:null,pairs:0,total:0};
+function showMatchQ(){
+  $("qArea").style.display="none";$("matchArea").style.display="flex";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const maxPerRound=10;
+  const totalItems=items.length;
+  const startIdx=S.matchRound*maxPerRound||0;
+  const endIdx=Math.min(startIdx+maxPerRound,totalItems);
+  const roundItems=items.slice(startIdx,endIdx);
+  const roundOrder=sha([...Array(roundItems.length).keys()]);
+  const enOrder=roundOrder.slice();
+  const cnOrder=sha([...roundOrder]);
+  M={sel:null,pairs:0,total:roundItems.length,roundItems,roundIdx:S.matchRound||0};
+  let enHtml='<div class="match-group-label">📖 英文</div>';
+  let cnHtml='<div class="match-group-label">📝 中文</div>';
+  enOrder.forEach((ri,i)=>{
+    enHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="en" onclick="matchClick(this,'+ri+')">'+roundItems[ri].en+'</div>';
+  });
+  cnOrder.forEach((ri,i)=>{
+    cnHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="cn" onclick="matchClick(this,'+ri+')">'+roundItems[ri].cn+'</div>';
+  });
+  $("matchArea").innerHTML='<div class="match-col" id="mcEn">'+enHtml+'</div><div class="match-col" id="mcCn">'+cnHtml+'</div>';
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  const roundNum=Math.floor(startIdx/maxPerRound)+1;
+  const totalRounds=Math.ceil(totalItems/maxPerRound);
+  $("qt").textContent="配对 "+(startIdx+1)+"-"+endIdx+"/"+totalItems+" (第 "+roundNum+"/"+totalRounds+" 轮)";
+}
+function matchClick(el,idx){
+  const pair=el.getAttribute('data-pair');
+  if(el.classList.contains("matched"))return;
+  if(!M.sel){el.classList.add("selected");M.sel={el,idx,pair};return;}
+  if(M.sel.el===el){el.classList.remove("selected");M.sel=null;return;}
+  if(M.sel.pair===pair){M.sel.el.classList.remove("selected");el.classList.add("selected");M.sel={el,idx,pair};return;}
+  const first=M.sel;
+  if(first.idx===idx){
+    first.el.classList.remove("selected");
+    first.el.classList.add("matched");
+    el.classList.add("matched");
+    M.sel=null;M.pairs++;S.ok++;playOK();
+    $("so").textContent=S.ok;
+    if(M.pairs>=M.total){
+    const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+    const maxPerRound=10;
+    const nextRound=(S.matchRound||0)+1;
+    const nextStart=nextRound*maxPerRound;
+    if(nextStart<items.length){
+      S.matchRound=nextRound;
+      setTimeout(showMatchQ,600);
+    }else{
+      setTimeout(goNext,600);
+    }
+  }
+    return;
+  }
+  first.el.classList.add("wrong-flash");
+  el.classList.add("wrong-flash");
+  S.err++;playErr();
+  // Determine EN/CN for wrong list
+  var enText = first.pair==="en"?first.el.textContent:el.textContent;
+  var cnText = first.pair==="cn"?first.el.textContent:el.textContent;
+  S.wrongList.push({en:enText,cn:cnText});
+  M.sel=null;
+  $("se").textContent=S.err;
+  setTimeout(()=>{
+    document.querySelectorAll(".wrong-flash").forEach(function(e){
+      e.classList.remove("wrong-flash");
+      e.classList.remove("selected");
+    });
+  },500);
+}
+
+function goNext(){S.q++;showRes();}
+
+function sha(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function nQ(){S.q++;showQ();}
+
+function sh(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];const mode=MODES[S.m];
+  $("ht").textContent="英文："+it.en;
+  $("ht").style.display="block";$("hb").textContent="已提示 ✓";
+  try{playAudio(it.en)}catch(e){}
+}
+
+function playOK(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sine";o.frequency.value=880;g.gain.setValueAtTime(.25,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.35)}catch(e){}
+}
+function playErr(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sawtooth";o.frequency.value=220;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.25);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.25)}catch(e){}
+}
+
+function showRes(){
+  stopTimer();
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const tot=items.length;const acc=tot>0?Math.round(S.ok/tot*100):0;
+  const stars=acc>=80?"★★★":acc>=60?"★★":"★";
+  const msgs=["继续加油！","做得不错！","太棒了！"];
+  $("rt").textContent=acc>=80?msgs[2]:acc>=60?msgs[1]:msgs[0];
+  $("rs").textContent=stars;$("rsc").textContent=S.ok+"/"+tot+" 正确";
+  const elapsedMs=S.elapsed?S.elapsed*1000:0;
+  $("rac").textContent="正确率 "+acc+"%  · 用时 "+fmtTime(elapsedMs);
+  const prog=JSON.parse(localStorage.getItem("vp")||"{}");
+  if(!prog[S.l]||prog[S.l]<S.ok)prog[S.l]=S.ok;
+  localStorage.setItem("vp",JSON.stringify(prog));
+  if(S.elapsed>0){
+    const pbKey="pb_"+S.l+"_"+S.m;
+    const prev=parseInt(localStorage.getItem(pbKey)||"0");
+    if(prev===0||S.elapsed<prev)localStorage.setItem(pbKey,S.elapsed);
+    const pbt=parseInt(localStorage.getItem(pbKey)||"0");
+    if(pbt>0)$("pbBadge").textContent="PB: "+fmtTime(pbt*1000);
+  }
+  let wh="";
+  if(S.wrongList.length>0){
+    wh='<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#f87171;font-size:.9em">❌ 错误单词列表：</span><button onclick="copyWL()" style="background:#252545;border:1px solid #3a3a5a;color:#94a3b8;padding:4px 14px;border-radius:6px;font-size:.82em;cursor:pointer">📋 复制</button></div>';
+    wh+='<div style="max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:12px;text-align:left">';
+    S.wrongList.forEach(it=>{wh+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em"><span style="color:#e2e8f0">'+esc(it.en)+'</span><span style="color:#94a3b8">'+esc(it.cn)+'</span></div>'});
+    wh+='</div></div>';
+  }
+  $("rmg").innerHTML=wh;$("ov").classList.add("show");
+}
+function retry(){$("ov").classList.remove("show");$("pbBadge").textContent="";$("timerDisplay").textContent="0:00";S.matchRound=0;startL(S.l);}
+function copyWL(){
+  const t=S.wrongList.map(it=>it.en+" - "+it.cn).join("\n");
+  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)}).catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)});
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ====== Click word to pronounce ======
+// Handled by $("qw").onclick in showQ()
+// ====== Init ======
+renderLv();
+
+</script>
+
+</body>
+</html>
