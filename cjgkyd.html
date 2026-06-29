@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>词汇闯关 · 中英配对</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0f23;color:#e8e8f0;min-height:100vh;overflow-x:hidden}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:1.8em;color:#7dd3fc;margin-bottom:4px;letter-spacing:2px;word-break:break-word}
+.subtitle{text-align:center;color:#64748b;font-size:.82em;margin-bottom:20px;word-break:break-word}
+.card{background:#1e1e3a;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.4);margin-bottom:16px}
+.level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-top:16px}
+.level-btn{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.8em}
+.level-btn:hover{border-color:#7dd3fc;background:#1a2a3a}
+.level-btn.done{border-color:#4ade80;background:#052016}
+.level-btn .lnum{font-size:1.1em;font-weight:700;display:block;color:#e2e8f0}
+.level-btn .lcount{font-size:.7em;color:#64748b;display:block;margin-top:2px}
+.level-btn .lcount.ok{color:#4ade80}
+.question{text-align:center;margin-bottom:20px}
+.qword{font-size:1.6em;font-weight:700;color:#7dd3fc;letter-spacing:1px;word-break:break-word}
+.qtype{font-size:.8em;color:#64748b;margin-top:4px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.option{background:#252545;border:2px solid #3a3a5a;border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .2s;font-size:.95em;color:#cbd5e1;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-word}
+.option:hover{border-color:#7dd3fc;background:#1a2a3a}
+.option.correct{border-color:#4ade80;background:#052016;color:#4ade80}
+.option.wrong{border-color:#f87171;background:#2a0a0a;color:#f87171}
+.option:disabled{cursor:default}
+.progress-bar{height:6px;background:#2a2a4a;border-radius:3px;margin-top:16px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#4ade80);border-radius:3px;transition:width .4s ease}
+.stats{display:flex;justify-content:center;gap:32px;margin-top:16px;color:#94a3b8;font-size:.85em}
+.stats span{color:#e2e8f0}
+.btn{background:#2563eb;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-size:.95em;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;border:1px solid #3a3a5a;color:#94a3b8}
+.btn-ghost:hover{border-color:#7dd3fc;color:#7dd3fc}
+.btn-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 20px;border-radius:8px;border:2px solid #3a3a5a;background:transparent;color:#94a3b8;cursor:pointer;font-size:.9em;transition:all .2s}
+.mode-tab.active{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc}
+.hint-btn{background:transparent;border:1px solid #3a3a5a;border-radius:6px;color:#64748b;padding:6px 14px;font-size:.8em;cursor:pointer;margin-top:12px}
+.hint-btn:hover{border-color:#7dd3fc;color:#7dd3fc}
+.hint-text{color:#fbbf24;font-size:.85em;margin-top:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#1e1e3a;border-radius:16px;padding:32px;max-width:420px;text-align:center;width:90%;max-height:90vh;overflow-y:auto}
+.modal h2{color:#7dd3fc;margin-bottom:16px;font-size:1.4em}
+.modal .score-big{font-size:3em;font-weight:700;color:#fbbf24;margin:16px 0}
+.modal .acc{color:#4ade80;font-size:1.1em}
+.modal .msg{margin-top:12px;color:#94a3b8;font-size:.85em}
+.match-area{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:20px}
+.match-col{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.match-item{padding:10px 16px;border-radius:8px;border:2px solid #3a3a5a;background:#1a1a2e;color:#e8e8f0;cursor:pointer;transition:all .2s;text-align:center;font-size:.9em;user-select:none;min-width:100px;word-break:break-word}
+.match-item:hover{border-color:#7dd3fc}
+.match-item.selected{border-color:#7dd3fc;background:#1a2a3a;color:#7dd3fc;box-shadow:0 0 8px rgba(125,211,252,.3)}
+.match-item.matched{border-color:#4ade80;background:#052016;color:#4ade80;cursor:default;opacity:.7}
+.match-item.wrong-flash{border-color:#f87171;background:#2a0a0a;color:#f87171;animation:shake .4s}
+.match-group-label{color:#94a3b8;font-size:.85em;text-align:center;margin:12px 0 4px;padding:4px 16px;background:#2a2a4a;border-radius:6px;display:inline-block}
+.match-progress{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.match-dot{width:14px;height:14px;border-radius:50%;background:#3a3a5a;transition:all .3s}
+.match-dot.cur{background:#7dd3fc;transform:scale(1.2)}
+.match-dot.ok{background:#4ade80}
+.match-dot.err{background:#f87171}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:600px){
+  .options-grid{grid-template-columns:1fr}
+  .level-grid{grid-template-columns:repeat(auto-fill,minmax:65px,1fr)}
+  .qword{font-size:1.3em}
+  .match-area{gap:12px}
+  .match-col{min-width:90px}
+}
+
+.timer-display{font-size:1.3em;font-weight:700;color:#fbbf24;font-variant-numeric:tabular-nums;min-width:80px;text-align:center;padding:4px 0}
+.pb-badge{font-size:.85em;color:#a78bfa;margin-left:12px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1 id="gTitle">词汇闯关 · 中英配对</h1>
+<p class="subtitle" id="gSub">春季高考 阅读词汇</p>
+
+<div id="levelView" class="card">
+  <div style="text-align:center;color:#94a3b8;font-size:.85em;margin-bottom:8px">📚 选择关卡开始闯关</div>
+  <div class="level-grid" id="lg"></div>
+</div>
+
+<div id="gameView" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-ghost" onclick="backToLevels()" style="font-size:.8em;padding:6px 14px">← 返回关卡</button>
+    <span id="lvTitle" style="color:#7dd3fc;font-size:.9em">第 1 关</span>
+    <div class="timer-display" id="timerDisplay">0:00</div>
+    <div class="pb-badge" id="pbBadge"></div>
+  </div>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div id="qArea">
+    <div class="question">
+      <div class="qword" id="qw"></div>
+      <div class="qtype" id="qt"></div>
+    </div>
+    <div class="options-grid" id="oa"></div>
+    <div style="text-align:center">
+      <button class="hint-btn" id="hb" onclick="sh()">💡 提示</button>
+    </div>
+    <div class="hint-text" id="ht" style="display:none"></div>
+  </div>
+  <div id="matchArea" class="match-area" style="display:none"></div>
+  <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+  <div class="stats">
+    <div>✅ 正确 <span id="so">0</span></div>
+    <div>❌ 错误 <span id="se">0</span></div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2 id="rt"></h2>
+    <div class="score-big" id="rs"></div>
+    <div class="acc" id="rsc"></div>
+    <div class="acc" id="rac" style="margin-top:4px"></div>
+    <div class="msg" id="rmg"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="retry()">🔄 重玩本关</button>
+      <button class="btn btn-ghost" onclick="backToLevels()">📚 返回关卡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== Game Data ======
+const D = {"star1":[{"en":"receive","cn":"v. 收到；得到","key":"r"},{"en":"continue","cn":"v. 继续","key":"c"},{"en":"enjoy","cn":"v. 享受","key":"e"},{"en":"puzzled","cn":"adj. 困惑的","key":"p"},{"en":"actually","cn":"adv. 实际上","key":"a"},{"en":"choose","cn":"v. 选择","key":"c"},{"en":"work","cn":"v. 起作用；有效","key":"w"},{"en":"offer","cn":"v. 主动提出","key":"o"},{"en":"operation","cn":"n. 手术","key":"o"},{"en":"lift","cn":"v. 提起；举起","key":"l"},{"en":"hand","cn":"v. 递给","key":"h"},{"en":"happiness","cn":"n. 快乐；幸福","key":"h"},{"en":"be familiar with","cn":"熟悉","key":"b"},{"en":"as soon as possible","cn":"尽快","key":"a"},{"en":"pay the bill","cn":"结账；付账单","key":"p"},{"en":"leave behind","cn":"留下","key":"l"},{"en":"walk up","cn":"走上前","key":"w"}],"star2":[{"en":"vocabulary","cn":"n. 词汇","key":"v"},{"en":"creativity","cn":"n. 创造力","key":"c"},{"en":"contain","cn":"v. 包含","key":"c"},{"en":"invent","cn":"v. 发明；创造","key":"i"},{"en":"terms","cn":"n. 术语","key":"t"},{"en":"phrase","cn":"n. 短语","key":"p"},{"en":"honest","cn":"adj. 诚实的","key":"h"},{"en":"trust","cn":"v. 信任","key":"t"},{"en":"silly","cn":"adj. 愚蠢的","key":"s"},{"en":"fool","cn":"n. 傻瓜","key":"f"},{"en":"action","cn":"n. 行为","key":"a"},{"en":"laughable","cn":"adj. 可笑的","key":"l"},{"en":"opinion","cn":"n. 意见；观点","key":"o"},{"en":"quality","cn":"n. 质量","key":"q"},{"en":"critics","cn":"n. 评论家","key":"c"},{"en":"common","cn":"adj. 常见的；共同的","key":"c"},{"en":"include","cn":"v. 包括","key":"i"},{"en":"lonely","cn":"adj. 孤独的","key":"l"},{"en":"for instance","cn":"例如","key":"f"},{"en":"live on","cn":"继续存在","key":"l"},{"en":"of all time","cn":"有史以来","key":"o"},{"en":"in common","cn":"共同的","key":"i"}],"star3":[{"en":"hurt","cn":"v. 伤害","key":"h"},{"en":"regret","cn":"v. 后悔","key":"r"},{"en":"immediately","cn":"adv. 立刻","key":"i"},{"en":"painful","cn":"adj. 痛苦的","key":"p"},{"en":"wise","cn":"adj. 明智的","key":"w"},{"en":"village","cn":"n. 村庄","key":"v"},{"en":"advice","cn":"n. 建议","key":"a"},{"en":"understand","cn":"v. 理解","key":"u"},{"en":"suffering","cn":"n. 痛苦；苦难","key":"s"},{"en":"remove","cn":"v. 消除；移除","key":"r"},{"en":"teach","cn":"v. 教导","key":"t"},{"en":"character","cn":"n. 性格；品格","key":"c"},{"en":"single","cn":"adj. 单独的；单个的","key":"s"},{"en":"rise","cn":"v. 升起","key":"r"},{"en":"hurry","cn":"v. 赶紧；匆忙","key":"h"},{"en":"prepare","cn":"v. 准备","key":"p"},{"en":"effort","cn":"n. 努力","key":"e"},{"en":"return","cn":"v. 归还；返回","key":"r"},{"en":"refill","cn":"v. 重新装满","key":"r"},{"en":"impossible","cn":"adj. 不可能的","key":"i"},{"en":"blow","cn":"v. 吹","key":"b"},{"en":"sincere","cn":"adj. 真诚的","key":"s"},{"en":"be like","cn":"像……一样","key":"b"},{"en":"feather pillows","cn":"羽毛枕头","key":"f"},{"en":"protect from","cn":"保护……免受","key":"p"},{"en":"take back","cn":"收回","key":"t"},{"en":"make up","cn":"弥补","key":"m"},{"en":"depend on","cn":"取决于","key":"d"}],"star4":[{"en":"deer","cn":"n. 鹿","key":"d"},{"en":"rush","cn":"v. 冲；奔","key":"r"},{"en":"courtyard","cn":"n. 院子","key":"c"},{"en":"hook","cn":"v. 钩住","key":"h"},{"en":"scared","cn":"adj. 害怕的","key":"s"},{"en":"amazed","cn":"adj. 惊讶的","key":"a"},{"en":"afraid","cn":"adj. 害怕的","key":"a"},{"en":"frightened","cn":"adj. 受惊的","key":"f"},{"en":"bring","cn":"v. 带来；引来","key":"b"},{"en":"happen","cn":"v. 发生","key":"h"},{"en":"mountain","cn":"n. 山","key":"m"},{"en":"safely","cn":"adv. 安全地","key":"s"},{"en":"laugh","cn":"v. 笑","key":"l"},{"en":"tight","cn":"adv. 紧紧地","key":"t"},{"en":"huge","cn":"adj. 巨大的","key":"h"},{"en":"destroy","cn":"v. 摧毁","key":"d"},{"en":"weight","cn":"n. 重量","key":"w"},{"en":"remember","cn":"v. 记得；想起","key":"r"},{"en":"flee","cn":"v. 逃跑","key":"f"},{"en":"hunter","cn":"n. 猎人","key":"h"},{"en":"cover","cn":"v. 盖住；遮盖","key":"c"},{"en":"imagine","cn":"v. 想象","key":"i"},{"en":"reach out","cn":"伸出（手）","key":"r"},{"en":"fall down","cn":"倒下","key":"f"},{"en":"let it return","cn":"让它回去","key":"l"},{"en":"bow its head to","cn":"向……低头","key":"b"},{"en":"let out a loud cry","cn":"大哭起来","key":"l"}],"star5":[{"en":"origin","cn":"n. 起源","key":"o"},{"en":"complete","cn":"adj. 完全的","key":"c"},{"en":"independence","cn":"n. 独立","key":"i"},{"en":"development","cn":"n. 发展","key":"d"},{"en":"refuse","cn":"v. 拒绝","key":"r"},{"en":"permit","cn":"v. 允许","key":"p"},{"en":"population","cn":"n. 人口","key":"p"},{"en":"attitude","cn":"n. 态度","key":"a"},{"en":"foreigner","cn":"n. 外国人","key":"f"},{"en":"friendly","cn":"adj. 友好的","key":"f"},{"en":"rural","cn":"adj. 农村的","key":"r"},{"en":"isolated","cn":"adj. 孤立的；偏僻的","key":"i"},{"en":"cultivate","cn":"v. 耕种","key":"c"},{"en":"raise","cn":"v. 饲养；养育","key":"r"},{"en":"allow","cn":"v. 允许","key":"a"},{"en":"rarely","cn":"adv. 很少","key":"r"},{"en":"wander","cn":"v. 漫步；闲逛","key":"w"},{"en":"round up","cn":"聚集；驱拢","key":"r"},{"en":"take up","cn":"占据","key":"t"},{"en":"keep out","cn":"抵御；阻挡","key":"k"},{"en":"regard ... as","cn":"把……视为","key":"r"},{"en":"earn one's living","cn":"谋生","key":"e"},{"en":"center on","cn":"集中在；以……为中心","key":"c"},{"en":"be proud of","cn":"为……感到骄傲","key":"b"},{"en":"result in","cn":"导致","key":"r"}],"star6":[{"en":"creativity","cn":"n. 创造力","key":"c"},{"en":"apply","cn":"v. 应用","key":"a"},{"en":"creative","cn":"adj. 有创造力的","key":"c"},{"en":"question","cn":"v. 质疑；问题","key":"q"},{"en":"spark","cn":"v. 激发","key":"s"},{"en":"possible","cn":"adj. 可能的","key":"p"},{"en":"touch","cn":"v. 触摸；接触","key":"t"},{"en":"subject","cn":"n. 学科","key":"s"},{"en":"encourage","cn":"v. 鼓励","key":"e"},{"en":"inspire","cn":"v. 激励；激发","key":"i"},{"en":"discuss","cn":"v. 讨论","key":"d"},{"en":"create","cn":"v. 创造","key":"c"},{"en":"challenge","cn":"n. 挑战","key":"c"},{"en":"accept","cn":"v. 接受","key":"a"},{"en":"standard","cn":"adj. 标准的","key":"s"},{"en":"reason","cn":"n. 推理；原因","key":"r"},{"en":"annually","cn":"adv. 每年","key":"a"},{"en":"solution","cn":"n. 解决方案","key":"s"},{"en":"freedom","cn":"n. 自由","key":"f"},{"en":"bring out","cn":"激发；使显现","key":"b"},{"en":"put...in order","cn":"把……整理好","key":"p"},{"en":"according to","cn":"根据","key":"a"},{"en":"think outside the box","cn":"跳出框框思考","key":"t"}],"star7":[{"en":"disturb","cn":"v. 打扰；使苦恼","key":"d"},{"en":"husband","cn":"n. 丈夫","key":"h"},{"en":"trouble","cn":"n. 烦恼；麻烦","key":"t"},{"en":"local","cn":"adj. 当地的","key":"l"},{"en":"magician","cn":"n. 魔法师","key":"m"},{"en":"pity","cn":"n. 怜悯；可惜","key":"p"},{"en":"magic","cn":"n. 魔法","key":"m"},{"en":"anxiously","cn":"adv. 焦急地","key":"a"},{"en":"moment","cn":"n. 片刻","key":"m"},{"en":"reply","cn":"v. 回复；回答","key":"r"},{"en":"sheep","cn":"n. 羊","key":"s"},{"en":"hair","cn":"n. 毛发","key":"h"},{"en":"approach","cn":"v. 接近","key":"a"},{"en":"spread","cn":"v. 展开；传播","key":"s"},{"en":"lion","cn":"n. 狮子","key":"l"},{"en":"indeed","cn":"adv. 确实","key":"i"},{"en":"path","cn":"n. 小路","key":"p"},{"en":"gradually","cn":"adv. 逐渐地","key":"g"},{"en":"pull","cn":"v. 拔；拉","key":"p"},{"en":"treat","cn":"v. 对待","key":"t"},{"en":"in surprise","cn":"惊讶地","key":"i"},{"en":"set out","cn":"出发","key":"s"},{"en":"seem to do","cn":"似乎……","key":"s"},{"en":"the same way","cn":"同样的方式","key":"t"}],"star8":[{"en":"spend","cn":"v. 花费","key":"s"},{"en":"outdoors","cn":"adv. 户外","key":"o"},{"en":"tired","cn":"adj. 疲劳的","key":"t"},{"en":"brain","cn":"n. 大脑","key":"b"},{"en":"rest","cn":"v. 休息","key":"r"},{"en":"professor","cn":"n. 教授","key":"p"},{"en":"psychology","cn":"n. 心理学","key":"p"},{"en":"claim","cn":"v. 声称","key":"c"},{"en":"camping","cn":"n. 露营","key":"c"},{"en":"experienced","cn":"adj. 经验丰富的","key":"e"},{"en":"relaxed","cn":"adj. 放松的","key":"r"},{"en":"relaxing","cn":"adj. 令人放松的","key":"r"},{"en":"peace","cn":"n. 平静；和平","key":"p"},{"en":"chance","cn":"n. 机会","key":"c"},{"en":"state","cn":"n. 状态","key":"s"},{"en":"editor","cn":"n. 编辑","key":"e"},{"en":"explain","cn":"v. 解释","key":"e"},{"en":"contact","cn":"n. 接触；联系","key":"c"},{"en":"focus","cn":"v. 集中注意力","key":"f"},{"en":"environment","cn":"n. 环境","key":"e"},{"en":"require","cn":"v. 需要","key":"r"},{"en":"benefit","cn":"n. 益处","key":"b"},{"en":"electronic devices","cn":"电子设备","key":"e"},{"en":"be in touch with","cn":"与……接触","key":"b"},{"en":"deal with","cn":"应对；处理","key":"d"},{"en":"in good condition","cn":"处于良好状态","key":"i"}],"star9":[{"en":"conversation","cn":"n. 对话","key":"c"},{"en":"truth","cn":"n. 事实；真相","key":"t"},{"en":"failed","cn":"adj. 失败的","key":"f"},{"en":"subject","cn":"n. 科目","key":"s"},{"en":"failure","cn":"n. 失败","key":"f"},{"en":"perfectionist","cn":"n. 完美主义者","key":"p"},{"en":"dish","cn":"n. 菜肴","key":"d"},{"en":"upset","cn":"adj. 沮丧的","key":"u"},{"en":"care","cn":"v. 在乎；关心","key":"c"},{"en":"dislike","cn":"v. 不喜欢","key":"d"},{"en":"overcome","cn":"v. 克服","key":"o"},{"en":"success","cn":"n. 成功","key":"s"},{"en":"within","cn":"prep. 在……之内","key":"w"},{"en":"until","cn":"prep. 直到","key":"u"},{"en":"regularly","cn":"adv. 定期地","key":"r"},{"en":"finally","cn":"adv. 终于","key":"f"},{"en":"imagine","cn":"v. 想象","key":"i"},{"en":"memory","cn":"n. 记忆","key":"m"},{"en":"reach","cn":"v. 达到；到达","key":"r"},{"en":"lesson","cn":"n. 教训","key":"l"},{"en":"turn out","cn":"结果是","key":"t"},{"en":"work out","cn":"锻炼","key":"w"},{"en":"as sweet as honey","cn":"像蜂蜜一样甜","key":"a"},{"en":"get close to","cn":"接近","key":"g"}],"star10":[{"en":"book","cn":"v. 预订","key":"b"},{"en":"airport","cn":"n. 机场","key":"a"},{"en":"trip","cn":"n. 旅行","key":"t"},{"en":"abroad","cn":"adv. 国外","key":"a"},{"en":"hotel","cn":"n. 酒店","key":"h"},{"en":"handbag","cn":"n. 手提包","key":"h"},{"en":"purse","cn":"n. 钱包","key":"p"},{"en":"guide","cn":"n. 导游","key":"g"},{"en":"include","cn":"v. 包含","key":"i"},{"en":"swim","cn":"v. 游泳","key":"s"},{"en":"lie-lay-lain","cn":"v. 躺","key":"l"},{"en":"however","cn":"adv. 然而","key":"h"},{"en":"except","cn":"prep. 除了","key":"e"},{"en":"restaurant","cn":"n. 餐厅","key":"r"},{"en":"excellent","cn":"adj. 极好的","key":"e"},{"en":"change...for...","cn":"把……换成……","key":"c"},{"en":"package tour","cn":"旅行套餐","key":"p"},{"en":"arrive at","cn":"到达","key":"a"},{"en":"the rest of","cn":"剩余的","key":"t"}],"star11":[{"en":"screen","cn":"n. 屏幕","key":"s"},{"en":"normal","cn":"adj. 正常的","key":"n"},{"en":"respond","cn":"v. 回应","key":"r"},{"en":"window","cn":"n. 窗口","key":"w"},{"en":"among","cn":"prep. 在……之中","key":"a"},{"en":"champion","cn":"n. 冠军","key":"c"},{"en":"rabbit","cn":"n. 兔子","key":"r"},{"en":"competition","cn":"n. 比赛","key":"c"},{"en":"gift","cn":"n. 礼物","key":"g"},{"en":"repair","cn":"v. 修理","key":"r"},{"en":"immediately","cn":"adv. 立刻","key":"i"},{"en":"diet","cn":"n. 饮食","key":"d"},{"en":"actually","cn":"adv. 实际上","key":"a"},{"en":"company","cn":"n. 陪伴","key":"c"},{"en":"enjoy","cn":"v. 享受；喜欢","key":"e"},{"en":"prefer","cn":"v. 更喜欢","key":"p"},{"en":"pet","cn":"n. 宠物","key":"p"},{"en":"realize","cn":"v. 意识到","key":"r"},{"en":"be mad about","cn":"对……着迷","key":"b"},{"en":"in front of","cn":"在……前面","key":"i"},{"en":"be expert at","cn":"擅长","key":"b"},{"en":"as usual","cn":"像往常一样","key":"a"},{"en":"share... with","cn":"与……分享","key":"s"},{"en":"no longer","cn":"不再","key":"n"}],"star12":[{"en":"culture","cn":"n. 文化","key":"c"},{"en":"tradition","cn":"n. 传统","key":"t"},{"en":"society","cn":"n. 社会","key":"s"},{"en":"custom","cn":"n. 习俗","key":"c"},{"en":"system","cn":"n. 系统","key":"s"},{"en":"identity","cn":"n. 身份","key":"i"},{"en":"even","cn":"adv. 甚至","key":"e"},{"en":"behave","cn":"v. 行为；表现","key":"b"},{"en":"individual","cn":"adj. 个体的","key":"i"},{"en":"build","cn":"v. 建立","key":"b"},{"en":"activity","cn":"n. 活动","key":"a"},{"en":"repeat","cn":"v. 重复","key":"r"},{"en":"strength","cn":"n. 力量","key":"s"},{"en":"community","cn":"n. 社区","key":"c"},{"en":"rule","cn":"n. 规则","key":"r"},{"en":"decide","cn":"v. 决定","key":"d"},{"en":"act","cn":"v. 行动","key":"a"},{"en":"situation","cn":"n. 情况","key":"s"},{"en":"naturally","cn":"adv. 自然地","key":"n"},{"en":"expect","cn":"v. 期望","key":"e"},{"en":"recognize","cn":"v. 识别","key":"r"},{"en":"believe","cn":"v. 相信","key":"b"},{"en":"choose","cn":"v. 选择","key":"c"},{"en":"form","cn":"n. 形成","key":"f"},{"en":"appreciate","cn":"v. 欣赏","key":"a"},{"en":"difference","cn":"n. 差异","key":"d"},{"en":"on a regular basis","cn":"定期地","key":"o"},{"en":"be limited to","cn":"限于","key":"b"},{"en":"be known for","cn":"以……而闻名","key":"b"},{"en":"connect...to","cn":"把……与……联系起来","key":"c"},{"en":"disagree on","cn":"在……上有分歧","key":"d"},{"en":"feel strongly about","cn":"对……有强烈感受","key":"f"},{"en":"communicate with","cn":"与……交流","key":"c"}],"star13":[{"en":"suddenly","cn":"adv. 突然","key":"s"},{"en":"helpless","cn":"adj. 无助的","key":"h"},{"en":"tank","cn":"n. 水箱","key":"t"},{"en":"climb","cn":"v. 爬","key":"c"},{"en":"jump","cn":"v. 跳","key":"j"},{"en":"agree","cn":"v. 同意","key":"a"},{"en":"wear","cn":"v. 穿着","key":"w"},{"en":"follow","cn":"v. 跟随","key":"f"},{"en":"decide","cn":"v. 决定","key":"d"},{"en":"bar","cn":"n. 条；棒","key":"b"},{"en":"reach","cn":"v. 到达","key":"r"},{"en":"believe","cn":"v. 相信","key":"b"},{"en":"exactly","cn":"adv. 恰好；正是","key":"e"},{"en":"rush","cn":"v. 冲；匆忙","key":"r"},{"en":"immediately","cn":"adv. 立即","key":"i"},{"en":"catch","cn":"v. 抓住","key":"c"},{"en":"officer","cn":"n. 警官","key":"o"},{"en":"thief","cn":"n. 小偷","key":"t"},{"en":"reward","cn":"n. 奖励","key":"r"},{"en":"detective","cn":"adj. 侦探的","key":"d"},{"en":"look for","cn":"寻找","key":"l"},{"en":"along with","cn":"连同；和……一起","key":"a"}],"star14":[{"en":"difficult","cn":"adj. 困难的","key":"d"},{"en":"company","cn":"n. 公司","key":"c"},{"en":"employer","cn":"n. 雇主","key":"e"},{"en":"employee","cn":"n. 雇员","key":"e"},{"en":"friendly","cn":"adj. 友好的","key":"f"},{"en":"flexible","cn":"adj. 灵活的","key":"f"},{"en":"schedule","cn":"n. 时间表","key":"s"},{"en":"increase","cn":"v. 增加；提高","key":"i"},{"en":"productivity","cn":"n. 生产力","key":"p"},{"en":"share","cn":"v. 共享；分享","key":"s"},{"en":"salary","cn":"n. 工资","key":"s"},{"en":"offer","cn":"v. 提供","key":"o"},{"en":"baby","cn":"n. 婴儿","key":"b"},{"en":"bear-bore-born","cn":"v. 出生","key":"b"},{"en":"female","cn":"adj. 女性的","key":"f"},{"en":"birth","cn":"n. 出生","key":"b"},{"en":"off","cn":"adj. 休假","key":"o"},{"en":"full time","cn":"全职","key":"f"},{"en":"take care of","cn":"照顾","key":"t"},{"en":"one-third","cn":"num. 三分之一","key":"o"},{"en":"paid leave","cn":"带薪休假","key":"p"},{"en":"for example","cn":"例如","key":"f"}],"star15":[{"en":"invention","cn":"n. 发明","key":"i"},{"en":"cover","cn":"v. 行驶；覆盖","key":"c"},{"en":"aircraft","cn":"n. 飞机","key":"a"},{"en":"operate","cn":"v. 运行","key":"o"},{"en":"speed","cn":"n. 速度","key":"s"},{"en":"lightning","cn":"n. 闪电","key":"l"},{"en":"produce","cn":"v. 生产","key":"p"},{"en":"save","cn":"v. 节省","key":"s"},{"en":"precious","cn":"adj. 宝贵的","key":"p"},{"en":"handle","cn":"v. 处理","key":"h"},{"en":"lose","cn":"v. 失去","key":"l"},{"en":"gain","cn":"v. 获得","key":"g"},{"en":"uncomfortable","cn":"adj. 不舒服的","key":"u"},{"en":"pain","cn":"n. 疼痛","key":"p"},{"en":"danger","cn":"n. 危险","key":"d"},{"en":"scientist","cn":"n. 科学家","key":"s"},{"en":"certainly","cn":"adv. 当然","key":"c"},{"en":"simply","cn":"adv. 仅仅；简单地","key":"s"},{"en":"quietly","cn":"adv. 安静地","key":"q"},{"en":"constant","cn":"adj. 持续不断的","key":"c"},{"en":"perhaps","cn":"adv. 也许","key":"p"},{"en":"gone","cn":"adj. 逝去的","key":"g"},{"en":"imagination","cn":"n. 想象力","key":"i"},{"en":"pattern","cn":"n. 模式","key":"p"},{"en":"admire","cn":"v. 钦佩；羡慕","key":"a"},{"en":"yet","cn":"adv. 然而","key":"y"},{"en":"nowadays","cn":"adv. 如今","key":"n"},{"en":"at a price","cn":"以……为代价","key":"a"},{"en":"jet lag","cn":"时差反应","key":"j"},{"en":"left behind","cn":"被落下","key":"l"},{"en":"result in","cn":"导致","key":"r"},{"en":"do harm to","cn":"对……有害","key":"d"},{"en":"be used to","cn":"习惯于","key":"b"},{"en":"devote to","cn":"致力于","key":"d"},{"en":"go on","cn":"继续","key":"g"}],"star16":[{"en":"watchmaker","cn":"n. 制表师","key":"w"},{"en":"century","cn":"n. 世纪","key":"c"},{"en":"dead","cn":"adj. 死的；消失的","key":"d"},{"en":"design","cn":"v. 设计","key":"d"},{"en":"product","cn":"n. 产品","key":"p"},{"en":"alone","cn":"adv. 独自","key":"a"},{"en":"museum","cn":"n. 博物馆","key":"m"},{"en":"complete","cn":"adj. 完成","key":"c"},{"en":"cost","cn":"v. 花费","key":"c"},{"en":"ordinary","cn":"adj. 普通的","key":"o"},{"en":"last","cn":"v. 持续","key":"l"},{"en":"internationally","cn":"adv. 国际上","key":"i"},{"en":"famous","cn":"adj. 著名的","key":"f"},{"en":"disappointed","cn":"adj. 失望的","key":"d"},{"en":"customer","cn":"n. 客户","key":"c"},{"en":"indeed","cn":"adv. 确实","key":"i"},{"en":"subject","cn":"n. 学科；主题","key":"s"},{"en":"drawer","cn":"n. 抽屉","key":"d"},{"en":"put ...together","cn":"组装","key":"p"},{"en":"be attracted by","cn":"被……吸引","key":"b"},{"en":"used to do","cn":"过去常常","key":"u"},{"en":"take...apart","cn":"拆开","key":"t"}],"star17":[{"en":"comma","cn":"n. 逗号","key":"c"},{"en":"confusing","cn":"adj. 令人困惑的","key":"c"},{"en":"simple","cn":"adj. 简单的","key":"s"},{"en":"add","cn":"v. 添加","key":"a"},{"en":"partner","cn":"n. 伙伴","key":"p"},{"en":"sentence","cn":"n. 句子","key":"s"},{"en":"steal","cn":"v. 偷","key":"s"},{"en":"clearly","cn":"adv. 清楚地","key":"c"},{"en":"show","cn":"v. 显示；表明","key":"s"},{"en":"oral","cn":"adj. 口头的","key":"o"},{"en":"speech","cn":"n. 演讲；语言","key":"s"},{"en":"shin","cn":"v. （应为shine）发光；照耀","key":"s"},{"en":"require","cn":"v. 需要；要求","key":"r"},{"en":"feel like","cn":"想要","key":"f"},{"en":"a pair of","cn":"一对；一双","key":"a"},{"en":"take a breath","cn":"喘口气","key":"t"},{"en":"enable sb. to do sth.","cn":"使某人能够做某事","key":"e"}],"star18":[{"en":"suffer","cn":"v. 遭受","key":"s"},{"en":"disorder","cn":"n. 失调；紊乱","key":"d"},{"en":"form","cn":"n. 形式","key":"f"},{"en":"depression","cn":"n. 抑郁症","key":"d"},{"en":"during","cn":"prep. 在……期间","key":"d"},{"en":"period","cn":"n. 时期","key":"p"},{"en":"comfort","cn":"n. 安慰","key":"c"},{"en":"thirstily","cn":"adv. 如饥似渴地","key":"t"},{"en":"Christmas","cn":"? 圣诞节","key":"c"},{"en":"habit","cn":"n. 习惯","key":"h"},{"en":"favorite","cn":"adj. 最喜欢的","key":"f"},{"en":"emptiness","cn":"n. 空虚","key":"e"},{"en":"heat","cn":"n. 炎热；温暖","key":"h"},{"en":"sadness","cn":"n. 悲伤","key":"s"},{"en":"literature","cn":"n. 文学","key":"l"},{"en":"down","cn":"adj. 沮丧的","key":"d"},{"en":"survive","cn":"v. 幸存","key":"s"},{"en":"survival","cn":"n. 生存","key":"s"},{"en":"after all","cn":"毕竟","key":"a"},{"en":"lose oneself into","cn":"沉浸于","key":"l"},{"en":"make up for","cn":"弥补","key":"m"},{"en":"escape from","cn":"逃避","key":"e"},{"en":"be used to","cn":"习惯于","key":"b"},{"en":"go through","cn":"经历","key":"g"}],"star19":[{"en":"interactive","cn":"adj. 互动的","key":"i"},{"en":"map","cn":"n. 地图","key":"m"},{"en":"global","cn":"adj. 全球的","key":"g"},{"en":"influence","cn":"n. 影响","key":"i"},{"en":"climate","cn":"n. 气候","key":"c"},{"en":"weather","cn":"n. 天气","key":"w"},{"en":"extreme","cn":"adj. 极端的","key":"e"},{"en":"storm","cn":"n. 风暴","key":"s"},{"en":"temperature","cn":"n. 温度","key":"t"},{"en":"rainfall","cn":"n. 降雨量","key":"r"},{"en":"eastern","cn":"adj. 东部的","key":"e"},{"en":"southeastern","cn":"adj. 东南部的","key":"s"},{"en":"loss","cn":"n. 损失；减少","key":"l"},{"en":"university","cn":"n. 大学","key":"u"},{"en":"public","cn":"adj. 公共的；公众的","key":"p"},{"en":"data","cn":"n. 数据","key":"d"},{"en":"possibly","cn":"adv. 可能地","key":"p"},{"en":"central","cn":"adj. 中心的","key":"c"},{"en":"phenomenon","cn":"n. 现象","key":"p"},{"en":"at present","cn":"目前","key":"a"},{"en":"be likely to","cn":"很可能","key":"b"},{"en":"be subject to","cn":"遭受；受……影响","key":"b"},{"en":"sea level","cn":"海平面","key":"s"},{"en":"search for","cn":"搜索","key":"s"},{"en":"lead to","cn":"导致","key":"l"}],"star20":[{"en":"anger","cn":"n. 愤怒","key":"a"},{"en":"experience","cn":"n. 经历；体验","key":"e"},{"en":"researcher","cn":"n. 研究人员","key":"r"},{"en":"sign","cn":"n. 标志；迹象","key":"s"},{"en":"respond","cn":"v. 回应","key":"r"},{"en":"case","cn":"n. 情况","key":"c"},{"en":"perfectly","cn":"adv. 完美地；完全地","key":"p"},{"en":"cause","cn":"v. 引起；导致","key":"c"},{"en":"positive","cn":"adj. 积极的","key":"p"},{"en":"injustice","cn":"n. 不公正","key":"i"},{"en":"correct","cn":"v. 纠正；正确的","key":"c"},{"en":"punish","cn":"v. 惩罚","key":"p"},{"en":"express","cn":"v. 表达","key":"e"},{"en":"control","cn":"v. 控制","key":"c"},{"en":"uncontrolled","cn":"adj. 不受控制的","key":"u"},{"en":"unacceptable","cn":"adj. 不可接受的","key":"u"},{"en":"behavior","cn":"n. 行为","key":"b"},{"en":"mental","cn":"adj. 精神的","key":"m"},{"en":"physical","cn":"adj. 身体的","key":"p"},{"en":"calm","cn":"adj. 平静的；使平静","key":"c"},{"en":"solution","cn":"n. 解决方案","key":"s"},{"en":"situation","cn":"n. 情况","key":"s"},{"en":"exercise","cn":"n. 锻炼","key":"e"},{"en":"method","cn":"n. 方法","key":"m"},{"en":"as long as","cn":"只要","key":"a"},{"en":"in the right direction","cn":"朝着正确的方向","key":"i"},{"en":"under control","cn":"处于控制之下","key":"u"},{"en":"at work","cn":"在工作中","key":"a"},{"en":"ask ...for","cn":"向……请求","key":"a"}],"star21":[{"en":"request","cn":"n. 请求","key":"r"},{"en":"opportunity","cn":"n. 机会","key":"o"},{"en":"event","cn":"n. 事件","key":"e"},{"en":"risk","cn":"n. 风险","key":"r"},{"en":"effect","cn":"n. 影响；效果","key":"e"},{"en":"public","cn":"adj. 公众的；公开的","key":"p"},{"en":"task","cn":"n. 任务","key":"t"},{"en":"challenging","cn":"adj. 有挑战性的","key":"c"},{"en":"progress","cn":"n. 进步","key":"p"},{"en":"uncomfortable","cn":"adj. 不舒服的","key":"u"},{"en":"positive result","cn":"积极的结果","key":"p"},{"en":"lazy","cn":"adj. 懒惰的","key":"l"},{"en":"really","cn":"adv. 真正地","key":"r"},{"en":"rather than","cn":"而不是","key":"r"},{"en":"trust sb. with","cn":"把……托付给某人","key":"t"},{"en":"look back on","cn":"回顾","key":"l"},{"en":"move up","cn":"晋升；提升","key":"m"},{"en":"give it a try","cn":"试一试","key":"g"},{"en":"close off","cn":"封闭","key":"c"},{"en":"go wrong","cn":"出错","key":"g"}],"star22":[{"en":"draw","cn":"v. 画","key":"d"},{"en":"notebook","cn":"n. 笔记本","key":"n"},{"en":"doodle","cn":"n. 涂鸦","key":"d"},{"en":"opposite","cn":"adj. 相反的","key":"o"},{"en":"remember","cn":"v. 记住","key":"r"},{"en":"message","cn":"n. 信息","key":"m"},{"en":"information","cn":"n. 信息","key":"i"},{"en":"suggest","cn":"v. 建议；表明","key":"s"},{"en":"study","cn":"n. 研究","key":"s"},{"en":"actually","cn":"adv. 实际上","key":"a"},{"en":"solve","cn":"v. 解决","key":"s"},{"en":"fresh","cn":"adj. 新鲜的；新的","key":"f"},{"en":"quickly","cn":"adv. 快速地","key":"q"},{"en":"author","cn":"n. 作者","key":"a"},{"en":"argue","cn":"v. 争论；认为","key":"a"},{"en":"tool","cn":"n. 工具","key":"t"},{"en":"admit","cn":"v. 承认","key":"a"},{"en":"business","cn":"n. 生意；公司","key":"b"},{"en":"management","cn":"n. 管理","key":"m"},{"en":"effectiveness","cn":"n. 效率","key":"e"},{"en":"matter","cn":"v. 重要；要紧","key":"m"},{"en":"artist","cn":"n. 艺术家","key":"a"},{"en":"focus","cn":"v. 集中注意力","key":"f"},{"en":"pick up","cn":"拿起","key":"p"},{"en":"pay attention to","cn":"注意","key":"p"},{"en":"walk away from","cn":"离开；摆脱","key":"w"},{"en":"be good at","cn":"擅长","key":"b"},{"en":"even if","cn":"即使","key":"e"}],"star23":[{"en":"unluckily","cn":"adv. 不幸地","key":"u"},{"en":"chance","cn":"n. 机会","key":"c"},{"en":"manager","cn":"n. 经理","key":"m"},{"en":"experience","cn":"n. 经验","key":"e"},{"en":"application","cn":"n. 申请","key":"a"},{"en":"eagerly","cn":"adv. 急切地","key":"e"},{"en":"reply","cn":"v. 回复","key":"r"},{"en":"apologize","cn":"v. 道歉","key":"a"},{"en":"promise","cn":"v. 承诺","key":"p"},{"en":"imagine","cn":"v. 想象","key":"i"},{"en":"customer","cn":"n. 顾客","key":"c"},{"en":"fool","cn":"n. 傻瓜","key":"f"},{"en":"flavor","cn":"n. 口味","key":"f"},{"en":"drop","cn":"v. 掉落","key":"d"},{"en":"argue","cn":"v. 争辩","key":"a"},{"en":"patient","cn":"adj. 耐心的","key":"p"},{"en":"nod","cn":"v. 点头","key":"n"},{"en":"impatient","cn":"adj. 不耐烦的","key":"i"},{"en":"replace","cn":"v. 替换；辞退","key":"r"},{"en":"previous","cn":"adj. 之前的","key":"p"},{"en":"hate","cn":"v. 讨厌","key":"h"},{"en":"admit","cn":"v. 承认","key":"a"},{"en":"responsibility","cn":"n. 责任","key":"r"},{"en":"search for","cn":"寻找","key":"s"},{"en":"arrive at","cn":"到达","key":"a"},{"en":"hand out","cn":"分发","key":"h"},{"en":"turn out to be","cn":"结果是","key":"t"},{"en":"ask for","cn":"请求；要求","key":"a"},{"en":"come up","cn":"走上前；出现","key":"c"},{"en":"hold back tears","cn":"忍住眼泪","key":"h"},{"en":"be filled with","cn":"充满","key":"b"},{"en":"have fun","cn":"玩得开心","key":"h"},{"en":"night shift","cn":"夜班","key":"n"},{"en":"in 30 minutes","cn":"30分钟后","key":"i"},{"en":"pay a big price for sth.","cn":"为某事付出巨大代价","key":"p"},{"en":"show up","cn":"出现；露面","key":"s"},{"en":"fail to do","cn":"未能做到","key":"f"}],"star24":[{"en":"notice","cn":"v. 注意到","key":"n"},{"en":"researcher","cn":"n. 研究人员","key":"r"},{"en":"caregiver","cn":"n. 照料者","key":"c"},{"en":"speech","cn":"n. 说话；言语","key":"s"},{"en":"pattern","cn":"n. 模式","key":"p"},{"en":"particularly","cn":"adv. 尤其","key":"p"},{"en":"pitch","cn":"n. 音高","key":"p"},{"en":"communication","cn":"n. 交流","key":"c"},{"en":"well-known","cn":"adj. 众所周知的","key":"w"},{"en":"scientist","cn":"n. 科学家","key":"s"},{"en":"dolphin","cn":"n. 海豚","key":"d"},{"en":"intelligent","cn":"adj. 聪明的","key":"i"},{"en":"whistle","cn":"n. 口哨声","key":"w"},{"en":"compare","cn":"v. 比较","key":"c"},{"en":"occur","cn":"v. 发生","key":"o"},{"en":"purpose","cn":"n. 目的","key":"p"},{"en":"similarly","cn":"adv. 相似地","key":"s"},{"en":"adult","cn":"n. 成年人","key":"a"},{"en":"remind","cn":"v. 提醒","key":"r"},{"en":"remind sb. of sth.","cn":"提醒某人某事","key":"r"},{"en":"remind sb. to do sth.","cn":"提醒某人做某事","key":"r"},{"en":"be similar to","cn":"与……相似","key":"b"},{"en":"communicate with","cn":"与……交流","key":"c"}]};
+const LVS = Object.keys(D);
+const TOTAL_LV = LVS.length;
+
+const MODES = [
+  {id:"en-cn", label:"📖 英→中", q:"选择正确的中文释义", enFirst:true},
+  {id:"cn-en", label:"📝 中→英", q:"选择正确的英文单词", enFirst:false},
+  {id:"listen", label:"🔊 听音选", q:"听发音选择正确的中文", enFirst:true},
+  {id:"match", label:"🔗 配对", q:"将英文与中文配对", enFirst:true}
+];
+
+const S = {s:1, l:0, q:0, ord:[], ok:0, err:0, a:false, m:0, wrongList:[], timerInterval:null, startTime:0, elapsed:0};
+
+// ===== 计时 =====
+function startTimer(){
+  stopTimer();
+  S.startTime=Date.now();
+  S.timerInterval=setInterval(updateTimer,200);
+}
+function stopTimer(){
+  if(S.timerInterval){clearInterval(S.timerInterval);S.timerInterval=null;}
+}
+function updateTimer(){
+  if(!S.startTime)return;
+  const el=Math.floor((Date.now()-S.startTime)/1000);
+  S.elapsed=el;
+  const m=Math.floor(el/60),s=el%60;
+  const td=document.getElementById("timerDisplay");
+  if(td)td.textContent=m+":"+(s<10?"0":"")+s;
+}
+function fmtTime(ms){
+  const s=Math.floor(ms/1000),m=Math.floor(s/60);
+  return m+":"+(s%60<10?"0":"")+(s%60);
+}
+// ===== PB =====
+function getPB(lv,md){return parseInt(localStorage.getItem("pb_"+lv+"_"+md)||"0");}
+function setPB(lv,md,ms){
+  const k="pb_"+lv+"_"+md;
+  const prev=getPB(lv,md);
+  if(prev===0||ms<prev){localStorage.setItem(k,ms);return true;}
+  return false;
+}
+function getPBStr(lv,md){
+  const t=getPB(lv,md);
+  return t>0?"PB: "+fmtTime(t):"";
+}
+function $(id){return document.getElementById(id)}
+
+function renderLv(){
+  const lg=$("lg");
+  lg.innerHTML="";
+  LVS.forEach((key,i)=>{
+    const items=D[key].filter(it=>it.cn);
+    const done=JSON.parse(localStorage.getItem("vp")||"{}")[i];
+    lg.innerHTML+='<div class="level-btn'+(done?" done":"")+'" onclick="startL('+i+')"><span class="lnum">'+(i+1)+'</span><span class="lcount'+(done?" ok":"")+'">'+(done?done+"/"+items.length+" ✅":items.length+"词")+'</span></div>';
+  });
+}
+
+function backToLevels(){
+  $("ov").classList.remove("show");
+  $("gameView").style.display="none";
+  $("levelView").style.display="block";
+  renderLv();
+}
+
+function startL(idx){
+  if(idx<0||idx>=TOTAL_LV)return;
+  S.l=idx;S.q=0;S.ok=0;S.err=0;S.a=false;S.wrongList=[];S.matchRound=0;
+  const lv=D[LVS[idx]];
+  const items=lv.filter(it=>it.cn);
+  S.ord=items.map((_,i)=>i);
+  S.ord=sha(S.ord);
+  $("levelView").style.display="none";
+  $("gameView").style.display="block";
+  $("lvTitle").textContent="第 "+(idx+1)+" 关 · "+items.length+" 题";
+  renderModes();
+  startTimer();
+  showQ();
+}
+
+function renderModes(){
+  const c=$("modeTabs");
+  c.innerHTML="";
+  MODES.forEach((m,i)=>{
+    const b=document.createElement("button");
+    b.className="mode-tab"+(i===S.m?" active":"");
+    b.textContent=m.label;
+    b.onclick=()=>{S.m=i;document.querySelectorAll(".mode-tab").forEach(t=>t.classList.remove("active"));b.classList.add("active");showQ()};
+    c.appendChild(b);
+  });
+}
+
+function playAudio(word){
+  try{
+    if(window._aud){try{window._aud.pause();}catch(e){}}
+    const url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(word)+'&type=1';
+    window._aud=new Audio(url);
+    const p=window._aud.play();
+    if(p)p.catch(e=>console.warn('playAudio failed:',word,e));
+  }catch(e){console.warn('playAudio error:',word,e);}
+}
+
+function showQ(){
+  S.a=false;$("ht").style.display="none";$("hb").textContent="💡 提示";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  if(!items.length){backToLevels();return}
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  if(mode.id==="match"){showMatchQ();return}
+  const field=mode.enFirst?"en":"cn";
+  $("qArea").style.display="block";$("matchArea").style.display="none";
+  if(mode.id==="listen"){
+    $("qw").innerHTML='🔊';
+  }else{
+    $("qw").textContent=field==="en"?it.en:it.cn;
+  }
+  window._cw=it.en;$("qw").onclick=()=>{try{playAudio(window._cw)}catch(e){}};
+  if(mode.id==="listen")setTimeout(()=>playAudio(it.en),300);
+  $("qt").textContent=mode.q+"（"+(S.q+1)+"/"+S.ord.length+"）";
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  buildOpts(it,mode);
+}
+
+function buildOpts(it,mode){
+  const lv=D[LVS[S.l]];const items=lv.filter(x=>x.cn);
+  const correct=mode.enFirst?it.cn:it.en;
+  const optField=mode.enFirst?"cn":"en";
+  let pool=[];
+  if(mode.id==="listen"){
+    const others=mode.enFirst?items.map(x=>x.cn):items.map(x=>x.en);
+    pool=others.filter(x=>x!==correct);
+  }else if(optField==="cn"){
+    pool=items.map(x=>x.cn).filter(x=>x!==correct);
+  }else{
+    pool=items.map(x=>x.en).filter(x=>x!==correct);
+  }
+  if(pool.length<3){
+    const allItems=Object.values(D).flat().filter(x=>x.cn);
+    const exclude=new Set([correct,...pool]);
+    const extra=optField==="cn"?allItems.map(x=>x.cn):allItems.map(x=>x.en);
+    pool=pool.concat(extra.filter(x=>!exclude.has(x)));
+  }
+  const others=sha(pool).slice(0,3);
+  const opts=sha([correct,...others]);
+  let h="";
+  opts.forEach(o=>{
+        h+='<button class="option" data-v="'+encodeURIComponent(String(o))+'" onclick="check(this)">'+o+'</button>';
+  });
+  $("oa").innerHTML=h;
+}
+
+let _correct="";
+function check(btn){
+  if(S.a)return;S.a=true;
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];
+  const mode=MODES[S.m];
+  var chosen="";try{chosen=decodeURIComponent(btn.dataset.v)}catch(ex){chosen=btn.dataset.v}
+  _correct=mode.id==="cn-en"?it.en:it.cn;
+  const isOk=chosen===_correct;
+  if(isOk){btn.classList.add("correct");S.ok++;playOK()}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(b=>{if(b.textContent===_correct)b.classList.add("correct")});
+    S.err++;S.wrongList.push(it);playErr()
+  }
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  if(S.q+1<S.ord.length)setTimeout(nQ,500);else setTimeout(showRes,600);
+}
+
+// ====== Match Mode ======
+let M={sel:null,pairs:0,total:0};
+function showMatchQ(){
+  $("qArea").style.display="none";$("matchArea").style.display="flex";
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const maxPerRound=10;
+  const totalItems=items.length;
+  const startIdx=S.matchRound*maxPerRound||0;
+  const endIdx=Math.min(startIdx+maxPerRound,totalItems);
+  const roundItems=items.slice(startIdx,endIdx);
+  const roundOrder=sha([...Array(roundItems.length).keys()]);
+  const enOrder=roundOrder.slice();
+  const cnOrder=sha([...roundOrder]);
+  M={sel:null,pairs:0,total:roundItems.length,roundItems,roundIdx:S.matchRound||0};
+  let enHtml='<div class="match-group-label">📖 英文</div>';
+  let cnHtml='<div class="match-group-label">📝 中文</div>';
+  enOrder.forEach((ri,i)=>{
+    enHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="en" onclick="matchClick(this,'+ri+')">'+roundItems[ri].en+'</div>';
+  });
+  cnOrder.forEach((ri,i)=>{
+    cnHtml+='<div class="match-item" data-idx="'+ri+'" data-pair="cn" onclick="matchClick(this,'+ri+')">'+roundItems[ri].cn+'</div>';
+  });
+  $("matchArea").innerHTML='<div class="match-col" id="mcEn">'+enHtml+'</div><div class="match-col" id="mcCn">'+cnHtml+'</div>';
+  $("pf").style.width=((S.q)/S.ord.length*100)+"%";
+  $("so").textContent=S.ok;$("se").textContent=S.err;
+  const roundNum=Math.floor(startIdx/maxPerRound)+1;
+  const totalRounds=Math.ceil(totalItems/maxPerRound);
+  $("qt").textContent="配对 "+(startIdx+1)+"-"+endIdx+"/"+totalItems+" (第 "+roundNum+"/"+totalRounds+" 轮)";
+}
+function matchClick(el,idx){
+  const pair=el.getAttribute('data-pair');
+  if(el.classList.contains("matched"))return;
+  if(!M.sel){el.classList.add("selected");M.sel={el,idx,pair};return;}
+  if(M.sel.el===el){el.classList.remove("selected");M.sel=null;return;}
+  if(M.sel.pair===pair){M.sel.el.classList.remove("selected");el.classList.add("selected");M.sel={el,idx,pair};return;}
+  const first=M.sel;
+  if(first.idx===idx){
+    first.el.classList.remove("selected");
+    first.el.classList.add("matched");
+    el.classList.add("matched");
+    M.sel=null;M.pairs++;S.ok++;playOK();
+    $("so").textContent=S.ok;
+    if(M.pairs>=M.total){
+    const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+    const maxPerRound=10;
+    const nextRound=(S.matchRound||0)+1;
+    const nextStart=nextRound*maxPerRound;
+    if(nextStart<items.length){
+      S.matchRound=nextRound;
+      setTimeout(showMatchQ,600);
+    }else{
+      setTimeout(goNext,600);
+    }
+  }
+    return;
+  }
+  first.el.classList.add("wrong-flash");
+  el.classList.add("wrong-flash");
+  S.err++;playErr();
+  // Determine EN/CN for wrong list
+  var enText = first.pair==="en"?first.el.textContent:el.textContent;
+  var cnText = first.pair==="cn"?first.el.textContent:el.textContent;
+  S.wrongList.push({en:enText,cn:cnText});
+  M.sel=null;
+  $("se").textContent=S.err;
+  setTimeout(()=>{
+    document.querySelectorAll(".wrong-flash").forEach(function(e){
+      e.classList.remove("wrong-flash");
+      e.classList.remove("selected");
+    });
+  },500);
+}
+
+function goNext(){S.q++;showRes();}
+
+function sha(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function nQ(){S.q++;showQ();}
+
+function sh(){
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const qi=S.ord[S.q];const it=items[qi];const mode=MODES[S.m];
+  $("ht").textContent="英文："+it.en;
+  $("ht").style.display="block";$("hb").textContent="已提示 ✓";
+  try{playAudio(it.en)}catch(e){}
+}
+
+function playOK(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sine";o.frequency.value=880;g.gain.setValueAtTime(.25,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.35);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.35)}catch(e){}
+}
+function playErr(){
+  try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();o.type="sawtooth";o.frequency.value=220;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.25);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.25)}catch(e){}
+}
+
+function showRes(){
+  stopTimer();
+  const lv=D[LVS[S.l]];const items=lv.filter(it=>it.cn);
+  const tot=items.length;const acc=tot>0?Math.round(S.ok/tot*100):0;
+  const stars=acc>=80?"★★★":acc>=60?"★★":"★";
+  const msgs=["继续加油！","做得不错！","太棒了！"];
+  $("rt").textContent=acc>=80?msgs[2]:acc>=60?msgs[1]:msgs[0];
+  $("rs").textContent=stars;$("rsc").textContent=S.ok+"/"+tot+" 正确";
+  const elapsedMs=S.elapsed?S.elapsed*1000:0;
+  $("rac").textContent="正确率 "+acc+"%  · 用时 "+fmtTime(elapsedMs);
+  const prog=JSON.parse(localStorage.getItem("vp")||"{}");
+  if(!prog[S.l]||prog[S.l]<S.ok)prog[S.l]=S.ok;
+  localStorage.setItem("vp",JSON.stringify(prog));
+  if(S.elapsed>0){
+    const pbKey="pb_"+S.l+"_"+S.m;
+    const prev=parseInt(localStorage.getItem(pbKey)||"0");
+    if(prev===0||S.elapsed<prev)localStorage.setItem(pbKey,S.elapsed);
+    const pbt=parseInt(localStorage.getItem(pbKey)||"0");
+    if(pbt>0)$("pbBadge").textContent="PB: "+fmtTime(pbt*1000);
+  }
+  let wh="";
+  if(S.wrongList.length>0){
+    wh='<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#f87171;font-size:.9em">❌ 错误单词列表：</span><button onclick="copyWL()" style="background:#252545;border:1px solid #3a3a5a;color:#94a3b8;padding:4px 14px;border-radius:6px;font-size:.82em;cursor:pointer">📋 复制</button></div>';
+    wh+='<div style="max-height:200px;overflow-y:auto;background:#252545;border-radius:8px;padding:12px;text-align:left">';
+    S.wrongList.forEach(it=>{wh+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3a3a5a;font-size:.85em"><span style="color:#e2e8f0">'+esc(it.en)+'</span><span style="color:#94a3b8">'+esc(it.cn)+'</span></div>'});
+    wh+='</div></div>';
+  }
+  $("rmg").innerHTML=wh;$("ov").classList.add("show");
+}
+function retry(){$("ov").classList.remove("show");$("pbBadge").textContent="";$("timerDisplay").textContent="0:00";S.matchRound=0;startL(S.l);}
+function copyWL(){
+  const t=S.wrongList.map(it=>it.en+" - "+it.cn).join("\n");
+  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)}).catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);const b=document.querySelector("#rmg button");b.textContent="✅ 已复制";setTimeout(()=>{b.textContent="📋 复制"},1500)});
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ====== Click word to pronounce ======
+// Handled by $("qw").onclick in showQ()
+// ====== Init ======
+renderLv();
+
+</script>
+
+</body>
+</html>
